@@ -16,17 +16,17 @@ spec:
   - additionalPrinterColumns:
     - description: Final path of the snapshot.
       jsonPath: .status.path
-      name: Path
+      name: PATH
       priority: 0
       type: string
     - description: Timestamp when the snapshot was last created/failed.
       jsonPath: .status.resultTimestamp
-      name: Result Timestamp
+      name: RESULTTIMESTAMP
       priority: 0
       type: string
     - description: Current state of the snapshot.
       jsonPath: .status.state
-      name: Snapshot State
+      name: STATE
       priority: 0
       type: string
     name: v1beta1
@@ -43,8 +43,8 @@ spec:
                 properties:
                   kind:
                     enum:
-                    - FlinkDeployment
-                    - FlinkSessionJob
+                    - FLINK_DEPLOYMENT
+                    - FLINK_SESSION_JOB
                     type: string
                   name:
                     type: string

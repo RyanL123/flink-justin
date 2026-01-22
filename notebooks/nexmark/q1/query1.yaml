@@ -25,7 +25,7 @@ spec:
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: "true"
-    job.autoscaler.justin.enabled: "JUSTIN"
+    job.autoscaler.justin.enabled: "true"
     job.autoscaler.stabilization.interval: "1m"
     job.autoscaler.cache-hit-rate.min.threshold: "0.8"
     job.autoscaler.cache-hit-rate.max.threshold: "0.95"

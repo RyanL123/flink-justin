@@ -16,13 +16,13 @@ spec:
   - additionalPrinterColumns:
     - description: Last observed state of the job.
       jsonPath: .status.jobStatus.state
-      name: Job Status
+      name: STATE
       priority: 0
       type: string
     - description: "Lifecycle state of the Flink resource (including being rolled\
         \ back, failed etc.)."
       jsonPath: .status.lifecycleState
-      name: Lifecycle State
+      name: LIFECYCLESTATE
       priority: 0
       type: string
     name: v1beta1
@@ -61,14 +61,14 @@ spec:
                     type: integer
                   state:
                     enum:
-                    - running
-                    - suspended
+                    - RUNNING
+                    - SUSPENDED
                     type: string
                   upgradeMode:
                     enum:
-                    - last-state
-                    - savepoint
-                    - stateless
+                    - LAST_STATE
+                    - SAVEPOINT
+                    - STATELESS
                     type: string
                 type: object
               restartNonce:
@@ -209,6 +209,7 @@ spec:
                     - RESTARTING
                     - RUNNING
                     - SUSPENDED
+                    - terminalState
                     type: string
                   updateTime:
                     type: string
