@@ -27,6 +27,8 @@ import org.apache.flink.autoscaler.metrics.ScalingMetric;
 import org.apache.flink.autoscaler.resources.NoopResourceCheck;
 import org.apache.flink.autoscaler.resources.ResourceCheck;
 import org.apache.flink.autoscaler.state.AutoScalerStateStore;
+import org.apache.flink.autoscaler.a4s.A4SScalingPolicy;
+import org.apache.flink.autoscaler.a4s.A4SScalingPolicy.A4SDecision;
 import org.apache.flink.autoscaler.topology.JobTopology;
 import org.apache.flink.autoscaler.tuning.MemoryTuning;
 import org.apache.flink.autoscaler.utils.CalendarUtils;
@@ -78,6 +80,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
     private final ResourceCheck resourceCheck;
 
     private final ScalingConfigurations scalingConfigurations;
+    private final A4SScalingPolicy a4sScalingPolicy;
 
     private static final HashMap<JobID, Integer> periods = new HashMap<>();
 
@@ -96,6 +99,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
         this.autoScalerStateStore = autoScalerStateStore;
         this.resourceCheck = resourceCheck != null ? resourceCheck : new NoopResourceCheck();
         this.scalingConfigurations = new ScalingConfigurations();
+        this.a4sScalingPolicy = new A4SScalingPolicy();
     }
 
     public boolean scaleResource(
@@ -564,7 +568,61 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
         }
     }
 
+    /**
+     * Apply scaling policy to determine the final parallelism and memory configuration.
+     *
+     * <p>When A4S is enabled, this uses the A4S co-designed scaling algorithm that
+     * considers memory-parallelism trade-offs for stateful operators. Otherwise,
+     * it falls back to the original Justin policy.
+     */
     private void policy(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
+        boolean useA4S = conf.get(A4S_ENABLED);
+        
+        if (useA4S) {
+            policyA4S(context, scaling, conf);
+        } else {
+            policyJustin(context, scaling, conf);
+        }
+    }
+
+    /**
+     * A4S-based scaling policy using memory-parallelism curves.
+     *
+     * <p>This implements the co-designed scaling and placement strategy from the A4S paper.
+     * The key insight is that for stateful operators, memory and parallelism are correlated -
+     * we can trade one for the other while maintaining target throughput.
+     */
+    private void policyA4S(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
+        LOG.info("A4S: Applying A4S scaling policy for job {}", context.getJobID());
+        
+        scaling.getScaling().forEach((id, information) -> {
+            var previousInformation = scalingConfigurations.getPreviousScalingInformation(
+                    context.getJobID(),
+                    id,
+                    periods.getOrDefault(context.getJobID(), 0));
+
+            // Get target throughput estimate from metrics
+            double targetThroughput = estimateTargetThroughput(information, conf);
+            
+            // Use A4S policy to make the decision
+            A4SDecision decision = a4sScalingPolicy.makeDecision(
+                    information,
+                    previousInformation,
+                    information.getParallelism(),
+                    targetThroughput,
+                    conf);
+
+            LOG.info("A4S: Decision for vertex {}: {}", id, decision);
+
+            // Apply the decision
+            a4sScalingPolicy.applyDecision(information, decision);
+        });
+    }
+
+    /**
+     * Original Justin scaling policy (fallback when A4S is disabled).
+     */
+    private void policyJustin(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
         scaling.getScaling().forEach((id, information) -> {
             var previousInformation =
                     scalingConfigurations.getPreviousScalingInformation(
@@ -643,6 +701,20 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                 }
             }
         });
+    }
+
+    /**
+     * Estimate target throughput for A4S scaling decisions.
+     *
+     * <p>Uses target utilization and current metrics to estimate the required throughput.
+     */
+    private double estimateTargetThroughput(ScalingConfigurations.ScalingInformation info, Configuration conf) {
+        double targetUtilization = conf.get(TARGET_UTILIZATION);
+        double currentThroughput = info.getAvgThroughput();
+        
+        // Target throughput = current throughput / target utilization
+        // This accounts for headroom needed for burst handling
+        return currentThroughput / targetUtilization;
     }
 
     public static void scalingTriggered(JobID jobID) {
