@@ -623,6 +623,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
      * Original Justin scaling policy (fallback when A4S is disabled).
      */
     private void policyJustin(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
+        LOG.info("Justin: Applying Justin scaling policy for job {}", context.getJobID());
         scaling.getScaling().forEach((id, information) -> {
             var previousInformation =
                     scalingConfigurations.getPreviousScalingInformation(

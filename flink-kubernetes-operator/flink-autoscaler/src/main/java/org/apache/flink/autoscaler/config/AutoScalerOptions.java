@@ -135,7 +135,7 @@ public class AutoScalerOptions {
     public static final ConfigOption<Integer> VERTEX_MAX_PARALLELISM =
             autoScalerConfig("vertex.max-parallelism")
                     .intType()
-                    .defaultValue(200)
+                    .defaultValue(24)
                     .withFallbackKeys(oldOperatorConfigKey("vertex.max-parallelism"))
                     .withDescription(
                             "The maximum parallelism the autoscaler can use. Note that this limit will be ignored if it is higher than the max parallelism configured in the Flink config or directly on each operator.");

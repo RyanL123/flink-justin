@@ -107,13 +107,21 @@ public class A4SScalingPolicy {
             double targetThroughput,
             Configuration conf) {
 
-        LOG.info("A4S: Making decision for proposed parallelism={}, target throughput={}", 
-                proposedParallelism, targetThroughput);
+        // Get parallelism limits from configuration
+        int minParallelism = conf.get(VERTEX_MIN_PARALLELISM);
+        int maxParallelism = conf.get(VERTEX_MAX_PARALLELISM);
+        
+        // Clamp proposed parallelism to valid range
+        int clampedProposedParallelism = Math.max(minParallelism, 
+                Math.min(maxParallelism, proposedParallelism));
+
+        LOG.info("A4S: Making decision for proposed parallelism={} (clamped from {}), target throughput={}, maxParallelism={}", 
+                clampedProposedParallelism, proposedParallelism, targetThroughput, maxParallelism);
 
         // Check if this is a stateless operator
         if (currentInfo.getAvgCacheHitRate() == 0.0) {
             LOG.info("A4S: Stateless operator detected, using horizontal scaling only");
-            return new A4SDecision(proposedParallelism, -1, 0, false, true, 
+            return new A4SDecision(clampedProposedParallelism, -1, 0, false, true, 
                     "Stateless operator - horizontal scaling only");
         }
 
@@ -123,7 +131,7 @@ public class A4SScalingPolicy {
 
         // If we have no previous info, this is the first scaling decision
         if (previousInfo == null) {
-            return makeFirstDecision(currentInfo, proposedParallelism, mpc, conf);
+            return makeFirstDecision(currentInfo, clampedProposedParallelism, mpc, conf, maxParallelism);
         }
 
         // Check if the previous decision was effective
@@ -133,10 +141,10 @@ public class A4SScalingPolicy {
 
         if (previousWasVertical) {
             return handlePostVerticalScaling(
-                    currentInfo, previousInfo, proposedParallelism, sawImprovement, mpc, conf);
+                    currentInfo, previousInfo, clampedProposedParallelism, sawImprovement, mpc, conf, maxParallelism);
         } else {
             return handleRegularScaling(
-                    currentInfo, previousInfo, proposedParallelism, mpc, conf);
+                    currentInfo, previousInfo, clampedProposedParallelism, mpc, conf, maxParallelism);
         }
     }
 
@@ -147,9 +155,10 @@ public class A4SScalingPolicy {
             ScalingInformation currentInfo,
             int proposedParallelism,
             MemoryParallelismCurve mpc,
-            Configuration conf) {
+            Configuration conf,
+            int maxParallelism) {
 
-        LOG.info("A4S: Making first scaling decision");
+        LOG.info("A4S: Making first scaling decision (maxParallelism={})", maxParallelism);
 
         double minCacheHitRate = conf.get(MIN_CACHE_HIT_RATE_THRESHOLD);
         double stateLatencyThreshold = conf.get(STATE_ACCESS_LATENCY_THRESHOLD);
@@ -160,12 +169,13 @@ public class A4SScalingPolicy {
 
         if (shouldTryVertical && proposedParallelism > 1) {
             // Try vertical scaling first - increase memory instead of parallelism
-            return selectOptimalFromCurve(mpc, 1, proposedParallelism, conf, 
+            return selectOptimalFromCurve(mpc, 1, Math.min(proposedParallelism, maxParallelism), conf, 
                     "First decision - trying vertical scaling due to low cache hit rate");
         } else {
             // Use horizontal scaling
-            int memoryLevel = estimateMemoryLevelFromCurve(mpc, proposedParallelism);
-            return new A4SDecision(proposedParallelism, memoryLevel, 
+            int clampedParallelism = Math.min(proposedParallelism, maxParallelism);
+            int memoryLevel = estimateMemoryLevelFromCurve(mpc, clampedParallelism);
+            return new A4SDecision(clampedParallelism, memoryLevel, 
                     getMemoryForLevel(memoryLevel), false, true,
                     "First decision - horizontal scaling");
         }
@@ -180,13 +190,18 @@ public class A4SScalingPolicy {
             int proposedParallelism,
             boolean sawImprovement,
             MemoryParallelismCurve mpc,
-            Configuration conf) {
+            Configuration conf,
+            int maxParallelism) {
 
-        LOG.info("A4S: Previous decision was vertical scaling, improvement={}", sawImprovement);
+        LOG.info("A4S: Previous decision was vertical scaling, improvement={}, maxParallelism={}", 
+                sawImprovement, maxParallelism);
 
         int maxMemoryLevel = conf.get(A4S_MAX_MEMORY_LEVEL);
         double maxCacheHitRate = conf.get(MAX_CACHE_HIT_RATE_THRESHOLD);
         double minImprovedThroughput = conf.get(MIN_IMPROVED_THROUGHPUT);
+
+        // Ensure parallelism doesn't exceed max
+        int clampedParallelism = Math.min(proposedParallelism, maxParallelism);
 
         if (sawImprovement) {
             // Vertical scaling helped, check if we should continue
@@ -198,20 +213,21 @@ public class A4SScalingPolicy {
             if (throughputImproved && canStillBenefit && canScaleUp) {
                 LOG.info("A4S: Continuing vertical scaling - still room for improvement");
                 int newMemoryLevel = previousInfo.getMemoryLevel() + 1;
-                return new A4SDecision(previousInfo.getParallelism(), newMemoryLevel,
+                int parallelism = Math.min(previousInfo.getParallelism(), maxParallelism);
+                return new A4SDecision(parallelism, newMemoryLevel,
                         getMemoryForLevel(newMemoryLevel), true, false,
                         "Continuing vertical scaling - throughput improved and cache hit rate below max");
             } else {
                 // Reached optimal memory level, now scale horizontally if needed
                 LOG.info("A4S: Vertical scaling saturated, switching to horizontal");
-                return selectOptimalFromCurve(mpc, proposedParallelism, proposedParallelism, conf,
+                return selectOptimalFromCurve(mpc, clampedParallelism, clampedParallelism, conf,
                         "Vertical scaling saturated - switching to horizontal");
             }
         } else {
             // Vertical scaling didn't help, rollback and try horizontal
             LOG.info("A4S: Vertical scaling didn't help, rolling back");
             int rolledBackLevel = Math.max(0, previousInfo.getMemoryLevel() - 1);
-            return new A4SDecision(proposedParallelism, rolledBackLevel,
+            return new A4SDecision(clampedParallelism, rolledBackLevel,
                     getMemoryForLevel(rolledBackLevel), false, true,
                     "Vertical scaling ineffective - rolling back and scaling horizontally");
         }
@@ -225,9 +241,11 @@ public class A4SScalingPolicy {
             ScalingInformation previousInfo,
             int proposedParallelism,
             MemoryParallelismCurve mpc,
-            Configuration conf) {
+            Configuration conf,
+            int maxParallelism) {
 
-        LOG.info("A4S: Regular scaling decision");
+        LOG.info("A4S: Regular scaling decision (proposedParallelism={}, maxParallelism={})", 
+                proposedParallelism, maxParallelism);
 
         double minCacheHitRate = conf.get(MIN_CACHE_HIT_RATE_THRESHOLD);
         double stateLatencyThreshold = conf.get(STATE_ACCESS_LATENCY_THRESHOLD);
@@ -243,16 +261,20 @@ public class A4SScalingPolicy {
             // Try vertical scaling
             LOG.info("A4S: Indicators suggest vertical scaling would help");
             int newMemoryLevel = previousInfo.getMemoryLevel() + 1;
-            return new A4SDecision(previousInfo.getParallelism(), newMemoryLevel,
+            int parallelism = Math.min(previousInfo.getParallelism(), maxParallelism);
+            return new A4SDecision(parallelism, newMemoryLevel,
                     getMemoryForLevel(newMemoryLevel), true, false,
                     "Vertical scaling - cache hit rate or state latency indicates benefit");
         }
 
         // Use A4S curve to find optimal configuration
-        return selectOptimalFromCurve(mpc, 
-                Math.max(1, proposedParallelism / 2), 
-                proposedParallelism * 2, 
-                conf,
+        // Ensure we don't exceed maxParallelism
+        int minPar = Math.max(1, proposedParallelism / 2);
+        int maxPar = Math.min(proposedParallelism * 2, maxParallelism);
+        
+        LOG.info("A4S: Searching curve with minPar={}, maxPar={}", minPar, maxPar);
+        
+        return selectOptimalFromCurve(mpc, minPar, maxPar, conf,
                 "A4S optimal configuration from memory-parallelism curve");
     }
 
