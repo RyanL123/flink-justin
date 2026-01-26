@@ -170,7 +170,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                             evaluatedMetrics.getVertexMetrics(),
                             scalingSummaries,
                             periods.getOrDefault(context.getJobID(), 0));
-            policy(context, currentScalingConf, conf);
+            policy(context, currentScalingConf, conf, evaluatedMetrics);
             LOG.info(scalingConfigurations.toString());
 
             autoScalerStateStore.storeParallelismOverrides(
@@ -575,11 +575,12 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
      * considers memory-parallelism trade-offs for stateful operators. Otherwise,
      * it falls back to the original Justin policy.
      */
-    private void policy(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
+    private void policy(Context context, ScalingConfigurations.ScalingConfiguration scaling, 
+                        Configuration conf, EvaluatedMetrics evaluatedMetrics) {
         boolean useA4S = conf.get(A4S_ENABLED);
         
         if (useA4S) {
-            policyA4S(context, scaling, conf);
+            policyA4S(context, scaling, conf, evaluatedMetrics);
         } else {
             policyJustin(context, scaling, conf);
         }
@@ -591,30 +592,38 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
      * <p>This implements the co-designed scaling and placement strategy from the A4S paper.
      * The key insight is that for stateful operators, memory and parallelism are correlated -
      * we can trade one for the other while maintaining target throughput.
+     *
+     * <p>The target throughput for each operator is derived from the job's DAG model:
+     * For a non-source operator, its target throughput is computed as the sum of
+     * upstream_target * (R_output / R_input) across all upstream operators, where
+     * R_output and R_input are the output and input rates of each upstream operator.
+     * This propagates throughput requirements through the DAG based on operator selectivity.
      */
-    private void policyA4S(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
+    private void policyA4S(Context context, ScalingConfigurations.ScalingConfiguration scaling, 
+                           Configuration conf, EvaluatedMetrics evaluatedMetrics) {
         LOG.info("A4S: Applying A4S scaling policy for job {}", context.getJobID());
         
+        // Get vertex metrics which contain TARGET_DATA_RATE derived from the DAG model
+        var vertexMetrics = evaluatedMetrics.getVertexMetrics();
+        
         scaling.getScaling().forEach((id, information) -> {
-            var previousInformation = scalingConfigurations.getPreviousScalingInformation(
-                    context.getJobID(),
-                    id,
-                    periods.getOrDefault(context.getJobID(), 0));
+            double targetThroughput = conf.get(TARGET_THROUGHPUT);
+            var metrics = vertexMetrics.get(id);
+            if (metrics != null && metrics.containsKey(ScalingMetric.TARGET_DATA_RATE)) {
+                targetThroughput = metrics.get(ScalingMetric.TARGET_DATA_RATE).getAverage();
+                LOG.info("A4S: Using DAG-derived target throughput {} for vertex {}", 
+                        targetThroughput, id);
+            }
 
-            // Get target throughput estimate from metrics
-            double targetThroughput = estimateTargetThroughput(information, conf);
+            LOG.info("A4S: Current vertex {} information: {}", id, information);
             
-            // Use A4S policy to make the decision
             A4SDecision decision = a4sScalingPolicy.makeDecision(
                     information,
-                    previousInformation,
-                    information.getParallelism(),
                     targetThroughput,
                     conf);
 
             LOG.info("A4S: Decision for vertex {}: {}", id, decision);
 
-            // Apply the decision
             a4sScalingPolicy.applyDecision(information, decision);
         });
     }
@@ -709,12 +718,13 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
      *
      * <p>Uses target utilization and current metrics to estimate the required throughput.
      */
-    private double estimateTargetThroughput(ScalingConfigurations.ScalingInformation info, Configuration conf) {
+    private double estimateTargetThroughput(
+        ScalingConfigurations.ScalingInformation info, Configuration conf
+    ) {
         double targetUtilization = conf.get(TARGET_UTILIZATION);
         double currentThroughput = info.getAvgThroughput();
         
-        // Target throughput = current throughput / target utilization
-        // This accounts for headroom needed for burst handling
+        
         return currentThroughput / targetUtilization;
     }
 

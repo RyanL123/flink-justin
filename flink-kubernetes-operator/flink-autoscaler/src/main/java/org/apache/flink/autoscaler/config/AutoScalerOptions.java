@@ -103,6 +103,13 @@ public class AutoScalerOptions {
                     .withFallbackKeys(oldOperatorConfigKey("target.utilization"))
                     .withDescription("Target vertex utilization");
 
+    public static final ConfigOption<Double> TARGET_THROUGHPUT =
+            autoScalerConfig("target.throughput")
+                    .doubleType()
+                    .defaultValue(1e6)
+                    .withFallbackKeys(oldOperatorConfigKey("target.throughput"))
+                    .withDescription("Target throughput");
+
     public static final ConfigOption<Double> TARGET_UTILIZATION_BOUNDARY =
             autoScalerConfig("target.utilization.boundary")
                     .doubleType()
@@ -424,6 +431,18 @@ public class AutoScalerOptions {
                             "Factor controlling the trade-off between memory and parallelism. "
                                     + "Higher values favor memory scaling over parallelism scaling. "
                                     + "Range: 0.0 (always prefer parallelism) to 1.0 (always prefer memory).");
+
+    public static final ConfigOption<Double> A4S_MEMORY_PARALLELISM_SCALE_FACTOR =
+            autoScalerConfig("a4s.memory-parallelism.scale-factor")
+                    .doubleType()
+                    .defaultValue(0.7)
+                    .withDescription(
+                            "Scale factor for the memory-parallelism relationship. "
+                                    + "Each memory level increase multiplies required parallelism by this factor "
+                                    + "(less parallelism needed with more memory). Each memory level decrease "
+                                    + "multiplies required parallelism by 1/factor (more parallelism needed with "
+                                    + "less memory). Default 0.7 means each memory level up reduces parallelism "
+                                    + "by ~30%.");
 
     public static final ConfigOption<Double> A4S_MIN_THROUGHPUT_IMPROVEMENT =
             autoScalerConfig("a4s.min-throughput-improvement")
