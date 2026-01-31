@@ -70,9 +70,9 @@ public class MemoryParallelismCurveTest {
         // For parallelism 1: maxMissRate = ((1/100) - 0.005) / (0.020 - 0.005) = (0.01 - 0.005) / 0.015 = 0.333
         // For parallelism 2: maxMissRate = ((2/100) - 0.005) / 0.015 = 0.015 / 0.015 = 1.0
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                100.0,  // targetThroughput
-                20.0,   // missLatencyMs
-                5.0,    // hitLatencyMs
+                100.0,  // targetThroughputPerSec
+                0.02,   // missLatencySec
+                0.005,    // hitLatencySec
                 mrc,
                 conf);
 
@@ -90,7 +90,7 @@ public class MemoryParallelismCurveTest {
                 .build();
 
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                1000.0, 20.0, 5.0, mrc, conf);
+                1000.0, 0.02, 0.005, mrc, conf);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -116,8 +116,8 @@ public class MemoryParallelismCurveTest {
         // parallelism 20: (20/1000) = 0.02 > 0.01 => positive miss rate, ok
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 1000.0,  // targetThroughput
-                20.0,    // missLatencyMs
-                10.0,    // hitLatencyMs
+                0.02,    // missLatencySec
+                0.005,    // hitLatencySec
                 mrc,
                 conf);
 
@@ -141,8 +141,8 @@ public class MemoryParallelismCurveTest {
         // High parallelism relative to throughput will give maxMissRate > 1.0
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 10.0,    // Low throughput
-                20.0,    // missLatencyMs
-                5.0,     // hitLatencyMs
+                0.02,    // missLatencySec
+                0.005,     // hitLatencySec
                 mrc,
                 conf);
 
@@ -166,8 +166,8 @@ public class MemoryParallelismCurveTest {
         // Even if not skipped, MRC can't satisfy miss rates below 0.8
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 10000.0,  // Very high throughput
-                10.0,     // missLatencyMs
-                1.0,      // hitLatencyMs
+                0.01,     // missLatencySec
+                0.001,      // hitLatencySec
                 mrc,
                 conf);
 
@@ -194,7 +194,7 @@ public class MemoryParallelismCurveTest {
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 100.0,
                 100.0,
-                10.0,
+                0.01,
                 mrc,
                 conf);
 
@@ -222,7 +222,7 @@ public class MemoryParallelismCurveTest {
                 .build();
 
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                100.0, 20.0, 5.0, mrc, conf);
+                100.0, 0.02, 0.005, mrc, conf);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -236,7 +236,7 @@ public class MemoryParallelismCurveTest {
     @Test
     void testFromMissRateCurve_formulaVerification() {
         // Manually verify the formula for a specific case
-        // maxMissRate = ((parallelism / throughput) - hitLatencyMs) / (missLatencyMs - hitLatencyMs)
+        // maxMissRate = ((parallelism / throughput) - hitLatencySec) / (missLatencySec - hitLatencySec)
 
         // Set up MRC with known miss rates
         MissRateCurve mrc = new MissRateCurve.Builder()
@@ -254,8 +254,8 @@ public class MemoryParallelismCurveTest {
         //   maxMissRate = ((1/100) - 0.01) / 0.01 = (0.01 - 0.01) / 0.01 = 0.0
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 100.0,   // throughput (records/sec)
-                20.0,    // missLatencyMs
-                10.0,    // hitLatencyMs
+                0.02,    // missLatencySec
+                0.005,    // hitLatencySec
                 mrc,
                 conf);
 

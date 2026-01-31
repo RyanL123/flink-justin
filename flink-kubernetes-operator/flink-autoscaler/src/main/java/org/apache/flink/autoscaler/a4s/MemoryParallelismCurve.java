@@ -231,23 +231,23 @@ public class MemoryParallelismCurve {
      * <p>The memory is then derived from the MissRateCurve by finding the cache size
      * that achieves this miss rate.
      *
-     * @param targetThroughput the target throughput in records/sec
-     * @param missLatencyMs the latency (in ms) for a cache miss operation
-     * @param hitLatencyMs the latency (in ms) for a cache hit operation
+     * @param targetThroughputPerSec the target throughput in records/sec
+     * @param missLatencySec the latency (in sec) for a cache miss operation
+     * @param hitLatencySec the latency (in sec) for a cache hit operation
      * @param mrc the MissRateCurve to derive memory requirements from
      * @return a MemoryParallelismCurve
      */
     public static MemoryParallelismCurve fromMissRateCurve(
-            double targetThroughput,
-            double missLatencyMs,
-            double hitLatencyMs,
+            double targetThroughputPerSec,
+            double missLatencySec,
+            double hitLatencySec,
             MissRateCurve mrc,
             Configuration conf) {
-        Builder builder = builder().targetThroughput(targetThroughput);
-        double latencyDiff = missLatencyMs - hitLatencyMs;
+        Builder builder = builder().targetThroughput(targetThroughputPerSec);
+        double latencyDiff = missLatencySec - hitLatencySec;
 
         if (latencyDiff <= 0) {
-            throw new IllegalArgumentException("missLatencyMs (" + missLatencyMs + ") should be greater than hitLatencyMs (" + hitLatencyMs + ")");
+            throw new IllegalArgumentException("missLatencySec (" + missLatencySec + ") should be greater than hitLatencySec (" + hitLatencySec + ")");
         }
 
         int minParallelism = conf.get(AutoScalerOptions.VERTEX_MIN_PARALLELISM);
@@ -256,7 +256,7 @@ public class MemoryParallelismCurve {
         for (int parallelism = minParallelism; parallelism <= maxParallelism; parallelism++) {
             // This is the maximum acceptable miss rate. We need a cache size
             // that achieves this miss rate or lower
-            double maximumMissRate = ((parallelism / targetThroughput) - hitLatencyMs) / latencyDiff;
+            double maximumMissRate = ((parallelism / targetThroughputPerSec) - hitLatencySec) / latencyDiff;
 
             // It's impossible to achieve the desired throughput with the given parallelism and hit latency
             if (maximumMissRate < 0) {
