@@ -18,7 +18,9 @@
 package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
-import org.apache.flink.annotation.VisibleForTesting;
+
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.autoscaler.config.AutoScalerOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +61,9 @@ public class MemoryParallelismCurve {
 
     /**
      * Represents a single point on the memory-parallelism curve.
+     * 
+     * x-axis: parallelism
+     * y-axis: memory in MB
      */
     public static class CurvePoint implements Comparable<CurvePoint> {
         @Getter
@@ -102,54 +107,14 @@ public class MemoryParallelismCurve {
      * Get the minimum memory required for a given parallelism level.
      *
      * @param parallelism the parallelism level
-     * @return the minimum memory in MB, or empty if parallelism is out of range
+     * @return the minimum memory in MB, or empty if no point exists for the given parallelism
      */
-    public Optional<Double> getMemoryForParallelism(int parallelism) {
-        if (parallelism < minParallelism || parallelism > maxParallelism) {
-            return Optional.empty();
-        }
-
-        // Find the point with exact parallelism or interpolate
-        for (int i = 0; i < points.size(); i++) {
-            CurvePoint point = points.get(i);
+    public Optional<Double> getMemoryMbForParallelism(int parallelism) {
+        for (CurvePoint point : points) {
             if (point.getParallelism() == parallelism) {
                 return Optional.of(point.getMemoryMB());
             }
-            if (point.getParallelism() > parallelism && i > 0) {
-                // Interpolate between points[i-1] and points[i]
-                CurvePoint prev = points.get(i - 1);
-                double ratio = (double) (parallelism - prev.getParallelism()) 
-                        / (point.getParallelism() - prev.getParallelism());
-                double memory = prev.getMemoryMB() + ratio * (point.getMemoryMB() - prev.getMemoryMB());
-                return Optional.of(memory);
-            }
         }
-        
-        return Optional.empty();
-    }
-
-    /**
-     * Get the parallelism needed for a given memory constraint.
-     *
-     * @param availableMemoryMB the available memory in MB
-     * @return the minimum parallelism needed, or empty if memory is insufficient
-     */
-    public Optional<Integer> getParallelismForMemory(double availableMemoryMB) {
-        // Find the lowest parallelism where required memory <= available memory
-        for (CurvePoint point : points) {
-            if (point.getMemoryMB() <= availableMemoryMB) {
-                return Optional.of(point.getParallelism());
-            }
-        }
-        
-        // If no point fits, return the highest parallelism (lowest memory requirement)
-        if (!points.isEmpty()) {
-            CurvePoint lastPoint = points.get(points.size() - 1);
-            if (lastPoint.getMemoryMB() <= availableMemoryMB) {
-                return Optional.of(lastPoint.getParallelism());
-            }
-        }
-        
         return Optional.empty();
     }
 
@@ -249,8 +214,73 @@ public class MemoryParallelismCurve {
         }
     }
 
-    @VisibleForTesting
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Create a MemoryParallelismCurve from a MissRateCurve.
+     *
+     * <p>The algorithm calculates, for each parallelism level from 1 to 24, the minimum
+     * memory required to achieve the target throughput. The required miss rate for a given
+     * parallelism is:
+     * <pre>
+     * miss_rate = ((parallelism / targetThroughput) - hitLatencyMs) / (missLatencyMs - hitLatencyMs)
+     * </pre>
+     *
+     * <p>The memory is then derived from the MissRateCurve by finding the cache size
+     * that achieves this miss rate.
+     *
+     * @param targetThroughput the target throughput in records/sec
+     * @param missLatencyMs the latency (in ms) for a cache miss operation
+     * @param hitLatencyMs the latency (in ms) for a cache hit operation
+     * @param mrc the MissRateCurve to derive memory requirements from
+     * @return a MemoryParallelismCurve
+     */
+    public static MemoryParallelismCurve fromMissRateCurve(
+            double targetThroughput,
+            double missLatencyMs,
+            double hitLatencyMs,
+            MissRateCurve mrc,
+            Configuration conf) {
+        Builder builder = builder().targetThroughput(targetThroughput);
+        double latencyDiff = missLatencyMs - hitLatencyMs;
+
+        if (latencyDiff <= 0) {
+            throw new IllegalArgumentException("missLatencyMs (" + missLatencyMs + ") should be greater than hitLatencyMs (" + hitLatencyMs + ")");
+        }
+
+        int minParallelism = conf.get(AutoScalerOptions.VERTEX_MIN_PARALLELISM);
+        int maxParallelism = conf.get(AutoScalerOptions.VERTEX_MAX_PARALLELISM);
+
+        for (int parallelism = minParallelism; parallelism <= maxParallelism; parallelism++) {
+            // This is the maximum acceptable miss rate. We need a cache size
+            // that achieves this miss rate or lower
+            double maximumMissRate = ((parallelism / targetThroughput) - hitLatencyMs) / latencyDiff;
+
+            // It's impossible to achieve the desired throughput with the given parallelism and hit latency
+            if (maximumMissRate < 0) {
+                LOG.debug("Parallelism {} requires negative miss rate {}, skipping", parallelism, maximumMissRate);
+                continue;
+            }
+
+            // Perhaps any level miss rate is acceptable, so we clamp to 1.0
+            if (maximumMissRate > 1.0) {
+                LOG.warn("Parallelism {} has maximum miss rate {}, clamping to 1.0", parallelism, maximumMissRate);
+                maximumMissRate = 1.0;
+            }
+
+            // This is the minimum memory required to achieve the miss rate we want (or less)
+            Optional<Double> memoryMB = mrc.leastMemoryMbForMissRate(maximumMissRate);
+
+            if (memoryMB.isEmpty()) {
+                LOG.warn("Not possible to achieve miss rate {} for parallelism {}, skipping", maximumMissRate, parallelism);
+            }
+            else {
+                builder.addPoint(parallelism, memoryMB.get());
+            }
+        }
+
+        return builder.build();
     }
 }

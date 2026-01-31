@@ -28,6 +28,7 @@ import org.apache.flink.autoscaler.resources.NoopResourceCheck;
 import org.apache.flink.autoscaler.resources.ResourceCheck;
 import org.apache.flink.autoscaler.state.AutoScalerStateStore;
 import org.apache.flink.autoscaler.a4s.A4SScalingPolicy;
+import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
 import org.apache.flink.autoscaler.a4s.A4SScalingPolicy.A4SDecision;
 import org.apache.flink.autoscaler.topology.JobTopology;
 import org.apache.flink.autoscaler.tuning.MemoryTuning;
@@ -50,6 +51,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -599,32 +601,62 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
      * R_output and R_input are the output and input rates of each upstream operator.
      * This propagates throughput requirements through the DAG based on operator selectivity.
      */
-    private void policyA4S(Context context, ScalingConfigurations.ScalingConfiguration scaling, 
-                           Configuration conf, EvaluatedMetrics evaluatedMetrics) {
+    private void policyA4S(
+        Context context, 
+        ScalingConfigurations.ScalingConfiguration scaling, 
+        Configuration conf, 
+        EvaluatedMetrics evaluatedMetrics
+    ) {
         LOG.info("A4S: Applying A4S scaling policy for job {}", context.getJobID());
         
         // Get vertex metrics which contain TARGET_DATA_RATE derived from the DAG model
         var vertexMetrics = evaluatedMetrics.getVertexMetrics();
         
-        scaling.getScaling().forEach((id, information) -> {
-            double targetThroughput = conf.get(TARGET_THROUGHPUT);
-            var metrics = vertexMetrics.get(id);
-            if (metrics != null && metrics.containsKey(ScalingMetric.TARGET_DATA_RATE)) {
-                targetThroughput = metrics.get(ScalingMetric.TARGET_DATA_RATE).getAverage();
-                LOG.info("A4S: Using DAG-derived target throughput {} for vertex {}", 
-                        targetThroughput, id);
-            }
-
+        scaling.getScaling().forEach((id, information) -> {            
             LOG.info("A4S: Current vertex {} information: {}", id, information);
+
+            var metrics = vertexMetrics.get(id);
+            double targetThroughput = metrics.get(ScalingMetric.TARGET_DATA_RATE).getAverage();
+        
+            A4SDecision decision;
+
+            if (information.getAvgCacheHitRate() == 0.0) {
+                LOG.info("A4S: Stateless operator detected, no scaling needed");
+                decision = new A4SDecision(information.getParallelism(), -1, 0, 
+                        "Stateless operator - using proposed parallelism");
+            }
+            else {
+                int currentParallelism = information.getParallelism();
+                double currentThroughput = information.getAvgThroughput();
+                int targetParallelism = (int) Math.ceil((targetThroughput / currentThroughput) * currentParallelism);
+    
+                // MemoryParallelismCurve mpc = evaluatedMetrics.getMemoryParallelismCurves().get(id);
+                MemoryParallelismCurve mpc = A4SScalingPolicy.estimateMemoryParallelismCurve(information, targetThroughput, conf);
+                LOG.info("A4S: MPC for vertex {}: {}", id, mpc);
+    
+                Optional<Double> memoryOpt = mpc.getMemoryMbForParallelism(targetParallelism);
+                if (memoryOpt.isEmpty()) {
+                    LOG.warn("A4S: No memory point found for parallelism {}, using proposed parallelism only", targetParallelism);
+                    decision = new A4SDecision(
+                        targetParallelism,
+                        information.getMemoryLevel(),
+                        0,
+                        "A4S scaling - no memory point found for target parallelism");
+                } else {
+                    double memory = memoryOpt.get();
+                    int level = A4SScalingPolicy.memoryMBToLevel(memory);
+                    decision = new A4SDecision(
+                        targetParallelism, 
+                        level, 
+                        memory, 
+                        "A4S scaling decision based on target throughput and current parallelism");
+                }
+            }
             
-            A4SDecision decision = a4sScalingPolicy.makeDecision(
-                    information,
-                    targetThroughput,
-                    conf);
+            information.setParallelism(decision.getParallelism());
+            information.setMemoryLevel(decision.getMemoryLevel());
 
-            LOG.info("A4S: Decision for vertex {}: {}", id, decision);
-
-            a4sScalingPolicy.applyDecision(information, decision);
+            LOG.info("A4S: Applied decision to scaling info: {}", decision);
         });
     }
 

@@ -30,6 +30,8 @@ import org.apache.flink.autoscaler.utils.AutoScalerUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 
+import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
+import org.apache.flink.autoscaler.a4s.A4SScalingPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +59,7 @@ public class ScalingMetricEvaluator {
             Configuration conf, CollectedMetricHistory collectedMetrics, Duration restartTime) {
         LOG.debug("Restart time used in metrics evaluation: {}", restartTime);
         var scalingOutput = new HashMap<JobVertexID, Map<ScalingMetric, EvaluatedScalingMetric>>();
+        var memoryParallelismCurves = new HashMap<JobVertexID, MemoryParallelismCurve>();
         var metricsHistory = collectedMetrics.getMetricHistory();
         var topology = collectedMetrics.getJobTopology();
 
@@ -73,10 +76,16 @@ public class ScalingMetricEvaluator {
                             vertex,
                             processingBacklog,
                             restartTime));
+            // var metrics = scalingOutput.get(vertex);
+            // double parallelism = metrics.get(ScalingMetric.PARALLELISM).getCurrent();
+            // double memoryMB = metrics.get(ScalingMetric.MEMORY_USAGE).getAverage();
+            // double targetThroughput = metrics.get(ScalingMetric.TARGET_DATA_RATE).getAverage();
+            // var mpc = A4SScalingPolicy.estimateMemoryParallelismCurve(information, targetThroughput, conf);
+            // memoryParallelismCurves.put(vertex, mpc);
         }
 
         var globalMetrics = evaluateGlobalMetrics(metricsHistory);
-        return new EvaluatedMetrics(scalingOutput, globalMetrics);
+        return new EvaluatedMetrics(scalingOutput, globalMetrics, memoryParallelismCurves);
     }
 
     @VisibleForTesting

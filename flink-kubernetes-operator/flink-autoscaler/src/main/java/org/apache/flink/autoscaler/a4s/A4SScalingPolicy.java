@@ -162,7 +162,7 @@ public class A4SScalingPolicy {
      * (more efficient per-task processing due to better cache utilization).
      */
     @VisibleForTesting
-    MemoryParallelismCurve estimateMemoryParallelismCurve(
+    public static MemoryParallelismCurve estimateMemoryParallelismCurve(
             ScalingInformation info,
             double targetThroughput,
             Configuration conf) {
@@ -221,7 +221,7 @@ public class A4SScalingPolicy {
      * Convert memory in MB to the closest discrete memory level.
      */
     @VisibleForTesting
-    int memoryMBToLevel(double memoryMB) {
+    public static int memoryMBToLevel(double memoryMB) {
         // Memory levels are: 0 -> BASE, 1 -> 2*BASE, 2 -> 4*BASE, etc.
         double ratio = memoryMB / BASE_MEMORY_MB;
         

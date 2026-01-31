@@ -17,6 +17,7 @@
 
 package org.apache.flink.autoscaler.metrics;
 
+import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 
 import lombok.AllArgsConstructor;
@@ -32,4 +33,11 @@ import java.util.Map;
 public class EvaluatedMetrics {
     private Map<JobVertexID, Map<ScalingMetric, EvaluatedScalingMetric>> vertexMetrics;
     private Map<ScalingMetric, EvaluatedScalingMetric> globalMetrics;
+    private Map<JobVertexID, MemoryParallelismCurve> memoryParallelismCurves;
+
+    public EvaluatedMetrics(
+        Map<JobVertexID, Map<ScalingMetric, EvaluatedScalingMetric>> vertexMetrics, 
+        Map<ScalingMetric, EvaluatedScalingMetric> globalMetrics) {
+        this(vertexMetrics, globalMetrics, null);
+    }
 }
