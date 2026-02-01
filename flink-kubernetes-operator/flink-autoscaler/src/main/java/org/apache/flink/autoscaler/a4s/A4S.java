@@ -18,7 +18,7 @@
 package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
-import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.autoscaler.ScalingConfigurations;
 import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
 import org.apache.flink.autoscaler.topology.JobTopology;
 import org.apache.flink.configuration.Configuration;
@@ -182,37 +182,24 @@ public class A4S {
     }
 
     /**
-     * Convert memory in MB to the closest discrete memory level.
+     * Convert memory in MB to the nearest discrete memory level, always rounding up.
+     *
+     * <p>The level is capped by {@link ScalingConfigurations#MAX_MEMORY_LEVEL}.
+     * Memory values above MAX_MEMORY_LEVEL are rounded down to MAX_MEMORY_LEVEL.
+     *
+     * @param memoryMB the memory in MB to convert
+     * @return the memory level (0 to MAX_MEMORY_LEVEL)
      */
-    @VisibleForTesting
     public static int memoryMBToLevel(double memoryMB) {
-        // Memory levels are: 0 -> BASE, 1 -> 2*BASE, 2 -> 4*BASE, etc.
-        double ratio = memoryMB / BASE_MEMORY_MB;
-        
-        int level = 0;
-        double threshold = 1.0;
-        
-        for (int l : MEMORY_LEVELS) {
-            double nextThreshold = Math.pow(2, l + 1);
-            if (ratio >= threshold && ratio < nextThreshold) {
-                level = l;
-                break;
-            }
-            threshold = nextThreshold;
-            level = l;
-        }
-        
-        return Math.min(level, MEMORY_LEVELS[MEMORY_LEVELS.length - 1]);
-    }
-
-    /**
-     * Get the memory in MB for a given memory level.
-     */
-    @VisibleForTesting
-    static double getMemoryForLevel(int level) {
-        if (level < 0) {
+        if (memoryMB <= 0) {
             return 0;
         }
-        return BASE_MEMORY_MB * Math.pow(2, level);
+        double ratio = memoryMB / BASE_MEMORY_MB;
+        // Calculate log base 2 and round up to nearest level
+        int level = (int) Math.ceil(Math.log(ratio) / Math.log(2));
+        // Ensure level is at least 0
+        level = Math.max(0, level);
+        // Cap at MAX_MEMORY_LEVEL
+        return Math.min(level, ScalingConfigurations.MAX_MEMORY_LEVEL);
     }
 }
