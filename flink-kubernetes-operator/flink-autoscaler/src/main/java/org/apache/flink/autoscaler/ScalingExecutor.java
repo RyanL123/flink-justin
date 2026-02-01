@@ -27,9 +27,9 @@ import org.apache.flink.autoscaler.metrics.ScalingMetric;
 import org.apache.flink.autoscaler.resources.NoopResourceCheck;
 import org.apache.flink.autoscaler.resources.ResourceCheck;
 import org.apache.flink.autoscaler.state.AutoScalerStateStore;
-import org.apache.flink.autoscaler.a4s.A4SScalingPolicy;
+import org.apache.flink.autoscaler.a4s.A4S;
 import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
-import org.apache.flink.autoscaler.a4s.A4SScalingPolicy.A4SDecision;
+import org.apache.flink.autoscaler.a4s.A4S.Decision;
 import org.apache.flink.autoscaler.topology.JobTopology;
 import org.apache.flink.autoscaler.tuning.MemoryTuning;
 import org.apache.flink.autoscaler.utils.CalendarUtils;
@@ -82,7 +82,6 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
     private final ResourceCheck resourceCheck;
 
     private final ScalingConfigurations scalingConfigurations;
-    private final A4SScalingPolicy a4sScalingPolicy;
 
     private static final HashMap<JobID, Integer> periods = new HashMap<>();
 
@@ -101,7 +100,6 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
         this.autoScalerStateStore = autoScalerStateStore;
         this.resourceCheck = resourceCheck != null ? resourceCheck : new NoopResourceCheck();
         this.scalingConfigurations = new ScalingConfigurations();
-        this.a4sScalingPolicy = new A4SScalingPolicy();
     }
 
     public boolean scaleResource(
@@ -172,7 +170,22 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                             evaluatedMetrics.getVertexMetrics(),
                             scalingSummaries,
                             periods.getOrDefault(context.getJobID(), 0));
-            policy(context, currentScalingConf, conf, evaluatedMetrics);
+            
+            if (conf.get(A4S_ENABLED)) {
+                A4S a4s = new A4S(jobTopology, evaluatedMetrics);
+                Map<JobVertexID, Decision> decisions = a4s.makeDecision(conf);
+
+                // piggy-back off of justin's scaling algorithm for now
+                currentScalingConf.getScaling().forEach((id, information) -> {
+                    information.setParallelism(Optional.ofNullable(decisions.get(id)).map(Decision::getParallelism).orElse(information.getParallelism()));
+                    double memoryMb = Optional.ofNullable(decisions.get(id)).map(Decision::getMemoryMB).orElse(0.0);
+                    int memoryLevel = A4S.memoryMBToLevel(memoryMb);
+                    information.setMemoryLevel(memoryLevel);
+                });
+            } else {
+                policy(context, currentScalingConf, conf);
+            }
+            
             LOG.info(scalingConfigurations.toString());
 
             autoScalerStateStore.storeParallelismOverrides(
@@ -571,99 +584,9 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
     }
 
     /**
-     * Apply scaling policy to determine the final parallelism and memory configuration.
-     *
-     * <p>When A4S is enabled, this uses the A4S co-designed scaling algorithm that
-     * considers memory-parallelism trade-offs for stateful operators. Otherwise,
-     * it falls back to the original Justin policy.
-     */
-    private void policy(Context context, ScalingConfigurations.ScalingConfiguration scaling, 
-                        Configuration conf, EvaluatedMetrics evaluatedMetrics) {
-        boolean useA4S = conf.get(A4S_ENABLED);
-        
-        if (useA4S) {
-            policyA4S(context, scaling, conf, evaluatedMetrics);
-        } else {
-            policyJustin(context, scaling, conf);
-        }
-    }
-
-    /**
-     * A4S-based scaling policy using memory-parallelism curves.
-     *
-     * <p>This implements the co-designed scaling and placement strategy from the A4S paper.
-     * The key insight is that for stateful operators, memory and parallelism are correlated -
-     * we can trade one for the other while maintaining target throughput.
-     *
-     * <p>The target throughput for each operator is derived from the job's DAG model:
-     * For a non-source operator, its target throughput is computed as the sum of
-     * upstream_target * (R_output / R_input) across all upstream operators, where
-     * R_output and R_input are the output and input rates of each upstream operator.
-     * This propagates throughput requirements through the DAG based on operator selectivity.
-     */
-    private void policyA4S(
-        Context context, 
-        ScalingConfigurations.ScalingConfiguration scaling, 
-        Configuration conf, 
-        EvaluatedMetrics evaluatedMetrics
-    ) {
-        LOG.info("A4S: Applying A4S scaling policy for job {}", context.getJobID());
-        
-        // Get vertex metrics which contain TARGET_DATA_RATE derived from the DAG model
-        var vertexMetrics = evaluatedMetrics.getVertexMetrics();
-        
-        scaling.getScaling().forEach((id, information) -> {            
-            LOG.info("A4S: Current vertex {} information: {}", id, information);
-
-            var metrics = vertexMetrics.get(id);
-            double targetThroughput = metrics.get(ScalingMetric.TARGET_DATA_RATE).getAverage();
-        
-            A4SDecision decision;
-
-            if (information.getAvgCacheHitRate() == 0.0) {
-                LOG.info("A4S: Stateless operator detected, no scaling needed");
-                decision = new A4SDecision(information.getParallelism(), -1, 0, 
-                        "Stateless operator - using proposed parallelism");
-            }
-            else {
-                int currentParallelism = information.getParallelism();
-                double currentThroughput = information.getAvgThroughput();
-                int targetParallelism = (int) Math.ceil((targetThroughput / currentThroughput) * currentParallelism);
-    
-                // MemoryParallelismCurve mpc = evaluatedMetrics.getMemoryParallelismCurves().get(id);
-                MemoryParallelismCurve mpc = A4SScalingPolicy.estimateMemoryParallelismCurve(information, targetThroughput, conf);
-                LOG.info("A4S: MPC for vertex {}: {}", id, mpc);
-    
-                Optional<Double> memoryOpt = mpc.getMemoryMbForParallelism(targetParallelism);
-                if (memoryOpt.isEmpty()) {
-                    LOG.warn("A4S: No memory point found for parallelism {}, using proposed parallelism only", targetParallelism);
-                    decision = new A4SDecision(
-                        targetParallelism,
-                        information.getMemoryLevel(),
-                        0,
-                        "A4S scaling - no memory point found for target parallelism");
-                } else {
-                    double memory = memoryOpt.get();
-                    int level = A4SScalingPolicy.memoryMBToLevel(memory);
-                    decision = new A4SDecision(
-                        targetParallelism, 
-                        level, 
-                        memory, 
-                        "A4S scaling decision based on target throughput and current parallelism");
-                }
-            }
-            
-            information.setParallelism(decision.getParallelism());
-            information.setMemoryLevel(decision.getMemoryLevel());
-
-            LOG.info("A4S: Applied decision to scaling info: {}", decision);
-        });
-    }
-
-    /**
      * Original Justin scaling policy (fallback when A4S is disabled).
      */
-    private void policyJustin(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
+    private void policy(Context context, ScalingConfigurations.ScalingConfiguration scaling, Configuration conf) {
         LOG.info("Justin: Applying Justin scaling policy for job {}", context.getJobID());
         scaling.getScaling().forEach((id, information) -> {
             var previousInformation =

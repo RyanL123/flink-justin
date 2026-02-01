@@ -1,0 +1,218 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.flink.autoscaler.a4s;
+
+import lombok.Getter;
+import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
+import org.apache.flink.autoscaler.topology.JobTopology;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.apache.flink.autoscaler.config.AutoScalerOptions.*;
+
+/**
+ * A4S Scaling Policy implementation.
+ *
+ * <p>This class implements the co-designed scaling and placement strategy from the A4S paper.
+ * The key insight is that for stateful operators, memory and parallelism are correlated -
+ * we can trade one for the other while maintaining target throughput.
+ *
+ * <p>The algorithm works by:
+ * 1. Generating/estimating a memory-parallelism curve for the target throughput
+ * 2. Finding valid (memory, parallelism) configurations within resource constraints
+ * 3. Selecting the optimal configuration that minimizes total resource usage
+ * 4. Mapping the continuous memory value to the closest discrete memory level
+ */
+public class A4S {
+
+    private static final Logger LOG = LoggerFactory.getLogger(A4S.class);
+
+    /** Discrete memory levels available (in relative units). */
+    public static final int[] MEMORY_LEVELS = {0, 1, 2, 3};
+
+    /** Base memory size in MB for level 0. */
+    private static final double BASE_MEMORY_MB = 158.0;
+
+    private final EvaluatedMetrics evaluatedMetrics;
+
+    private final List<JobVertexID> operators;
+
+    public A4S(JobTopology jobTopology, EvaluatedMetrics evaluatedMetrics) {
+        this.evaluatedMetrics = evaluatedMetrics;
+        this.operators = jobTopology.getVerticesInTopologicalOrder();
+    }
+
+    public static class Decision {
+        @Getter
+        private final int parallelism;
+        
+        @Getter
+        private final double memoryMB;
+        
+
+        public Decision(int parallelism, double memoryMB) {
+            this.parallelism = parallelism;
+            this.memoryMB = memoryMB;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("A4SDecision[p=%d, mem=%.2fMB]",
+                    parallelism, memoryMB);
+        }
+    }
+
+    /**
+     * Make a scaling decision using the A4S algorithm.
+     */
+    public Map<JobVertexID, Decision> makeDecision(Configuration conf) {
+        int minParallelism = conf.get(VERTEX_MIN_PARALLELISM);
+
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = this.evaluatedMetrics.getMemoryParallelismCurves();
+        Map<JobVertexID, Integer> parallelismForVertex = this.operators.
+            stream().collect(Collectors.toMap(
+                operator -> operator,
+                operator -> Optional.ofNullable(mpcs.get(operator)).map(MemoryParallelismCurve::getMinParallelism).orElse(minParallelism)
+        ));
+        
+        int maxAttempts = 10;
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            LOG.info("A4S: Attempt {} - Making decisions", attempt);
+            Optional<Map<JobVertexID, Decision>> decisions = place(parallelismForVertex, mpcs);
+            if (decisions.isPresent()) {
+                for (Map.Entry<JobVertexID, Decision> entry : decisions.get().entrySet()) {
+                    LOG.info("A4S: Decision for operator {}: {}", entry.getKey(), entry.getValue());
+                }
+                return decisions.get();
+            }
+
+            LOG.info("A4S: No decision can be made, increasing parallelism");
+            Optional<JobVertexID> operator = increaseParallelism(parallelismForVertex, mpcs);
+            if (operator.isPresent()) {
+                int newParallelism = parallelismForVertex.get(operator.get()) + 1;
+                parallelismForVertex.put(operator.get(), newParallelism);
+                LOG.info("A4S: Increasing parallelism for operator {} to {}", operator.get(), newParallelism);
+            } else {
+                LOG.warn("A4S: No operator can increase parallelism");
+                break;
+            }
+        }
+
+        LOG.warn("A4S: No decision can be made for any operator");
+        return Map.of();
+    }
+
+    private Optional<Map<JobVertexID, Decision>> place(
+        Map<JobVertexID, Integer> parallelismForVertex,
+        Map<JobVertexID, MemoryParallelismCurve> memoryParallelismCurves) {
+        Map<JobVertexID, Decision> decisions = new HashMap<>();
+
+        for (JobVertexID operator : operators) {
+            MemoryParallelismCurve mpc = memoryParallelismCurves.get(operator);
+            int parallelism = parallelismForVertex.get(operator);
+
+            if (mpc == null) {
+                LOG.warn("A4S: No memory parallelism curve found for operator {}", operator);
+                continue;
+            }
+
+            Optional<Double> memoryOpt = mpc.getMemoryMbForParallelism(parallelism);
+            if (memoryOpt.isEmpty()) {
+                LOG.warn("A4S: No memory point found for operator {} with parallelism {}, vertex cannot be scaled", operator, parallelism);
+                return Optional.empty();
+            }
+
+            Decision decision = new Decision(parallelism, memoryOpt.get());
+            decisions.put(operator, decision);
+        }
+
+        return Optional.of(decisions);
+    }
+
+    /**
+     * Find an operator whose memory needs decrease most when its parallelism is increased by 1
+     */
+    private Optional<JobVertexID> increaseParallelism(
+        Map<JobVertexID, Integer> parallelismForVertex,
+        Map<JobVertexID, MemoryParallelismCurve> mpcs) {
+
+        double minMemoryDiff = Double.MAX_VALUE;
+        JobVertexID minMemoryDiffOperator = null;
+
+        for (JobVertexID operator : operators) {
+            int parallelism = parallelismForVertex.get(operator);
+            MemoryParallelismCurve mpc = mpcs.get(operator);
+
+            if (parallelism + 1 > mpc.getMaxParallelism()) {
+                continue;
+            }
+            double memoryDiff = mpc.getMemoryMbForParallelism(parallelism + 1).get() - 
+                mpc.getMemoryMbForParallelism(parallelism).get();
+            if (memoryDiff < minMemoryDiff) {
+                minMemoryDiff = memoryDiff;
+                minMemoryDiffOperator = operator;
+            }
+        }
+
+        return Optional.ofNullable(minMemoryDiffOperator);
+    }
+
+    /**
+     * Convert memory in MB to the closest discrete memory level.
+     */
+    @VisibleForTesting
+    public static int memoryMBToLevel(double memoryMB) {
+        // Memory levels are: 0 -> BASE, 1 -> 2*BASE, 2 -> 4*BASE, etc.
+        double ratio = memoryMB / BASE_MEMORY_MB;
+        
+        int level = 0;
+        double threshold = 1.0;
+        
+        for (int l : MEMORY_LEVELS) {
+            double nextThreshold = Math.pow(2, l + 1);
+            if (ratio >= threshold && ratio < nextThreshold) {
+                level = l;
+                break;
+            }
+            threshold = nextThreshold;
+            level = l;
+        }
+        
+        return Math.min(level, MEMORY_LEVELS[MEMORY_LEVELS.length - 1]);
+    }
+
+    /**
+     * Get the memory in MB for a given memory level.
+     */
+    @VisibleForTesting
+    static double getMemoryForLevel(int level) {
+        if (level < 0) {
+            return 0;
+        }
+        return BASE_MEMORY_MB * Math.pow(2, level);
+    }
+}

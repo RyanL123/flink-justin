@@ -31,7 +31,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 
 import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
-import org.apache.flink.autoscaler.a4s.A4SScalingPolicy;
+import org.apache.flink.autoscaler.a4s.A4S;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,6 +145,8 @@ public class ScalingMetricEvaluator {
 
         double busyTimeAvg =
                 computeBusyTimeAvg(conf, metricsHistory, vertex, vertexInfo.getParallelism());
+
+        evaluatedMetrics.put(INPUT_RATE, EvaluatedScalingMetric.avg(inputRateAvg));
         evaluatedMetrics.put(
                 TRUE_PROCESSING_RATE,
                 EvaluatedScalingMetric.avg(
