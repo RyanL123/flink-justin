@@ -143,9 +143,10 @@ public class A4S {
     }
 
     /**
-     * Find an operator whose memory needs decrease most when its parallelism is increased by 1
+     * Find an operator whose memory needs decrease most when its parallelism is increased by 1.
      */
-    private Optional<JobVertexID> increaseParallelism(
+    @VisibleForTesting
+    Optional<JobVertexID> increaseParallelism(
         Map<JobVertexID, Integer> parallelismForVertex,
         Map<JobVertexID, MemoryParallelismCurve> mpcs) {
 

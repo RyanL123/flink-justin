@@ -274,4 +274,145 @@ public class A4STest {
         assertThat(result).isPresent();
         assertThat(result.get()).isEmpty();
     }
+
+    // ==================== Tests for increaseParallelism method ====================
+
+    @Test
+    void testIncreaseParallelism_singleOperator_returnsOperator() {
+        JobVertexID operator1 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // MPC: parallelism 1 -> 800 MB, parallelism 2 -> 500 MB (decrease of 300)
+        MemoryParallelismCurve mpc = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 800.0),
+                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+
+        Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
+        parallelismForVertex.put(operator1, 1);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(operator1, mpc);
+
+        Optional<JobVertexID> result = a4s.increaseParallelism(parallelismForVertex, mpcs);
+
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(operator1);
+    }
+
+    @Test
+    void testIncreaseParallelism_multipleOperators_returnsOperatorWithLargestMemoryDecrease() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // operator1: parallelism 1 -> 800, parallelism 2 -> 700 (decrease of 100)
+        MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 800.0),
+                new MemoryParallelismCurve.CurvePoint(2, 700.0)));
+
+        // operator2: parallelism 1 -> 600, parallelism 2 -> 300 (decrease of 300 - larger)
+        MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 600.0),
+                new MemoryParallelismCurve.CurvePoint(2, 300.0)));
+
+        Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
+        parallelismForVertex.put(operator1, 1);
+        parallelismForVertex.put(operator2, 1);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(
+                operator1, mpc1,
+                operator2, mpc2);
+
+        Optional<JobVertexID> result = a4s.increaseParallelism(parallelismForVertex, mpcs);
+
+        // operator2 has the largest memory decrease (-300 vs -100)
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(operator2);
+    }
+
+    @Test
+    void testIncreaseParallelism_allOperatorsAtMaxParallelism_returnsEmpty() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // Both MPCs have max parallelism of 2
+        MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 800.0),
+                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+        MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 600.0),
+                new MemoryParallelismCurve.CurvePoint(2, 300.0)));
+
+        // Both operators at max parallelism
+        Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
+        parallelismForVertex.put(operator1, 2);
+        parallelismForVertex.put(operator2, 2);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(
+                operator1, mpc1,
+                operator2, mpc2);
+
+        Optional<JobVertexID> result = a4s.increaseParallelism(parallelismForVertex, mpcs);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testIncreaseParallelism_oneOperatorAtMaxParallelism_returnsOther() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // operator1 has max parallelism of 2
+        MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 800.0),
+                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+
+        // operator2 has max parallelism of 4
+        MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 600.0),
+                new MemoryParallelismCurve.CurvePoint(2, 400.0),
+                new MemoryParallelismCurve.CurvePoint(3, 350.0),
+                new MemoryParallelismCurve.CurvePoint(4, 300.0)));
+
+        // operator1 at max, operator2 can still increase
+        Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
+        parallelismForVertex.put(operator1, 2);
+        parallelismForVertex.put(operator2, 2);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(
+                operator1, mpc1,
+                operator2, mpc2);
+
+        Optional<JobVertexID> result = a4s.increaseParallelism(parallelismForVertex, mpcs);
+
+        // Only operator2 can increase parallelism
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(operator2);
+    }
+
+    @Test
+    void testIncreaseParallelism_emptyTopology_returnsEmpty() {
+        JobTopology topology = new JobTopology();
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of();
+
+        Optional<JobVertexID> result = a4s.increaseParallelism(parallelismForVertex, mpcs);
+
+        assertThat(result).isEmpty();
+    }
 }
