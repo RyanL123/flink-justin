@@ -18,8 +18,20 @@
 package org.apache.flink.autoscaler.a4s;
 
 import org.apache.flink.autoscaler.ScalingConfigurations;
+import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
+import org.apache.flink.autoscaler.topology.JobTopology;
+import org.apache.flink.autoscaler.topology.ShipStrategy;
+import org.apache.flink.autoscaler.topology.VertexInfo;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -99,4 +111,167 @@ public class A4STest {
         assertThat(A4S.memoryMBToLevel(8 * BASE_MEMORY_MB)).isEqualTo(2);   // 1264 MB -> capped at 2
     }
 
+    // ==================== Tests for place method ====================
+
+    @ParameterizedTest
+    @CsvSource({
+            "1, 800.0",
+            "2, 500.0",
+            "4, 300.0",
+            "8, 200.0"
+    })
+    void testPlace_mpcWithMultipleParallelismLevels(int parallelism, double expectedMemory) {
+        JobVertexID operator1 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // MPC with multiple parallelism levels
+        MemoryParallelismCurve mpc = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(1, 800.0),
+                new MemoryParallelismCurve.CurvePoint(2, 500.0),
+                new MemoryParallelismCurve.CurvePoint(4, 300.0),
+                new MemoryParallelismCurve.CurvePoint(8, 200.0)));
+
+        Map<JobVertexID, Integer> parallelismForVertex = Map.of(operator1, parallelism);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(operator1, mpc);
+
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().get(operator1).getParallelism()).isEqualTo(parallelism);
+        assertThat(result.get().get(operator1).getMemoryMB()).isEqualTo(expectedMemory);
+    }
+
+    @Test
+    void testPlace_multipleOperatorsWithValidMPCs() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(2, 500.0),
+                new MemoryParallelismCurve.CurvePoint(4, 300.0)));
+        MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(3, 600.0),
+                new MemoryParallelismCurve.CurvePoint(6, 400.0)));
+
+        Map<JobVertexID, Integer> parallelismForVertex = Map.of(
+                operator1, 2,
+                operator2, 3);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(
+                operator1, mpc1,
+                operator2, mpc2);
+
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+
+        assertThat(result).isPresent();
+        assertThat(result.get()).hasSize(2);
+        assertThat(result.get().get(operator1).getParallelism()).isEqualTo(2);
+        assertThat(result.get().get(operator1).getMemoryMB()).isEqualTo(500.0);
+        assertThat(result.get().get(operator2).getParallelism()).isEqualTo(3);
+        assertThat(result.get().get(operator2).getMemoryMB()).isEqualTo(600.0);
+    }
+
+    @Test
+    void testPlace_operatorWithMissingMPC_skipped() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // Only operator2 has an MPC, operator1 is not in the map
+        MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(3, 600.0)));
+
+        Map<JobVertexID, Integer> parallelismForVertex = Map.of(
+                operator1, 2,
+                operator2, 3);
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(operator2, mpc2);
+
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+
+        // Result should be present, but operator1 is skipped
+        assertThat(result).isPresent();
+        assertThat(result.get()).hasSize(1);
+        assertThat(result.get().containsKey(operator1)).isFalse();
+        assertThat(result.get().get(operator2).getParallelism()).isEqualTo(3);
+    }
+
+    @Test
+    void testPlace_oneOperatorFailsPlacement_returnsEmpty() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        // operator1's MPC supports parallelism 2, but operator2's MPC doesn't support parallelism 3
+        MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+        MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
+                new MemoryParallelismCurve.CurvePoint(4, 400.0),
+                new MemoryParallelismCurve.CurvePoint(6, 300.0)));
+
+        Map<JobVertexID, Integer> parallelismForVertex = Map.of(
+                operator1, 2,
+                operator2, 3);  // parallelism 3 not in mpc2
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(
+                operator1, mpc1,
+                operator2, mpc2);
+
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+
+        // Should return empty because operator2 cannot be placed
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testPlace_emptyTopology_returnsEmptyDecisions() {
+        // Create an empty topology (no operators)
+        JobTopology topology = new JobTopology();
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        Map<JobVertexID, Integer> parallelismForVertex = Map.of();
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of();
+
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEmpty();
+    }
+
+    @Test
+    void testPlace_allOperatorsHaveNullMPC_returnsEmptyDecisions() {
+        JobVertexID operator1 = new JobVertexID();
+        JobVertexID operator2 = new JobVertexID();
+        JobTopology topology = new JobTopology(
+                new VertexInfo(operator1, Map.of(), 1, 100),
+                new VertexInfo(operator2, Map.of(operator1, ShipStrategy.REBALANCE), 1, 100));
+
+        A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()));
+
+        Map<JobVertexID, Integer> parallelismForVertex = Map.of(
+                operator1, 2,
+                operator2, 3);
+        // Empty MPC map - all operators have null/missing MPC
+        Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of();
+
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+
+        // All operators skipped, returns empty decisions
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEmpty();
+    }
 }

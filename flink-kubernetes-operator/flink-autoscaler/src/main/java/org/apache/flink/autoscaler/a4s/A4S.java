@@ -18,6 +18,7 @@
 package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
+import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.autoscaler.ScalingConfigurations;
 import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
 import org.apache.flink.autoscaler.topology.JobTopology;
@@ -36,23 +37,10 @@ import static org.apache.flink.autoscaler.config.AutoScalerOptions.*;
 
 /**
  * A4S Scaling Policy implementation.
- *
- * <p>This class implements the co-designed scaling and placement strategy from the A4S paper.
- * The key insight is that for stateful operators, memory and parallelism are correlated -
- * we can trade one for the other while maintaining target throughput.
- *
- * <p>The algorithm works by:
- * 1. Generating/estimating a memory-parallelism curve for the target throughput
- * 2. Finding valid (memory, parallelism) configurations within resource constraints
- * 3. Selecting the optimal configuration that minimizes total resource usage
- * 4. Mapping the continuous memory value to the closest discrete memory level
  */
 public class A4S {
 
     private static final Logger LOG = LoggerFactory.getLogger(A4S.class);
-
-    /** Discrete memory levels available (in relative units). */
-    public static final int[] MEMORY_LEVELS = {0, 1, 2, 3};
 
     /** Base memory size in MB for level 0. */
     private static final double BASE_MEMORY_MB = 158.0;
@@ -126,7 +114,8 @@ public class A4S {
         return Map.of();
     }
 
-    private Optional<Map<JobVertexID, Decision>> place(
+    @VisibleForTesting
+    Optional<Map<JobVertexID, Decision>> place(
         Map<JobVertexID, Integer> parallelismForVertex,
         Map<JobVertexID, MemoryParallelismCurve> memoryParallelismCurves) {
         Map<JobVertexID, Decision> decisions = new HashMap<>();
@@ -195,11 +184,10 @@ public class A4S {
             return 0;
         }
         double ratio = memoryMB / BASE_MEMORY_MB;
+
         // Calculate log base 2 and round up to nearest level
         int level = (int) Math.ceil(Math.log(ratio) / Math.log(2));
-        // Ensure level is at least 0
         level = Math.max(0, level);
-        // Cap at MAX_MEMORY_LEVEL
         return Math.min(level, ScalingConfigurations.MAX_MEMORY_LEVEL);
     }
 }
