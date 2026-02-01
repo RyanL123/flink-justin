@@ -95,18 +95,27 @@ public class ScalingMetricEvaluator {
             var vertexMetrics = scalingOutput.get(vertex);
             int parallelism = (int) vertexMetrics.get(PARALLELISM).getCurrent();
             double targetThroughput = vertexMetrics.get(TARGET_DATA_RATE).getAverage();
+            double currentThroughput = vertexMetrics.get(TRUE_PROCESSING_RATE).getAverage();
 
             // Estimate vertex memory as proportional share of total managed memory
             double vertexMemoryMB = totalParallelism > 0
                     ? (totalManagedMemoryMB * parallelism) / totalParallelism
                     : 0.0;
 
-            if (vertexMemoryMB > 0 && !Double.isNaN(targetThroughput)) {
+            // Scale memory by the ratio of target throughput to current throughput
+            // If target > current, we need more memory; if target < current, we need less
+            double throughputScalingFactor = 1.0;
+            if (!Double.isNaN(currentThroughput) && currentThroughput > 0 && !Double.isInfinite(currentThroughput)) {
+                throughputScalingFactor = targetThroughput / currentThroughput;
+            }
+            double scaledMemoryMB = vertexMemoryMB * throughputScalingFactor;
+
+            if (scaledMemoryMB > 0 && !Double.isNaN(targetThroughput)) {
                 var mpc = generateMemoryParallelismCurveFromHeuristic(
-                        parallelism, vertexMemoryMB, targetThroughput, conf);
+                        parallelism, scaledMemoryMB, targetThroughput, conf);
                 memoryParallelismCurves.put(vertex, mpc);
-                LOG.debug("Generated MPC for vertex {}: parallelism={}, memory={}MB, throughput={}",
-                        vertex, parallelism, vertexMemoryMB, targetThroughput);
+                LOG.debug("Generated MPC for vertex {}: parallelism={}, memory={}MB (scaled from {}MB by factor {}), throughput={}",
+                        vertex, parallelism, scaledMemoryMB, vertexMemoryMB, throughputScalingFactor, targetThroughput);
             }
         }
 
