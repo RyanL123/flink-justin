@@ -92,9 +92,7 @@ public class A4S {
             LOG.info("A4S: Attempt {} - Making decisions", attempt);
             Optional<Map<JobVertexID, Decision>> decisions = place(parallelismForVertex, mpcs);
             if (decisions.isPresent()) {
-                for (Map.Entry<JobVertexID, Decision> entry : decisions.get().entrySet()) {
-                    LOG.info("A4S: Decision for operator {}: {}", entry.getKey(), entry.getValue());
-                }
+                LOG.info("A4S: Decisions: {}", decisions.get());
                 return decisions.get();
             }
 
