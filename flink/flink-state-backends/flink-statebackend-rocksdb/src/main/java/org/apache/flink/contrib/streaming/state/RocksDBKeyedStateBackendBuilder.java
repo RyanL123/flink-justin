@@ -35,6 +35,7 @@ import org.apache.flink.core.fs.CloseableRegistry;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.runtime.query.TaskKvStateRegistry;
 import org.apache.flink.runtime.state.AbstractKeyedStateBackendBuilder;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsProviderRegistration;
 import org.apache.flink.runtime.state.BackendBuildingException;
 import org.apache.flink.runtime.state.CompositeKeySerializationUtils;
 import org.apache.flink.runtime.state.IncrementalKeyedStateHandle;
@@ -62,6 +63,7 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.RocksDB;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -110,6 +112,9 @@ public class RocksDBKeyedStateBackendBuilder<K> extends AbstractKeyedStateBacken
 
     private final MetricGroup metricGroup;
 
+    /** Optional registration for MRC metrics so JobManager can request them via RPC. */
+    @Nullable private final RocksDBMRCMetricsProviderRegistration mrcMetricsProviderRegistration;
+
     /** True if incremental checkpointing is enabled. */
     private boolean enableIncrementalCheckpointing;
 
@@ -143,7 +148,8 @@ public class RocksDBKeyedStateBackendBuilder<K> extends AbstractKeyedStateBacken
             MetricGroup metricGroup,
             @Nonnull Collection<KeyedStateHandle> stateHandles,
             StreamCompressionDecorator keyGroupCompressionDecorator,
-            CloseableRegistry cancelStreamRegistry) {
+            CloseableRegistry cancelStreamRegistry,
+            @Nullable RocksDBMRCMetricsProviderRegistration mrcMetricsProviderRegistration) {
 
         super(
                 kvStateRegistry,
@@ -171,6 +177,7 @@ public class RocksDBKeyedStateBackendBuilder<K> extends AbstractKeyedStateBacken
         this.nativeMetricOptions = new RocksDBNativeMetricOptions();
         this.numberOfTransferingThreads =
                 RocksDBOptions.CHECKPOINT_TRANSFER_THREAD_NUM.defaultValue();
+        this.mrcMetricsProviderRegistration = mrcMetricsProviderRegistration;
     }
 
     @VisibleForTesting
@@ -213,7 +220,8 @@ public class RocksDBKeyedStateBackendBuilder<K> extends AbstractKeyedStateBacken
                 metricGroup,
                 stateHandles,
                 keyGroupCompressionDecorator,
-                cancelStreamRegistry);
+                cancelStreamRegistry,
+                null);
         this.injectedTestDB = injectedTestDB;
         this.injectedDefaultColumnFamilyHandle = injectedDefaultColumnFamilyHandle;
     }
@@ -315,6 +323,18 @@ public class RocksDBKeyedStateBackendBuilder<K> extends AbstractKeyedStateBacken
                                 ? new RocksDBNativeMetricMonitor(
                                         nativeMetricOptions, metricGroup, db, null)
                                 : null;
+                if (mrcMetricsProviderRegistration != null) {
+                    org.rocksdb.Cache sharedCache = optionsContainer.getSharedCache();
+                    if (sharedCache != null) {
+                        try {
+                            sharedCache.getClass().getMethod("getBucketStatistics");
+                            mrcMetricsProviderRegistration.registerRocksDBMRCMetricsProvider(
+                                    new RocksDBMRCMetricsProviderImpl(sharedCache));
+                        } catch (NoSuchMethodException ignored) {
+                            // Stock RocksDB; no MRC provider
+                        }
+                    }
+                }
             } else {
                 prepareDirectories();
                 restoreOperation =
@@ -332,6 +352,19 @@ public class RocksDBKeyedStateBackendBuilder<K> extends AbstractKeyedStateBacken
                     backendUID = restoreResult.getBackendUID();
                     materializedSstFiles = restoreResult.getRestoredSstFiles();
                     lastCompletedCheckpointId = restoreResult.getLastCompletedCheckpointId();
+                }
+                // Register MRC provider for JobManager RPC when cache supports getBucketStatistics
+                if (mrcMetricsProviderRegistration != null) {
+                    org.rocksdb.Cache sharedCache = optionsContainer.getSharedCache();
+                    if (sharedCache != null) {
+                        try {
+                            sharedCache.getClass().getMethod("getBucketStatistics");
+                            mrcMetricsProviderRegistration.registerRocksDBMRCMetricsProvider(
+                                    new RocksDBMRCMetricsProviderImpl(sharedCache));
+                        } catch (NoSuchMethodException ignored) {
+                            // Stock RocksDB; no MRC provider
+                        }
+                    }
                 }
             }
 

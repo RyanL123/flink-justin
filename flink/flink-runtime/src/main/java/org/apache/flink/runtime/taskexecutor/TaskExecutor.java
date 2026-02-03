@@ -100,6 +100,9 @@ import org.apache.flink.runtime.shuffle.ShuffleEnvironment;
 import org.apache.flink.runtime.state.TaskExecutorChannelStateExecutorFactoryManager;
 import org.apache.flink.runtime.state.TaskExecutorLocalStateStoresManager;
 import org.apache.flink.runtime.state.TaskExecutorStateChangelogStoragesManager;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsProvider;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsProviderRegistration;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsSnapshot;
 import org.apache.flink.runtime.state.TaskLocalStateStore;
 import org.apache.flink.runtime.state.TaskStateManager;
 import org.apache.flink.runtime.state.TaskStateManagerImpl;
@@ -162,6 +165,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -290,6 +294,10 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
     private final ThreadInfoSampleService threadInfoSampleService;
 
     private final ShuffleDescriptorsCache shuffleDescriptorsCache;
+
+    /** Per-slot RocksDB MRC metrics providers, for JobManager RPC. */
+    private final Map<AllocationID, RocksDBMRCMetricsProvider> rocksDBMRCMetricsProviders =
+            new ConcurrentHashMap<>();
 
     public TaskExecutor(
             RpcService rpcService,
@@ -790,7 +798,9 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
                             taskMetricGroup,
                             partitionStateChecker,
                             getRpcService().getScheduledExecutor(),
-                            channelStateExecutorFactoryManager.getOrCreateExecutorFactory(jobId));
+                            channelStateExecutorFactoryManager.getOrCreateExecutorFactory(jobId),
+                            new TaskExecutorRocksDBMRCRegistration(
+                                    rocksDBMRCMetricsProviders, tdd.getAllocationId()));
 
             taskMetricGroup.gauge(MetricNames.IS_BACK_PRESSURED, task::isBackPressured);
 
@@ -1348,6 +1358,16 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
                         .getConfiguration()
                         .get(ClusterOptions.THREAD_DUMP_STACKTRACE_MAX_DEPTH);
         return CompletableFuture.completedFuture(ThreadDumpInfo.dumpAndCreate(stacktraceMaxDepth));
+    }
+
+    @Override
+    public CompletableFuture<RocksDBMRCMetricsSnapshot> requestRocksDBMRCMetrics(
+            AllocationID allocationId, Time timeout) {
+        RocksDBMRCMetricsProvider provider = rocksDBMRCMetricsProviders.get(allocationId);
+        if (provider == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return CompletableFuture.completedFuture(provider.getBucketStatisticsSnapshot());
     }
 
     @Override
@@ -2037,6 +2057,7 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
             }
 
             localStateStoresManager.releaseLocalStateForAllocationId(allocationId);
+            rocksDBMRCMetricsProviders.remove(allocationId);
         } else {
             log.debug(
                     "Ignoring the freeing of slot {} because the TaskExecutor is shutting down.",

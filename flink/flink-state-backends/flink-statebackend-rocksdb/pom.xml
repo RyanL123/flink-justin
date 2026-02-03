@@ -36,6 +36,7 @@ under the License.
 	<packaging>jar</packaging>
 
 	<properties>
+		<frocksdb.version>6.20.3-ververica-2.0</frocksdb.version>
 		<surefire.module.config><!--
 			chill ArraysAsListSerializer
 			-->--add-opens=java.base/java.util=ALL-UNNAMED
@@ -63,7 +64,7 @@ under the License.
 		<dependency>
 			<groupId>com.ververica</groupId>
 			<artifactId>frocksdbjni</artifactId>
-			<version>6.20.3-ververica-2.0</version>
+			<version>${frocksdb.version}</version>
 		</dependency>
 
 		<!-- test dependencies -->

@@ -75,6 +75,7 @@ import org.apache.flink.runtime.query.TaskKvStateRegistry;
 import org.apache.flink.runtime.shuffle.ShuffleEnvironment;
 import org.apache.flink.runtime.shuffle.ShuffleIOOwnerContext;
 import org.apache.flink.runtime.state.TaskStateManager;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsProviderRegistration;
 import org.apache.flink.runtime.taskexecutor.GlobalAggregateManager;
 import org.apache.flink.runtime.taskexecutor.KvStateService;
 import org.apache.flink.runtime.taskexecutor.PartitionProducerStateChecker;
@@ -329,7 +330,8 @@ public class Task
             @Nonnull TaskMetricGroup metricGroup,
             PartitionProducerStateChecker partitionProducerStateChecker,
             Executor executor,
-            ChannelStateWriteRequestExecutorFactory channelStateExecutorFactory) {
+            ChannelStateWriteRequestExecutorFactory channelStateExecutorFactory,
+            @Nullable RocksDBMRCMetricsProviderRegistration rocksDBMRCMetricsProviderRegistration) {
 
         Preconditions.checkNotNull(jobInformation);
         Preconditions.checkNotNull(taskInformation);
@@ -388,6 +390,7 @@ public class Task
                 Preconditions.checkNotNull(partitionProducerStateChecker);
         this.executor = Preconditions.checkNotNull(executor);
         this.channelStateExecutorFactory = channelStateExecutorFactory;
+        this.rocksDBMRCMetricsProviderRegistration = rocksDBMRCMetricsProviderRegistration;
 
         // create the reader and writer structures
 
@@ -716,7 +719,8 @@ public class Task
                             this,
                             externalResourceInfoProvider,
                             channelStateExecutorFactory,
-                            taskManagerActions);
+                            taskManagerActions,
+                            rocksDBMRCMetricsProviderRegistration);
 
             // Make sure the user code classloader is accessible thread-locally.
             // We are setting the correct context class loader before instantiating the invokable

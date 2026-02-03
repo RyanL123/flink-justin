@@ -82,6 +82,9 @@ import static org.apache.flink.configuration.description.TextElement.text;
 import static org.apache.flink.contrib.streaming.state.RocksDBConfigurableOptions.RESTORE_OVERLAP_FRACTION_THRESHOLD;
 import static org.apache.flink.contrib.streaming.state.RocksDBConfigurableOptions.WRITE_BATCH_SIZE;
 import static org.apache.flink.contrib.streaming.state.RocksDBOptions.CHECKPOINT_TRANSFER_THREAD_NUM;
+import static org.apache.flink.contrib.streaming.state.RocksDBOptions.MRC_DISTANCE_BUCKETS;
+import static org.apache.flink.contrib.streaming.state.RocksDBOptions.MRC_GHOST_CACHE_CAPACITY_RATIO;
+import static org.apache.flink.contrib.streaming.state.RocksDBOptions.MRC_GHOST_CACHE_ENABLED;
 import static org.apache.flink.contrib.streaming.state.RocksDBOptions.TIMER_SERVICE_FACTORY;
 import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -305,7 +308,15 @@ public class EmbeddedRocksDBStateBackend extends AbstractManagedMemoryStateBacke
                 overlapFractionThreshold >= 0 && this.overlapFractionThreshold <= 1,
                 "Overlap fraction threshold of restoring should be between 0 and 1");
 
-        this.rocksDBMemoryFactory = original.rocksDBMemoryFactory;
+        // Miss-rate curve (MRC) / ghost cache from config
+        if (config.get(MRC_GHOST_CACHE_ENABLED)) {
+            double ratio = config.get(MRC_GHOST_CACHE_CAPACITY_RATIO);
+            long[] buckets = parseDistanceBuckets(config.get(MRC_DISTANCE_BUCKETS));
+            this.rocksDBMemoryFactory =
+                    new RocksDBMRCGhostCacheFactory(true, ratio, buckets);
+        } else {
+            this.rocksDBMemoryFactory = original.rocksDBMemoryFactory;
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -503,7 +514,8 @@ public class EmbeddedRocksDBStateBackend extends AbstractManagedMemoryStateBacke
                                 metricGroup,
                                 stateHandles,
                                 keyGroupCompressionDecorator,
-                                cancelStreamRegistry)
+                                cancelStreamRegistry,
+                                env.getRocksDBMRCMetricsProviderRegistration())
                         .setEnableIncrementalCheckpointing(isIncrementalCheckpointsEnabled())
                         .setNumberOfTransferingThreads(getNumberOfTransferThreads())
                         .setNativeMetricOptions(
@@ -847,6 +859,18 @@ public class EmbeddedRocksDBStateBackend extends AbstractManagedMemoryStateBacke
     /** Set RocksDBMemoryFactory. */
     public void setRocksDBMemoryFactory(RocksDBMemoryFactory rocksDBMemoryFactory) {
         this.rocksDBMemoryFactory = checkNotNull(rocksDBMemoryFactory);
+    }
+
+    private static long[] parseDistanceBuckets(String spec) {
+        if (spec == null || spec.trim().isEmpty()) {
+            return new long[0];
+        }
+        String[] parts = spec.split("[, \t]+");
+        long[] buckets = new long[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            buckets[i] = Long.parseLong(parts[i].trim());
+        }
+        return buckets;
     }
 
     double getOverlapFractionThreshold() {

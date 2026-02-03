@@ -113,7 +113,8 @@ public final class BackendSwitchSpecs {
                             new UnregisteredMetricsGroup(),
                             stateHandles,
                             UncompressedStreamCompressionDecorator.INSTANCE,
-                            new CloseableRegistry())
+                            new CloseableRegistry(),
+                            null)
                     .build();
         }
 

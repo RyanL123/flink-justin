@@ -171,4 +171,37 @@ public class RocksDBOptions {
                                             + "the partitions that are required to perform the index/filter query. "
                                             + "This option only has an effect when '%s' or '%s' are configured.",
                                     USE_MANAGED_MEMORY.key(), FIX_PER_SLOT_MEMORY_SIZE.key()));
+
+    // -------------------------------------------------------------------------
+    // Miss-rate curve (MRC) / ghost cache (requires frocksdb with MRC support)
+    // Internal use: when enabled, MRC data is exposed to JobManager via RPC only.
+    // -------------------------------------------------------------------------
+
+    @Documentation.Section(Documentation.Sections.EXPERT_ROCKSDB)
+    public static final ConfigOption<Boolean> MRC_GHOST_CACHE_ENABLED =
+            ConfigOptions.key("state.backend.rocksdb.mrc.ghost-cache-enabled")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription(
+                            "If true, enables the ghost cache for miss-rate curve (MRC) generation. "
+                                    + "Requires a RocksDB build with MRC support (e.g. capstone frocksdb). "
+                                    + "MRC statistics are available to the JobManager via RPC from the TaskManager.");
+
+    @Documentation.Section(Documentation.Sections.EXPERT_ROCKSDB)
+    public static final ConfigOption<Double> MRC_GHOST_CACHE_CAPACITY_RATIO =
+            ConfigOptions.key("state.backend.rocksdb.mrc.ghost-cache-capacity-ratio")
+                    .doubleType()
+                    .defaultValue(2.0)
+                    .withDescription(
+                            "Ratio of ghost cache capacity to block cache capacity (e.g. 2.0 = ghost cache is 2x block cache). "
+                                    + "Only used when " + MRC_GHOST_CACHE_ENABLED.key() + " is true.");
+
+    @Documentation.Section(Documentation.Sections.EXPERT_ROCKSDB)
+    public static final ConfigOption<String> MRC_DISTANCE_BUCKETS =
+            ConfigOptions.key("state.backend.rocksdb.mrc.distance-buckets")
+                    .stringType()
+                    .defaultValue("1024,4096,16384,65536,262144")
+                    .withDescription(
+                            "Comma-separated cache size boundaries in bytes for MRC buckets (e.g. 1024,4096,16384). "
+                                    + "Only used when " + MRC_GHOST_CACHE_ENABLED.key() + " is true.");
 }

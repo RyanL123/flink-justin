@@ -39,6 +39,7 @@ import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.operators.coordination.OperatorEvent;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerId;
 import org.apache.flink.runtime.rest.messages.LogInfo;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsSnapshot;
 import org.apache.flink.runtime.rest.messages.ThreadDumpInfo;
 import org.apache.flink.runtime.rpc.RpcGateway;
 import org.apache.flink.runtime.rpc.RpcTimeout;
@@ -301,4 +302,16 @@ public interface TaskExecutorGateway
      */
     CompletableFuture<Acknowledge> updateDelegationTokens(
             ResourceManagerId resourceManagerId, byte[] tokens);
+
+    /**
+     * Requests RocksDB MRC (miss-rate curve) bucket statistics for the given slot. Returns a
+     * snapshot of cache sizes, hits, and misses per bucket when the slot has RocksDB with ghost
+     * cache enabled; otherwise returns null.
+     *
+     * @param allocationId slot allocation id
+     * @param timeout timeout for the operation
+     * @return Future snapshot of MRC bucket statistics, or null if not available
+     */
+    CompletableFuture<RocksDBMRCMetricsSnapshot> requestRocksDBMRCMetrics(
+            AllocationID allocationId, @RpcTimeout Time timeout);
 }

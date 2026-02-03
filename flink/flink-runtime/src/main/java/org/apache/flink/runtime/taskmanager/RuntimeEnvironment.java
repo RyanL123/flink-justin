@@ -46,6 +46,7 @@ import org.apache.flink.runtime.metrics.groups.TaskMetricGroup;
 import org.apache.flink.runtime.query.TaskKvStateRegistry;
 import org.apache.flink.runtime.state.CheckpointStorageAccess;
 import org.apache.flink.runtime.state.TaskStateManager;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsProviderRegistration;
 import org.apache.flink.runtime.taskexecutor.GlobalAggregateManager;
 import org.apache.flink.util.UserCodeClassLoader;
 
@@ -103,6 +104,8 @@ public class RuntimeEnvironment implements Environment {
 
     private final TaskManagerActions taskManagerActions;
 
+    @Nullable private final RocksDBMRCMetricsProviderRegistration rocksDBMRCMetricsProviderRegistration;
+
     @Nullable private MailboxExecutor mainMailboxExecutor;
 
     @Nullable private ExecutorService asyncOperationsThreadPool;
@@ -142,7 +145,8 @@ public class RuntimeEnvironment implements Environment {
             Task containingTask,
             ExternalResourceInfoProvider externalResourceInfoProvider,
             ChannelStateWriteRequestExecutorFactory channelStateExecutorFactory,
-            TaskManagerActions taskManagerActions) {
+            TaskManagerActions taskManagerActions,
+            @Nullable RocksDBMRCMetricsProviderRegistration rocksDBMRCMetricsProviderRegistration) {
 
         this.jobId = checkNotNull(jobId);
         this.jobVertexId = checkNotNull(jobVertexId);
@@ -173,6 +177,7 @@ public class RuntimeEnvironment implements Environment {
         this.externalResourceInfoProvider = checkNotNull(externalResourceInfoProvider);
         this.channelStateExecutorFactory = checkNotNull(channelStateExecutorFactory);
         this.taskManagerActions = checkNotNull(taskManagerActions);
+        this.rocksDBMRCMetricsProviderRegistration = rocksDBMRCMetricsProviderRegistration;
     }
 
     // ------------------------------------------------------------------------
@@ -386,5 +391,10 @@ public class RuntimeEnvironment implements Environment {
     @Override
     public ChannelStateWriteRequestExecutorFactory getChannelStateExecutorFactory() {
         return channelStateExecutorFactory;
+    }
+
+    @Override
+    public RocksDBMRCMetricsProviderRegistration getRocksDBMRCMetricsProviderRegistration() {
+        return rocksDBMRCMetricsProviderRegistration;
     }
 }

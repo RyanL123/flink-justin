@@ -46,6 +46,7 @@ import org.apache.flink.runtime.query.TaskKvStateRegistry;
 import org.apache.flink.runtime.state.CheckpointStorageAccess;
 import org.apache.flink.runtime.state.TaskStateManager;
 import org.apache.flink.runtime.state.internal.InternalKvState;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsProviderRegistration;
 import org.apache.flink.runtime.taskexecutor.GlobalAggregateManager;
 import org.apache.flink.runtime.taskmanager.TaskManagerActions;
 import org.apache.flink.runtime.taskmanager.TaskManagerRuntimeInfo;
@@ -267,4 +268,15 @@ public interface Environment {
     }
 
     ChannelStateWriteRequestExecutorFactory getChannelStateExecutorFactory();
+
+    /**
+     * Returns the registration for RocksDB MRC (miss-rate curve) metrics, or null if not available.
+     * When non-null, the RocksDB state backend can register a provider so the JobManager can
+     * request bucket statistics over RPC.
+     *
+     * @return registration callback, or null
+     */
+    default RocksDBMRCMetricsProviderRegistration getRocksDBMRCMetricsProviderRegistration() {
+        return null;
+    }
 }
