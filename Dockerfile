@@ -16,7 +16,28 @@ WORKDIR /app
 
 COPY /flink .
 
-RUN --mount=type=cache,target=/root/.m2 mvn clean install -T 8 -DskipTests -Dspotless.check.skip=true -Drat.skip=true -Dcheckstyle.skip
+ARG FROCKSDBJNI_JAR=frocksdb/java/target/rocksdbjni-6.20.3-linux64.jar
+COPY ${FROCKSDBJNI_JAR} /tmp/rocksdbjni.jar
+
+ARG SKIP_FROCKSDBJNI=false
+
+RUN --mount=type=cache,target=/root/.m2 \
+    if [ "$SKIP_FROCKSDBJNI" = "true" ]; then \
+      mvn clean install -T 8 -DskipTests -Dspotless.check.skip=true -Drat.skip=true -Dcheckstyle.skip; \
+    else \
+      mkdir -p /root/.m2/repository/com/ververica/frocksdbjni/6.20.3-ververica-2.0 && \
+      cp /tmp/rocksdbjni.jar /root/.m2/repository/com/ververica/frocksdbjni/6.20.3-ververica-2.0/frocksdbjni-6.20.3-ververica-2.0.jar && \
+      printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' \
+        '<project xmlns="http://maven.apache.org/POM/4.0.0">' \
+        '  <modelVersion>4.0.0</modelVersion>' \
+        '  <groupId>com.ververica</groupId>' \
+        '  <artifactId>frocksdbjni</artifactId>' \
+        '  <version>6.20.3-ververica-2.0</version>' \
+        '  <packaging>jar</packaging>' \
+        '</project>' \
+        > /root/.m2/repository/com/ververica/frocksdbjni/6.20.3-ververica-2.0/frocksdbjni-6.20.3-ververica-2.0.pom && \
+      mvn clean install -T 8 -DskipTests -Dspotless.check.skip=true -Drat.skip=true -Dcheckstyle.skip; \
+    fi
 
 FROM ghcr.io/apache/flink-docker:1.18-SNAPSHOT-scala_2.12-java11-debian
 
