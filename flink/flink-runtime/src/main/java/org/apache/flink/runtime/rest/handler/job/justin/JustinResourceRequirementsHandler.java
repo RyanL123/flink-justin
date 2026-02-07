@@ -15,7 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.flink.runtime.rest.handler.job.justin;
+
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.rest.handler.AbstractRestHandler;
@@ -28,19 +30,22 @@ import org.apache.flink.runtime.rest.messages.job.justin.JustinResourceRequireme
 import org.apache.flink.runtime.rest.messages.job.justin.JustinResourceRequirementsHeaders;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
+
 import javax.annotation.Nonnull;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
 /**
  * Rest handler for reading current {@link org.apache.flink.runtime.jobgraph.JobResourceRequirements
  * resource requirements} of a given job.
  */
 public class JustinResourceRequirementsHandler
         extends AbstractRestHandler<
-        RestfulGateway,
-        EmptyRequestBody,
-        JustinResourceRequirementsBody,
-        JobMessageParameters> {
+                RestfulGateway,
+                EmptyRequestBody,
+                JustinResourceRequirementsBody,
+                JobMessageParameters> {
     public JustinResourceRequirementsHandler(
             GatewayRetriever<? extends RestfulGateway> leaderRetriever,
             Time timeout,
@@ -51,6 +56,7 @@ public class JustinResourceRequirementsHandler
                 responseHeaders,
                 JustinResourceRequirementsHeaders.INSTANCE);
     }
+
     @Override
     protected CompletableFuture<JustinResourceRequirementsBody> handleRequest(
             @Nonnull HandlerRequest<EmptyRequestBody> request, @Nonnull RestfulGateway gateway)

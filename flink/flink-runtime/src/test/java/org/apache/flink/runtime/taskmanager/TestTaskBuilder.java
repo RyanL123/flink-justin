@@ -227,7 +227,8 @@ public final class TestTaskBuilder {
                 taskMetricGroup,
                 partitionProducerStateChecker,
                 executor,
-                new ChannelStateWriteRequestExecutorFactory(jobId));
+                new ChannelStateWriteRequestExecutorFactory(jobId),
+                null);
     }
 
     public static void setTaskState(Task task, ExecutionState state) {

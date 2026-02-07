@@ -312,8 +312,7 @@ public class EmbeddedRocksDBStateBackend extends AbstractManagedMemoryStateBacke
         if (config.get(MRC_GHOST_CACHE_ENABLED)) {
             double ratio = config.get(MRC_GHOST_CACHE_CAPACITY_RATIO);
             long[] buckets = parseDistanceBuckets(config.get(MRC_DISTANCE_BUCKETS));
-            this.rocksDBMemoryFactory =
-                    new RocksDBMRCGhostCacheFactory(true, ratio, buckets);
+            this.rocksDBMemoryFactory = new RocksDBMRCGhostCacheFactory(true, ratio, buckets);
         } else {
             this.rocksDBMemoryFactory = original.rocksDBMemoryFactory;
         }

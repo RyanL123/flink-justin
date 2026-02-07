@@ -26,9 +26,9 @@ package org.apache.flink.runtime.state.rocksdb;
 public interface RocksDBMRCMetricsProviderRegistration {
 
     /**
-     * Register a provider for the current slot. Called by the RocksDB state backend when it
-     * creates a keyed state backend with MRC/ghost cache enabled. Only one provider per slot
-     * is expected; subsequent registrations may replace the previous one.
+     * Register a provider for the current slot. Called by the RocksDB state backend when it creates
+     * a keyed state backend with MRC/ghost cache enabled. Only one provider per slot is expected;
+     * subsequent registrations may replace the previous one.
      */
     void registerRocksDBMRCMetricsProvider(RocksDBMRCMetricsProvider provider);
 }

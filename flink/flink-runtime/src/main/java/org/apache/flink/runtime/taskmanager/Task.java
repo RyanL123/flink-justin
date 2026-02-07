@@ -267,6 +267,10 @@ public class Task
     /** The factory of channel state write request executor. */
     private final ChannelStateWriteRequestExecutorFactory channelStateExecutorFactory;
 
+    /** Registration for RocksDB MRC metrics provider, if available. */
+    @Nullable
+    private final RocksDBMRCMetricsProviderRegistration rocksDBMRCMetricsProviderRegistration;
+
     // ------------------------------------------------------------------------
     //  Fields that control the task execution. All these fields are volatile
     //  (which means that they introduce memory barriers), to establish

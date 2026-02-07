@@ -40,6 +40,7 @@ import org.apache.flink.runtime.operators.coordination.OperatorEvent;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerId;
 import org.apache.flink.runtime.rest.messages.LogInfo;
 import org.apache.flink.runtime.rest.messages.ThreadDumpInfo;
+import org.apache.flink.runtime.state.rocksdb.RocksDBMRCMetricsSnapshot;
 import org.apache.flink.runtime.webmonitor.threadinfo.ThreadInfoSamplesRequest;
 import org.apache.flink.types.SerializableOptional;
 import org.apache.flink.util.SerializedValue;
@@ -245,5 +246,11 @@ public class TaskExecutorGatewayDecoratorBase implements TaskExecutorGateway {
             Time timeout) {
         return originalGateway.requestThreadInfoSamples(
                 taskExecutionAttemptIds, requestParams, timeout);
+    }
+
+    @Override
+    public CompletableFuture<RocksDBMRCMetricsSnapshot> requestRocksDBMRCMetrics(
+            AllocationID allocationId, Time timeout) {
+        return originalGateway.requestRocksDBMRCMetrics(allocationId, timeout);
     }
 }

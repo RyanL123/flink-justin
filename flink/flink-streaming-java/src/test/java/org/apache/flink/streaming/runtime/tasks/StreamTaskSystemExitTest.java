@@ -207,7 +207,8 @@ public class StreamTaskSystemExitTest extends TestLogger {
                 UnregisteredMetricGroups.createUnregisteredTaskMetricGroup(),
                 mock(PartitionProducerStateChecker.class),
                 Executors.directExecutor(),
-                new ChannelStateWriteRequestExecutorFactory(jobInformation.getJobId()));
+                new ChannelStateWriteRequestExecutorFactory(jobInformation.getJobId()),
+                null);
     }
 
     /** StreamTask emulating system exit behavior from different callback functions. */

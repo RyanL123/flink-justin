@@ -78,18 +78,17 @@ public class JustinSlotAssigner implements SlotAssigner {
                 if (used.contains(slotInfo.getAllocationId())) {
                     continue;
                 }
-                JobVertexID jobVertexID = group
-                        .getContainedExecutionVertices()
-                        .stream()
-                        .findFirst()
-                        .get()
-                        .getJobVertexId();
-                ResourceProfile resourceProfile = jobInformation
-                        .getVertexInformation(jobVertexID)
-                        .getSlotSharingGroup()
-                        .getResourceProfile();
-                LoggerFactory
-                        .getLogger(JustinSlotAssigner.class)
+                JobVertexID jobVertexID =
+                        group.getContainedExecutionVertices().stream()
+                                .findFirst()
+                                .get()
+                                .getJobVertexId();
+                ResourceProfile resourceProfile =
+                        jobInformation
+                                .getVertexInformation(jobVertexID)
+                                .getSlotSharingGroup()
+                                .getResourceProfile();
+                LoggerFactory.getLogger(JustinSlotAssigner.class)
                         .debug(jobVertexID + " -> " + resourceProfile);
                 if (slotInfo.getResourceProfile().isMatching(resourceProfile)) {
                     used.add(slotInfo.getAllocationId());

@@ -41,8 +41,7 @@ public enum NoOpJobGraphWriter implements JobGraphWriter {
 
     @Override
     public void putJustinResourceRequirements(
-            JobID jobId,
-            JustinResourceRequirements justinResourceRequirements) {
+            JobID jobId, JustinResourceRequirements justinResourceRequirements) {
         //
     }
 }

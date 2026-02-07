@@ -2871,7 +2871,8 @@ class CheckpointCoordinatorTest extends TestLogger {
 
     @Test
     void testSharedStateRegistrationOnRestore() throws Exception {
-        for (RestoreMode restoreMode : RestoreMode.values()) {
+        for (RestoreMode restoreMode :
+                new RestoreMode[] {RestoreMode.CLAIM, RestoreMode.NO_CLAIM, RestoreMode.LEGACY}) {
             JobVertexID jobVertexID1 = new JobVertexID();
 
             int parallelism1 = 2;

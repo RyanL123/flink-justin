@@ -255,7 +255,8 @@ public class JvmExitOnFatalErrorTest extends TestLogger {
                                 new NoOpPartitionProducerStateChecker(),
                                 executor,
                                 new ChannelStateWriteRequestExecutorFactory(
-                                        jobInformation.getJobId()));
+                                        jobInformation.getJobId()),
+                                null);
 
                 System.err.println("starting task thread");
 

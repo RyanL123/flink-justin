@@ -270,8 +270,8 @@ public final class RocksDBResourceContainer implements AutoCloseable {
     }
 
     /**
-     * Returns the shared block cache when using shared RocksDB resources, or null otherwise.
-     * Used for MRC (miss-rate curve) metrics when the cache supports getBucketStatistics.
+     * Returns the shared block cache when using shared RocksDB resources, or null otherwise. Used
+     * for MRC (miss-rate curve) metrics when the cache supports getBucketStatistics.
      */
     @Nullable
     public Cache getSharedCache() {

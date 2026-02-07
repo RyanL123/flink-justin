@@ -718,13 +718,9 @@ public class JobManagerOptions {
                                             .build());
 
     public static final ConfigOption<Boolean> SHARED_SLOT =
-            key("jobmanager.shared-slot")
-                    .booleanType()
-                    .defaultValue(false);
+            key("jobmanager.shared-slot").booleanType().defaultValue(false);
     public static final ConfigOption<Boolean> JUSTIN_ENABLED =
-            key("jobmanager.scheduler.justin")
-                    .booleanType()
-                    .defaultValue(false);
+            key("jobmanager.scheduler.justin").booleanType().defaultValue(false);
 
     // ---------------------------------------------------------------------------------------------
 

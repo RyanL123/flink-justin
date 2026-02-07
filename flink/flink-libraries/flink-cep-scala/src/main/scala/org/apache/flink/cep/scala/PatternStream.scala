@@ -20,7 +20,7 @@ package org.apache.flink.cep.scala
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.cep.{PatternFlatSelectFunction, PatternFlatTimeoutFunction, PatternSelectFunction, PatternStream => JPatternStream, PatternTimeoutFunction}
 import org.apache.flink.cep.functions.PatternProcessFunction
-import org.apache.flink.streaming.api.scala.{asScalaStream, _}
+import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
 
 import java.util.{List => JList, Map => JMap, UUID}

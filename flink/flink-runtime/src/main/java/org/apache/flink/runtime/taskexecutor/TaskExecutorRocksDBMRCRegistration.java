@@ -29,7 +29,8 @@ import java.util.Map;
  * task) can register its MRC metrics provider for the slot. The TaskExecutor stores providers by
  * AllocationID and serves them to the JobManager via RPC.
  */
-public final class TaskExecutorRocksDBMRCRegistration implements RocksDBMRCMetricsProviderRegistration {
+public final class TaskExecutorRocksDBMRCRegistration
+        implements RocksDBMRCMetricsProviderRegistration {
 
     private final Map<AllocationID, RocksDBMRCMetricsProvider> providers;
     private final AllocationID allocationId;

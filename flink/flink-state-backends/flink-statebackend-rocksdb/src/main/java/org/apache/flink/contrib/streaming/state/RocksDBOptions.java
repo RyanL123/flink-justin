@@ -194,7 +194,9 @@ public class RocksDBOptions {
                     .defaultValue(2.0)
                     .withDescription(
                             "Ratio of ghost cache capacity to block cache capacity (e.g. 2.0 = ghost cache is 2x block cache). "
-                                    + "Only used when " + MRC_GHOST_CACHE_ENABLED.key() + " is true.");
+                                    + "Only used when "
+                                    + MRC_GHOST_CACHE_ENABLED.key()
+                                    + " is true.");
 
     @Documentation.Section(Documentation.Sections.EXPERT_ROCKSDB)
     public static final ConfigOption<String> MRC_DISTANCE_BUCKETS =
@@ -203,5 +205,7 @@ public class RocksDBOptions {
                     .defaultValue("1024,4096,16384,65536,262144")
                     .withDescription(
                             "Comma-separated cache size boundaries in bytes for MRC buckets (e.g. 1024,4096,16384). "
-                                    + "Only used when " + MRC_GHOST_CACHE_ENABLED.key() + " is true.");
+                                    + "Only used when "
+                                    + MRC_GHOST_CACHE_ENABLED.key()
+                                    + " is true.");
 }

@@ -17,9 +17,9 @@
  */
 package org.apache.flink.cep.scala
 
-import org.apache.flink.cep.{CEP => JCEP, EventComparator}
+import org.apache.flink.cep.scala.{CEP => JCEP, EventComparator}
 import org.apache.flink.cep.scala.pattern.Pattern
-import org.apache.flink.streaming.api.scala.DataStream
+import org.apache.flink.streaming.api.scala._
 
 /**
  * Utility method to transform a [[DataStream]] into a [[PatternStream]] to do CEP.

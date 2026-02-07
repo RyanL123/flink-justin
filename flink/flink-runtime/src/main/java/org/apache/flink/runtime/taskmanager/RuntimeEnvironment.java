@@ -104,7 +104,8 @@ public class RuntimeEnvironment implements Environment {
 
     private final TaskManagerActions taskManagerActions;
 
-    @Nullable private final RocksDBMRCMetricsProviderRegistration rocksDBMRCMetricsProviderRegistration;
+    @Nullable
+    private final RocksDBMRCMetricsProviderRegistration rocksDBMRCMetricsProviderRegistration;
 
     @Nullable private MailboxExecutor mainMailboxExecutor;
 

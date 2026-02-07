@@ -34,7 +34,8 @@ import java.lang.reflect.Method;
  * supports it (e.g. capstone frocksdb with enableGhostCache).
  */
 @Internal
-public class RocksDBMRCGhostCacheFactory implements RocksDBMemoryControllerUtils.RocksDBMemoryFactory {
+public class RocksDBMRCGhostCacheFactory
+        implements RocksDBMemoryControllerUtils.RocksDBMemoryFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBMRCGhostCacheFactory.class);
 
@@ -45,9 +46,7 @@ public class RocksDBMRCGhostCacheFactory implements RocksDBMemoryControllerUtils
     private final long[] distanceBuckets;
 
     public RocksDBMRCGhostCacheFactory(
-            boolean ghostCacheEnabled,
-            double ghostCacheCapacityRatio,
-            long[] distanceBuckets) {
+            boolean ghostCacheEnabled, double ghostCacheCapacityRatio, long[] distanceBuckets) {
         this.ghostCacheEnabled = ghostCacheEnabled;
         this.ghostCacheCapacityRatio = ghostCacheCapacityRatio;
         this.distanceBuckets = distanceBuckets != null ? distanceBuckets.clone() : new long[0];

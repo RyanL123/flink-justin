@@ -276,8 +276,8 @@ public class RocksDBConfigurableOptions implements Serializable {
                                     + "The default value is 'false'. "
                                     + "For more information, please refer to "
                                     + link(
-                                    "https://github.com/facebook/rocksdb/wiki/Direct-IO",
-                                    "RocksDB's doc."));
+                                            "https://github.com/facebook/rocksdb/wiki/Direct-IO",
+                                            "RocksDB's doc."));
     public static final ConfigOption<Boolean> USE_DIRECT_WRITES =
             key("state.backend.rocksdb.use-direct-writes")
                     .booleanType()
@@ -288,8 +288,8 @@ public class RocksDBConfigurableOptions implements Serializable {
                                     + "The default value is 'false'. "
                                     + "For more information, please refer to "
                                     + link(
-                                    "https://github.com/facebook/rocksdb/wiki/Direct-IO",
-                                    "RocksDB's doc."));
+                                            "https://github.com/facebook/rocksdb/wiki/Direct-IO",
+                                            "RocksDB's doc."));
 
     static final ConfigOption<?>[] CANDIDATE_CONFIGS =
             new ConfigOption<?>[] {

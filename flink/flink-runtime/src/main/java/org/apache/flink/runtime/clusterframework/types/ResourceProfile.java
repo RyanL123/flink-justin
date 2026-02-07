@@ -18,10 +18,6 @@
 
 package org.apache.flink.runtime.clusterframework.types;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.operators.ResourceSpec;
 import org.apache.flink.api.common.resources.CPUResource;
@@ -30,6 +26,9 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.MemorySize;
 import org.apache.flink.runtime.externalresource.ExternalResourceUtils;
 import org.apache.flink.util.Preconditions;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -235,7 +234,7 @@ public class ResourceProfile implements Serializable {
      */
     @JsonIgnore
     public MemorySize getTotalMemory() {
-        //throwUnsupportedOperationExceptionIfUnknown();
+        // throwUnsupportedOperationExceptionIfUnknown();
         if (this.equals(UNKNOWN)) {
             return MemorySize.ZERO;
         }
@@ -249,7 +248,7 @@ public class ResourceProfile implements Serializable {
      */
     @JsonIgnore
     public MemorySize getOperatorsMemory() {
-        //throwUnsupportedOperationExceptionIfUnknown();
+        // throwUnsupportedOperationExceptionIfUnknown();
         if (this.equals(UNKNOWN)) {
             return MemorySize.ZERO;
         }
@@ -270,12 +269,12 @@ public class ResourceProfile implements Serializable {
         StackTraceElement[] stElements = Thread.currentThread().getStackTrace();
         if (this.equals(UNKNOWN)
                 && Arrays.stream(stElements)
-                .noneMatch(
-                        stackTraceElement ->
-                                stackTraceElement
-                                        .getClassName()
-                                        .equals(
-                                                "org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper"))) {
+                        .noneMatch(
+                                stackTraceElement ->
+                                        stackTraceElement
+                                                .getClassName()
+                                                .equals(
+                                                        "org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper"))) {
             throw new UnsupportedOperationException();
         }
     }

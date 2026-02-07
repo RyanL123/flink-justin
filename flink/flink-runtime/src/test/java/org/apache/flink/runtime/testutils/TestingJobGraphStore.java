@@ -133,10 +133,7 @@ public class TestingJobGraphStore implements JobGraphStore {
 
     @Override
     public void putJustinResourceRequirements(
-            JobID jobId,
-            JustinResourceRequirements justinResourceRequirements) throws Exception {
-
-    }
+            JobID jobId, JustinResourceRequirements justinResourceRequirements) throws Exception {}
 
     @Override
     public synchronized CompletableFuture<Void> globalCleanupAsync(JobID jobId, Executor executor) {

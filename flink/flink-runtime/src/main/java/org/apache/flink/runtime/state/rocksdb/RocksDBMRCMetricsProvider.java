@@ -22,8 +22,8 @@ import java.io.Serializable;
 
 /**
  * Provider of RocksDB MRC (miss-rate curve) bucket statistics for a slot. Implemented by the
- * RocksDB state backend when ghost cache is enabled; the TaskManager holds registered providers
- * and returns snapshots to the JobManager over RPC.
+ * RocksDB state backend when ghost cache is enabled; the TaskManager holds registered providers and
+ * returns snapshots to the JobManager over RPC.
  */
 public interface RocksDBMRCMetricsProvider extends Serializable {
 

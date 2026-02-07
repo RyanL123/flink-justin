@@ -55,7 +55,6 @@ public class StandaloneJobGraphStore implements JobGraphStore {
         // Nothing to do
     }
 
-
     @Override
     public void putJustinResourceRequirements(
             JobID jobId, JustinResourceRequirements justinResourceRequirements) {

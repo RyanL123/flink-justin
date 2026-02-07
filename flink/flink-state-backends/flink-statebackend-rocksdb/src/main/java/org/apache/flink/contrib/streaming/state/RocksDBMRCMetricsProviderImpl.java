@@ -77,8 +77,8 @@ public final class RocksDBMRCMetricsProviderImpl implements RocksDBMRCMetricsPro
         }
     }
 
-    private static long[] copyLongArray(Object stats, Class<?> statsClass, String getterName, int len)
-            throws Exception {
+    private static long[] copyLongArray(
+            Object stats, Class<?> statsClass, String getterName, int len) throws Exception {
         Method m = statsClass.getMethod(getterName);
         long[] arr = (long[]) m.invoke(stats);
         if (arr == null || arr.length < len) {

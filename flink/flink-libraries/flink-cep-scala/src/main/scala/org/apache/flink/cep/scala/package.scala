@@ -18,7 +18,7 @@
 package org.apache.flink.cep
 
 import org.apache.flink.api.scala.ClosureCleaner
-import org.apache.flink.cep.{PatternStream => JPatternStream}
+import org.apache.flink.cep.scala.{PatternStream => JPatternStream}
 
 import java.util.{List => JList, Map => JMap}
 

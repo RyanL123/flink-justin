@@ -220,7 +220,8 @@ public class TaskAsyncCallTest extends TestLogger {
                 taskMetricGroup,
                 partitionProducerStateChecker,
                 executor,
-                new ChannelStateWriteRequestExecutorFactory(jobInformation.getJobId()));
+                new ChannelStateWriteRequestExecutorFactory(jobInformation.getJobId()),
+                null);
     }
 
     /** Invokable for testing checkpoints. */
