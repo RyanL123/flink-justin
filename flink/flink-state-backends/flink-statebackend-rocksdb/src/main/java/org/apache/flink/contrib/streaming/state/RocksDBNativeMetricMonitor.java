@@ -22,6 +22,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.View;
+import org.apache.flink.runtime.metrics.dump.StackDistanceHistogramProvider;
 
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.RocksDB;
@@ -72,6 +73,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
         this.statistics = statistics;
         this.lock = new Object();
         registerStatistics();
+        registerStackDistanceHistogram();
     }
 
     /** Register gauges to pull native metrics for the database. */
@@ -82,6 +84,21 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                         String.format("rocksdb.%s", tickerType.name().toLowerCase()),
                         new RocksDBNativeStatisticsMetricView(tickerType));
             }
+        }
+    }
+
+    /**
+     * Registers the stack distance histogram metric if enabled. The histogram is registered as a
+     * Gauge so it flows through the standard metric registration path, but the {@link
+     * MetricQueryService} routes it to a dedicated map because it also implements {@link
+     * StackDistanceHistogramProvider}.
+     */
+    private void registerStackDistanceHistogram() {
+        if (options.isStackDistanceHistogramEnabled()) {
+            LOG.info("Registering stack distance histogram metric for RocksDB.");
+            metricGroup.gauge(
+                    "rocksdb.stack-distance-histogram",
+                    new RocksDBStackDistanceHistogramView());
         }
     }
 
@@ -229,6 +246,67 @@ public class RocksDBNativeMetricMonitor implements Closeable {
         @Override
         public void update() {
             setStatistics(this);
+        }
+    }
+
+    /**
+     * A stack distance histogram metric that fetches bucket counts from RocksDB on demand. It
+     * implements both {@link StackDistanceHistogramProvider} (for the on-demand pull via {@link
+     * MetricQueryService}) and {@link Gauge} (so it can be registered through the standard {@code
+     * metricGroup.gauge()} path).
+     *
+     * <p>The bucket boundaries are fixed power-of-2 constants. The {@link
+     * MetricQueryService#addMetric} method checks for {@code StackDistanceHistogramProvider} before
+     * {@code Gauge}, so this metric is routed to the dedicated stack distance histogram map rather
+     * than the gauges map.
+     */
+    class RocksDBStackDistanceHistogramView
+            implements StackDistanceHistogramProvider, Gauge<String> {
+
+        private final long[] bucketBoundaries = {
+            1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+        };
+
+        @Override
+        public long[] fetchBucketCounts() {
+            synchronized (lock) {
+                if (rocksDB == null) {
+                    LOG.debug(
+                            "RocksDB reference is null, returning empty stack distance histogram.");
+                    return new long[bucketBoundaries.length + 1];
+                }
+                LOG.debug("Fetching stack distance histogram from RocksDB.");
+                // TODO: Replace with actual RocksDB JNI call to fetch stack distance histogram
+                // For now, return a zeroed array as a stub
+                return new long[bucketBoundaries.length + 1];
+            }
+        }
+
+        @Override
+        public long[] getBucketBoundaries() {
+            return bucketBoundaries;
+        }
+
+        @Override
+        public String getValue() {
+            long[] counts = fetchBucketCounts();
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\"boundaries\":[");
+            for (int i = 0; i < bucketBoundaries.length; i++) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(bucketBoundaries[i]);
+            }
+            sb.append("],\"counts\":[");
+            for (int i = 0; i < counts.length; i++) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(counts[i]);
+            }
+            sb.append("]}");
+            return sb.toString();
         }
     }
 }

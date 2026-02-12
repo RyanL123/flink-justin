@@ -47,6 +47,7 @@ import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_C
 import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_GAUGE;
 import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_HISTOGRAM;
 import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_METER;
+import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM;
 import static org.apache.flink.runtime.metrics.dump.QueryScopeInfo.INFO_CATEGORY_JM;
 import static org.apache.flink.runtime.metrics.dump.QueryScopeInfo.INFO_CATEGORY_JM_OPERATOR;
 import static org.apache.flink.runtime.metrics.dump.QueryScopeInfo.INFO_CATEGORY_JOB;
@@ -454,7 +455,32 @@ public class MetricStore {
                 MetricDump.MeterDump meter = (MetricDump.MeterDump) metric;
                 target.put(name, String.valueOf(meter.rate));
                 break;
+            case METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM:
+                MetricDump.StackDistanceHistogramDump sdHistogram =
+                        (MetricDump.StackDistanceHistogramDump) metric;
+                target.put(name, toJson(sdHistogram.bucketBoundaries, sdHistogram.bucketCounts));
+                break;
         }
+    }
+
+    private static String toJson(long[] boundaries, long[] counts) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"boundaries\":[");
+        for (int i = 0; i < boundaries.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(boundaries[i]);
+        }
+        sb.append("],\"counts\":[");
+        for (int i = 0; i < counts.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(counts[i]);
+        }
+        sb.append("]}");
+        return sb.toString();
     }
 
     private static boolean isTransientMetric(String fullMetricName) {

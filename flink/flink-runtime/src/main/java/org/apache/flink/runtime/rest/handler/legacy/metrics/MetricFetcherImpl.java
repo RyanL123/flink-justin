@@ -26,7 +26,10 @@ import org.apache.flink.configuration.WebOptions;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails;
 import org.apache.flink.runtime.messages.webmonitor.MultipleJobsDetails;
+import org.apache.flink.runtime.metrics.dump.MetricDump;
 import org.apache.flink.runtime.metrics.dump.MetricDumpSerialization;
+import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
+import org.apache.flink.runtime.metrics.dump.StackDistanceHistogramResult;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceGateway;
@@ -42,7 +45,9 @@ import javax.annotation.concurrent.GuardedBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -254,14 +259,91 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
             final MetricQueryServiceGateway queryServiceGateway) {
         LOG.debug("Query metrics for {}.", queryServiceGateway.getAddress());
 
-        return queryServiceGateway
-                .queryMetrics(timeout)
-                .thenComposeAsync(
-                        (MetricDumpSerialization.MetricSerializationResult result) -> {
-                            metrics.addAll(deserializer.deserialize(result));
-                            return FutureUtils.completedVoidFuture();
-                        },
-                        executor);
+        CompletableFuture<Void> regularMetrics =
+                queryServiceGateway
+                        .queryMetrics(timeout)
+                        .thenComposeAsync(
+                                (MetricDumpSerialization.MetricSerializationResult result) -> {
+                                    metrics.addAll(deserializer.deserialize(result));
+                                    return FutureUtils.completedVoidFuture();
+                                },
+                                executor);
+
+        CompletableFuture<Void> sdHistograms =
+                queryServiceGateway
+                        .queryStackDistanceHistograms(timeout)
+                        .thenComposeAsync(
+                                (List<StackDistanceHistogramResult> results) -> {
+                                    LOG.debug(
+                                            "Received {} stack distance histogram results from {}.",
+                                            results.size(),
+                                            queryServiceGateway.getAddress());
+                                    aggregateAndStoreStackDistanceHistograms(results);
+                                    return FutureUtils.completedVoidFuture();
+                                },
+                                executor)
+                        .exceptionally(
+                                throwable -> {
+                                    LOG.debug(
+                                            "Failed to fetch stack distance histograms from {}.",
+                                            queryServiceGateway.getAddress(),
+                                            throwable);
+                                    return null;
+                                });
+
+        return FutureUtils.waitForAll(java.util.Arrays.asList(regularMetrics, sdHistograms));
+    }
+
+    /**
+     * Aggregates stack distance histogram results by summing bucket counts element-wise for
+     * histograms sharing the same metric name, then stores them in the MetricStore.
+     */
+    private void aggregateAndStoreStackDistanceHistograms(
+            List<StackDistanceHistogramResult> results) {
+        if (results.isEmpty()) {
+            LOG.debug("No stack distance histogram results to aggregate.");
+            return;
+        }
+
+        // Group by metric name and aggregate bucket counts element-wise
+        Map<String, long[]> aggregatedCounts = new HashMap<>();
+        Map<String, long[]> boundariesByName = new HashMap<>();
+        Map<String, QueryScopeInfo> scopeByName = new HashMap<>();
+
+        for (StackDistanceHistogramResult result : results) {
+            String name = result.getName();
+            long[] counts = result.getBucketCounts();
+            long[] boundaries = result.getBucketBoundaries();
+
+            if (!aggregatedCounts.containsKey(name)) {
+                aggregatedCounts.put(name, counts.clone());
+                boundariesByName.put(name, boundaries);
+                scopeByName.put(name, result.getScopeInfo());
+            } else {
+                long[] existing = aggregatedCounts.get(name);
+                for (int i = 0; i < Math.min(existing.length, counts.length); i++) {
+                    existing[i] += counts[i];
+                }
+            }
+        }
+
+        // Store aggregated results in MetricStore
+        List<MetricDump> dumps = new ArrayList<>();
+        for (Map.Entry<String, long[]> entry : aggregatedCounts.entrySet()) {
+            String name = entry.getKey();
+            dumps.add(
+                    new MetricDump.StackDistanceHistogramDump(
+                            scopeByName.get(name),
+                            name,
+                            boundariesByName.get(name),
+                            entry.getValue()));
+        }
+        LOG.debug(
+                "Aggregated {} stack distance histograms from {} results into {} distinct metrics.",
+                results.size(),
+                results.size(),
+                dumps.size());
+        metrics.addAll(dumps);
     }
 
     @Nonnull
