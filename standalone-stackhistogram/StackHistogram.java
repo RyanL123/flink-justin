@@ -5,6 +5,8 @@
  * Implements stack distance histogram merging logic.
  */
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -163,7 +165,7 @@ public class StackHistogram {
      * @throws IllegalArgumentException if histograms have different configurations
      */
     public StackHistogram merge(StackHistogram other) {
-        return merge(List.of(this, other));
+        return merge(Arrays.asList(this, other));
     }
 
     /**

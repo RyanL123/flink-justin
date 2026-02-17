@@ -33,6 +33,8 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>.</sourceDirectory>
+        <testSourceDirectory>.</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -42,11 +44,31 @@
                     <source>8</source>
                     <target>8</target>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/StackHistogram.java</include>
+                                <include>**/QuickMRC.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0</version>
+                <configuration>
+                    <includes>
+                        <include>**/QuickMRCTest.java</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
