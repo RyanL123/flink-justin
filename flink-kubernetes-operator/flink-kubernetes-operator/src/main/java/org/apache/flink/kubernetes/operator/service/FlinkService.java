@@ -125,6 +125,14 @@ public interface FlinkService {
     Map<String, String> getMetrics(Configuration conf, String jobId, List<String> metricNames)
             throws Exception;
 
+    /**
+     * Verifies that the operator can call the A4S metrics REST endpoint exposed by the Flink
+     * JobManager. Fetches job details, selects the first vertex, and calls the A4S metrics
+     * endpoint. Logs success or failure but does not throw. Used to ensure connectivity between
+     * the operator and the A4S metrics API in flink-runtime.
+     */
+    void ensureA4SMetricsConnectivity(Configuration conf, String jobId);
+
     RestClusterClient<String> getClusterClient(Configuration conf) throws Exception;
 
     /** Result of a cancel operation. */
