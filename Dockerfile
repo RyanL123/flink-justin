@@ -14,9 +14,17 @@ ARG HTTP_CLIENT=okhttp
 
 WORKDIR /app
 
+COPY /custom-libs/rocksdbjni-6.20.3-linux64.jar /tmp/rocksdbjni-6.20.3-custom.jar
 COPY /flink .
 
-RUN --mount=type=cache,target=/root/.m2 mvn clean install -T 8 -DskipTests -Dspotless.check.skip=true -Drat.skip=true -Dcheckstyle.skip
+RUN --mount=type=cache,target=/root/.m2 \
+  mvn install:install-file \
+    -Dfile=/tmp/rocksdbjni-6.20.3-custom.jar \
+    -DgroupId=org.rocksdb \
+    -DartifactId=frocksdbjni \
+    -Dversion=6.20.3-custom \
+    -Dpackaging=jar && \
+  mvn clean install -T 8 -DskipTests -Dspotless.check.skip=true -Drat.skip=true -Dcheckstyle.skip
 
 FROM ghcr.io/apache/flink-docker:1.18-SNAPSHOT-scala_2.12-java11-debian
 
