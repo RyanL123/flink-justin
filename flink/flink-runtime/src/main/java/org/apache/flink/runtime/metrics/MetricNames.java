@@ -127,4 +127,19 @@ public class MetricNames {
 
     // FLIP-27 for split enumerator
     public static final String UNASSIGNED_SPLITS = "unassignedSplits";
+
+    // A4S metrics for Memory Parallelism Curves
+    public static final String VERTEX_PARALLELISM = "parallelism";
+    public static final String VERTEX_MAX_PARALLELISM = "maxParallelism";
+    public static final String VERTEX_RESOURCE_PROFILE_TASK_HEAP_MEMORY = "resourceProfile.taskHeapMemory";
+    public static final String VERTEX_RESOURCE_PROFILE_TASK_OFF_HEAP_MEMORY = "resourceProfile.taskOffHeapMemory";
+    public static final String VERTEX_RESOURCE_PROFILE_MANAGED_MEMORY = "resourceProfile.managedMemory";
+    public static final String VERTEX_RESOURCE_PROFILE_NETWORK_MEMORY = "resourceProfile.networkMemory";
+    public static final String VERTEX_RESOURCE_PROFILE_TOTAL_MEMORY = "resourceProfile.totalMemory";
+    public static final String VERTEX_RESOURCE_PROFILE_OPERATORS_MEMORY = "resourceProfile.operatorsMemory";
+
+    // Task memory consumption metrics
+    public static final String TASK_MEMORY_HEAP_USED = "memory.heap.used";
+    public static final String TASK_MEMORY_MANAGED_USED = "memory.managed.used";
+    public static final String TASK_MEMORY_TOTAL_USED = "memory.total.used";
 }
