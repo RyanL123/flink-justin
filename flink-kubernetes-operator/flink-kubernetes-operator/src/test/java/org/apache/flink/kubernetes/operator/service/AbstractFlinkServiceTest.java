@@ -32,6 +32,7 @@ import org.apache.flink.core.execution.SavepointFormatType;
 import org.apache.flink.kubernetes.configuration.KubernetesConfigOptions;
 import org.apache.flink.kubernetes.operator.TestUtils;
 import org.apache.flink.kubernetes.operator.TestingClusterClient;
+import org.apache.flink.kubernetes.operator.TestingFlinkService;
 import org.apache.flink.kubernetes.operator.TestingRestClient;
 import org.apache.flink.kubernetes.operator.api.FlinkDeployment;
 import org.apache.flink.kubernetes.operator.api.spec.FlinkVersion;
@@ -962,6 +963,14 @@ public class AbstractFlinkServiceTest {
         assertEquals(
                 Map.of("m1", "m1", "m2", "m2"),
                 flinkService.getMetrics(configuration, jobId.toHexString(), metricNames));
+    }
+
+    @Test
+    public void ensureA4SMetricsConnectivityTest() {
+        var flinkService = new TestingFlinkService(client);
+        var jobId = JobID.generate().toHexString();
+        assertDoesNotThrow(
+                () -> flinkService.ensureA4SMetricsConnectivity(configuration, jobId));
     }
 
     @Test
