@@ -24,7 +24,10 @@ import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.View;
 import org.apache.flink.runtime.metrics.dump.StackDistanceHistogramProvider;
 
+import org.rocksdb.BucketStatistics;
+import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.LRUCache;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.Statistics;
@@ -62,15 +65,19 @@ public class RocksDBNativeMetricMonitor implements Closeable {
     @GuardedBy("lock")
     private Statistics statistics;
 
+    @Nullable private final LRUCache lruCache;
+
     public RocksDBNativeMetricMonitor(
             @Nonnull RocksDBNativeMetricOptions options,
             @Nonnull MetricGroup metricGroup,
             @Nonnull RocksDB rocksDB,
-            @Nullable Statistics statistics) {
+            @Nullable Statistics statistics,
+            @Nullable Cache blockCache) {
         this.options = options;
         this.metricGroup = metricGroup;
         this.rocksDB = rocksDB;
         this.statistics = statistics;
+        this.lruCache = (blockCache instanceof LRUCache) ? (LRUCache) blockCache : null;
         this.lock = new Object();
         registerStatistics();
         registerStackDistanceHistogram();
@@ -96,9 +103,17 @@ public class RocksDBNativeMetricMonitor implements Closeable {
     private void registerStackDistanceHistogram() {
         if (options.isStackDistanceHistogramEnabled()) {
             LOG.info("Registering stack distance histogram metric for RocksDB.");
-            metricGroup.gauge(
-                    "rocksdb.stack-distance-histogram",
-                    new RocksDBStackDistanceHistogramView());
+            RocksDBStackDistanceHistogramView view = new RocksDBStackDistanceHistogramView(lruCache);
+            if (lruCache != null) {
+                try {
+                    lruCache.enableGhostCache(
+                            2 * lruCache.getUsage(), view.getBucketBoundaries());
+                    LOG.info("Enabled ghost cache on LRUCache for stack distance histogram.");
+                } catch (RocksDBException e) {
+                    LOG.warn("Failed to enable ghost cache on LRUCache.", e);
+                }
+            }
+            metricGroup.gauge("rocksdb.stack-distance-histogram", view);
         }
     }
 
@@ -267,18 +282,36 @@ public class RocksDBNativeMetricMonitor implements Closeable {
             1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
         };
 
+        @Nullable private final LRUCache viewLruCache;
+
+        RocksDBStackDistanceHistogramView(@Nullable LRUCache lruCache) {
+            this.viewLruCache = lruCache;
+        }
+
         @Override
         public long[] fetchBucketCounts() {
             synchronized (lock) {
-                if (rocksDB == null) {
+                if (viewLruCache == null) {
                     LOG.debug(
-                            "RocksDB reference is null, returning empty stack distance histogram.");
+                            "LRUCache reference is null, returning empty stack distance histogram.");
                     return new long[bucketBoundaries.length + 1];
                 }
-                LOG.debug("Fetching stack distance histogram from RocksDB.");
-                // TODO: Replace with actual RocksDB JNI call to fetch stack distance histogram
-                // For now, return a zeroed array as a stub
-                return new long[bucketBoundaries.length + 1];
+                try {
+                    BucketStatistics stats = viewLruCache.getBucketStatistics();
+                    long[] counts = new long[bucketBoundaries.length + 1];
+                    for (int i = 0; i < stats.size(); i++) {
+                        counts[i] = stats.getHits()[i];
+                    }
+                    if (stats.size() > 0) {
+                        counts[bucketBoundaries.length] =
+                                stats.getMisses()[stats.size() - 1];
+                    }
+                    viewLruCache.resetMRCStats();
+                    return counts;
+                } catch (RocksDBException e) {
+                    LOG.warn("Failed to fetch stack distance histogram from RocksDB.", e);
+                    return new long[bucketBoundaries.length + 1];
+                }
             }
         }
 

@@ -331,12 +331,14 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
         List<MetricDump> dumps = new ArrayList<>();
         for (Map.Entry<String, long[]> entry : aggregatedCounts.entrySet()) {
             String name = entry.getKey();
-            dumps.add(
-                    new MetricDump.StackDistanceHistogramDump(
-                            scopeByName.get(name),
-                            name,
-                            boundariesByName.get(name),
-                            entry.getValue()));
+            MetricDump.StackDistanceHistogramDump dump = new MetricDump.StackDistanceHistogramDump(
+                    scopeByName.get(name),
+                    name,
+                    boundariesByName.get(name),
+                    entry.getValue());
+            LOG.debug("Histogram boundaries: {}", dump.bucketBoundaries);
+            LOG.debug("Histogram counts: {}", dump.bucketCounts);
+            dumps.add(dump);
         }
         LOG.debug(
                 "Aggregated {} stack distance histograms from {} results into {} distinct metrics.",

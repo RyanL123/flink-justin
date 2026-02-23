@@ -18,8 +18,12 @@
 
 package org.apache.flink.runtime.metrics.dump;
 
+import java.io.Serializable;
+
 /** Container for scope related information as required by the MetricQueryService. */
-public abstract class QueryScopeInfo {
+public abstract class QueryScopeInfo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     /**
      * Categories to be returned by {@link QueryScopeInfo#getCategory()} to avoid instanceof checks.
      */
