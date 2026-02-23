@@ -1,3 +1,5 @@
+package org.apache.flink.runtime.standalone_stackhistogram;
+
 import org.junit.jupiter.api.Test;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -172,5 +174,53 @@ class QuickMRCTest {
             assertEquals(u.getCacheSize() * 3, s.getCacheSize(), "X-Axis must be scaled by partition count");
             assertEquals(u.getMissRate(), s.getMissRate(), 0.0001, "Y-Axis (Miss Rate) must remain unchanged");
         }
+    }
+
+    @Test
+    void testFromSerializedValue_parsesRocksDBPayloadIncludingOverflowBucket() {
+        String payload = "{\"boundaries\":[32,64,96],\"counts\":[5,7,11,13]}";
+
+        StackHistogram histogram = StackHistogram.fromSerializedValue(payload);
+
+        assertEquals(4, histogram.getNumBuckets());
+        assertEquals(96L, histogram.getMaxStackDistance());
+        assertEquals(1, histogram.getNumPartitions());
+        assertEquals(5L, histogram.getFrequency(0));
+        assertEquals(7L, histogram.getFrequency(1));
+        assertEquals(11L, histogram.getFrequency(2));
+        assertEquals(13L, histogram.getFrequency(3)); // overflow bucket
+        assertEquals(36L, histogram.getTotalFrequency());
+    }
+
+    @Test
+    void testFromSerializedValue_keepsSparseMapForZeroCountBuckets() {
+        String payload = "{\"boundaries\":[32,64],\"counts\":[0,10,0]}";
+
+        StackHistogram histogram = StackHistogram.fromSerializedValue(payload);
+        Map<Integer, Long> buckets = histogram.getHistogram();
+
+        assertEquals(3, histogram.getNumBuckets());
+        assertEquals(1, buckets.size());
+        assertEquals(10L, histogram.getFrequency(1));
+        assertEquals(0L, histogram.getFrequency(0));
+        assertEquals(0L, histogram.getFrequency(2));
+    }
+
+    @Test
+    void testFromSerializedValue_throwsWhenCountsLengthIsInvalid() {
+        String payload = "{\"boundaries\":[32,64,96],\"counts\":[5,7,11]}";
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> StackHistogram.fromSerializedValue(payload));
+    }
+
+    @Test
+    void testFromSerializedValue_throwsWhenFieldMissing() {
+        String payload = "{\"boundaries\":[32,64,96]}";
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> StackHistogram.fromSerializedValue(payload));
     }
 }

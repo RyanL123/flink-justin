@@ -1,3 +1,4 @@
+package org.apache.flink.runtime.standalone_stackhistogram;
 /*
  * Standalone Stack Histogram Module
  * 
@@ -5,7 +6,6 @@
  * Implements stack distance histogram merging logic.
  */
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +81,88 @@ public class StackHistogram {
      */
     public StackHistogram(Map<Integer, Long> histogram, long maxStackDistance) {
         this(histogram, DEFAULT_NUM_BUCKETS, maxStackDistance, 1);
+    }
+
+    /**
+     * Creates a {@link StackHistogram} from the JSON payload produced by
+     * RocksDBStackDistanceHistogramView.getValue():
+     *
+     * <pre>
+     * {"boundaries":[...],"counts":[...]}
+     * </pre>
+     *
+     * <p>The resulting histogram stores one entry per count index. The overflow bucket (the last
+     * element in {@code counts}) is preserved as the last histogram bucket.
+     *
+     * @param serializedHistogram serialized JSON string from RocksDBStackDistanceHistogramView
+     * @return parsed {@link StackHistogram}
+     * @throws IllegalArgumentException if the payload is malformed
+     */
+    public static StackHistogram fromSerializedValue(String serializedHistogram) {
+        if (serializedHistogram == null || serializedHistogram.trim().isEmpty()) {
+            throw new IllegalArgumentException("Serialized histogram must not be null or empty");
+        }
+
+        long[] boundaries = parseLongArrayField(serializedHistogram, "boundaries");
+        long[] counts = parseLongArrayField(serializedHistogram, "counts");
+
+        if (counts.length != boundaries.length + 1) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Invalid histogram payload: counts length (%d) must equal boundaries length + 1 (%d)",
+                            counts.length, boundaries.length + 1));
+        }
+
+        long maxStackDistance = boundaries.length == 0 ? 0L : boundaries[boundaries.length - 1];
+        Map<Integer, Long> histogram = new HashMap<>();
+        for (int i = 0; i < counts.length; i++) {
+            if (counts[i] < 0L) {
+                throw new IllegalArgumentException(
+                        "Invalid histogram payload: counts must be non-negative");
+            }
+            if (counts[i] != 0L) {
+                histogram.put(i, counts[i]);
+            }
+        }
+
+        return new StackHistogram(histogram, counts.length, maxStackDistance, 1);
+    }
+
+    private static long[] parseLongArrayField(String json, String fieldName) {
+        String key = "\"" + fieldName + "\":[";
+        int start = json.indexOf(key);
+        if (start < 0) {
+            throw new IllegalArgumentException(
+                    "Invalid histogram payload: missing field '" + fieldName + "'");
+        }
+
+        int arrayStart = start + key.length();
+        int arrayEnd = json.indexOf(']', arrayStart);
+        if (arrayEnd < 0) {
+            throw new IllegalArgumentException(
+                    "Invalid histogram payload: unterminated array for field '" + fieldName + "'");
+        }
+
+        String body = json.substring(arrayStart, arrayEnd).trim();
+        if (body.isEmpty()) {
+            return new long[0];
+        }
+
+        String[] tokens = body.split(",");
+        long[] values = new long[tokens.length];
+        for (int i = 0; i < tokens.length; i++) {
+            String token = tokens[i].trim();
+            try {
+                values[i] = Long.parseLong(token);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(
+                        "Invalid histogram payload: non-numeric value '" + token + "' in field '"
+                                + fieldName
+                                + "'",
+                        e);
+            }
+        }
+        return values;
     }
 
     /**

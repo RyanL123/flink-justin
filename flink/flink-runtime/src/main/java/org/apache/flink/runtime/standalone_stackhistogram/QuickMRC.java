@@ -1,3 +1,4 @@
+package org.apache.flink.runtime.standalone_stackhistogram;
 /*
  * QuickMRC - Miss Rate Curve computation from Stack Histograms
  * 
