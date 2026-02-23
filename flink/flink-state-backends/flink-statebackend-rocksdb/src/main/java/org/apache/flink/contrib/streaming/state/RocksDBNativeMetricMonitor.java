@@ -278,14 +278,18 @@ public class RocksDBNativeMetricMonitor implements Closeable {
     class RocksDBStackDistanceHistogramView
             implements StackDistanceHistogramProvider, Gauge<String> {
 
-        private final long[] bucketBoundaries = {
-            1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
-        };
+        private static final int BUCKET_STEP = 32;
+        private static final int MAX_BUCKET_BOUNDARY = 1024;
+        private final long[] bucketBoundaries;
 
         @Nullable private final LRUCache viewLruCache;
 
         RocksDBStackDistanceHistogramView(@Nullable LRUCache lruCache) {
             this.viewLruCache = lruCache;
+            this.bucketBoundaries = new long[MAX_BUCKET_BOUNDARY / BUCKET_STEP];
+            for (int i = 0; i < bucketBoundaries.length; i++) {
+                bucketBoundaries[i] = (long) (i + 1) * BUCKET_STEP;
+            }
         }
 
         @Override
@@ -301,10 +305,6 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                     long[] counts = new long[bucketBoundaries.length + 1];
                     for (int i = 0; i < stats.size(); i++) {
                         counts[i] = stats.getHits()[i];
-                    }
-                    if (stats.size() > 0) {
-                        counts[bucketBoundaries.length] =
-                                stats.getMisses()[stats.size() - 1];
                     }
                     viewLruCache.resetMRCStats();
                     return counts;
