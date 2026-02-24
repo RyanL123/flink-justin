@@ -19,6 +19,9 @@ spec:
 ## Nexmark benchmarks
 Open the [./notebooks/nexmark/xp.ipynb](http://localhost:8888/notebooks/notebooks/nexmark/xp.ipynb) notebook in your browser (make sure your jupyter server is still up and running, following the Requirements.md instruction).
 
+Recorded run results for long-term comparison are stored under:
+- `benchmarks/results/nexmark/q8/`
+
 Before continuing, make sure that the Flink image name in the following file is the same as the one you used during the build phase:
 ```yaml
 apiVersion: flink.apache.org/v1beta1

@@ -24,6 +24,21 @@ Runtime/tooling assumptions:
 
 ## Build and Images
 - Always load the current context with `--load .` when building images
+- Build the operator image from `flink-kubernetes-operator/` so `docker-entrypoint.sh` is in build context (do not build that image from repo root).
+
+## Unit Tests (Maven)
+Run tests from the correct project root:
+
+- Flink runtime tree (`flink/`):
+  - `cd flink && ./mvnw test`
+  - Module-only: `cd flink && ./mvnw -pl <module-artifact-id> -am test`
+  - Single test: `cd flink && ./mvnw -Dtest=<TestClass>[#testMethod] test`
+
+- Flink Kubernetes Operator tree (`flink-kubernetes-operator/`):
+  - `cd flink-kubernetes-operator && mvn test`
+  - Module-only: `cd flink-kubernetes-operator && mvn -pl <module-artifact-id> -am test`
+  - Single test: `cd flink-kubernetes-operator && mvn -Dtest=<TestClass>[#testMethod] test`
+
 ### Flink Kubernetes Operator
 - Build from `flink-kubernetes-operator/Dockerfile`
 - Required image tag: `flink-kubernetes-operator:dais`
@@ -49,6 +64,7 @@ Use Nexmark queries to evaluate runtime behavior.
 
 Operational rule for all `kubectl` commands:
 - Verify cluster state conservatively after each change before issuing the next command
+- Before applying `FlinkDeployment` manifests, verify `flinkdeployments.flink.apache.org` CRD exists and the matching operator release is running.
 
 Example:
 
@@ -69,6 +85,7 @@ Applying a query sends metrics to Prometheus and triggers TaskManager scaling. T
 3. Total task slots used across TaskManagers
 
 Use Prometheus/Grafana queries to evaluate whether changes improve behavior.
+- If Prometheus has no Flink scrape targets, collect equivalent results from Flink REST (`/overview`, `/jobs/<jid>`, `/taskmanagers/*/metrics`) and report that fallback explicitly.
 
 Grafana credentials:
 - Username: `admin`
@@ -139,6 +156,6 @@ Relevant recent commits (A4S-focused):
 # AGENTS Guidance
 
 ## Continuous Improvement Rule
-- Whenever the agent fixes an issue, or is called out for a mistake, it should update this guidance (or `AGENT.md`) with a concise, reusable rule that would have prevented the issue.
+- Whenever the agent fixes an issue, or is called out for a mistake, it should immediately update this guidance (or `AGENT.md`) with a concise, reusable rule that would have prevented the issue.
 - Keep each added rule specific, actionable, and short.
 - Do not add duplicate rules; prefer refining an existing related rule.
