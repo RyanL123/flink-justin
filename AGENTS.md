@@ -84,6 +84,51 @@ Applying a query sends metrics to Prometheus and triggers TaskManager scaling. T
 2. Total managed memory used: `flink_taskmanager_Status_Flink_Memory_Managed_Used`
 3. Total task slots used across TaskManagers
 
+Metric guidelines:
+- Query metric once every 5 seconds
+- Query metrics as soon as the flink runtime is available
+- Standardize all benchmarks to run over a 10 minute window
+
+## Benchmark Result Saving Conventions
+Use a consistent, append-only layout under `benchmarks/results/` so runs are comparable and reproducible.
+
+Directory layout (Nexmark):
+- Per-query folder: `benchmarks/results/nexmark/<query>/` (example: `q8`)
+- Required files per query folder:
+  - `runs.csv`: one row per run summary (append only; do not rewrite prior rows)
+  - `<run_id>-samples.csv`: raw time-series samples for that run
+  - Optional run notes in `README.md`
+- Header templates:
+  - `benchmarks/results/nexmark/runs.template.csv`
+  - `benchmarks/results/nexmark/samples.template.csv`
+
+Run ID convention:
+- `<YYYY-MM-DD>-<env>-<query>-<policy>-<note>`
+- Example: `2026-02-24-kind-q8-a4s-justin-baseline`
+- Keep `run_id` identical across `runs.csv`, samples filename, and generated plot filename.
+
+Required `runs.csv` fields (minimum):
+- `run_id,iso_date,environment,run_commit,autoscaler`
+- `iso_date` must be full ISO-8601 (example: `2026-02-24T00:00:00Z`).
+- `run_commit` should be the latest git commit hash used for that run; use `not-captured` only if unavailable.
+- `autoscaler` should be either `justin` or `a4s`.
+
+Required `<run_id>-samples.csv` fields (minimum):
+- `timestamp_epoch`
+- `source_throughput_records_per_sec`
+- `total_managed_memory_used_bytes`
+- `total_slots_used`
+- Use monotonic timestamps and a fixed sampling interval for the run.
+
+Units and normalization:
+- Throughput in records/sec.
+- Managed memory stored in bytes in raw samples (plotting may convert to MiB).
+- Slots used stored as numeric count.
+
+Plot output convention:
+- Generate one image per run at `<query_dir>/<run_id>-plot.png`.
+- Keep y-axis ranges consistent across runs of the same query for visual comparability.
+
 Use Prometheus/Grafana queries to evaluate whether changes improve behavior.
 - If Prometheus has no Flink scrape targets, collect equivalent results from Flink REST (`/overview`, `/jobs/<jid>`, `/taskmanagers/*/metrics`) and report that fallback explicitly.
 

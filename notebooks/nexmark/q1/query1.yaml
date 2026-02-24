@@ -21,8 +21,8 @@ kind: FlinkDeployment
 metadata:
   name: flink
 spec:
-  image: ryanl123/flink:dais
-  imagePullPolicy: Always
+  image: flink-justin:dais
+  imagePullPolicy: IfNotPresent
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: "true"
@@ -70,6 +70,7 @@ spec:
     state.backend.rocksdb.metrics.live-sst-files-size: "true"
     state.backend.rocksdb.metrics.size-all-mem-tables: "true"
     state.backend.rocksdb.metrics.total-sst-files-size: "true"
+    state.backend.rocksdb.metrics.stack-distance-histogram: "true"
 
     state.backend.latency-track.keyed-state-enabled: "true"
     state.backend.rocksdb.use-direct-writes: "true"
