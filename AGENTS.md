@@ -1,3 +1,15 @@
+# AGENTS Guidance
+
+## Continuous Improvement Rule
+- At the end of every session, the agent must update `AGENTS.md` with concise, reusable rules for each error encountered in that session.
+- The update must happen automatically without waiting for a user reminder.
+- Each added rule must be specific, actionable, and short; avoid duplicates by refining an existing related rule.
+
+## Session Error Rules
+- When checking whether a Kubernetes resource exists, treat `kubectl ... NotFound` as absence and do not loop waiting for deletion.
+- Avoid brittle readiness checks that rely on blocking stdout reads from background processes; prefer explicit health checks (for example, API endpoint probes).
+- For slot-usage plots, do not force a zero baseline when values are far from zero; use observed-range axis limits with padding to preserve readability.
+
 # Flink Justin Agent Guide
 
 ## Purpose
@@ -197,10 +209,3 @@ Relevant recent commits (A4S-focused):
 ## Why this matters for A4S-on-Justin
 - A4S is implemented as a policy/model extension, not a replacement for Justin's end-to-end control loop
 - As long as A4S keeps producing decisions through existing Justin override interfaces, operator placement details stay decoupled and handled by runtime/orchestrator machinery
-
-# AGENTS Guidance
-
-## Continuous Improvement Rule
-- Whenever the agent fixes an issue, or is called out for a mistake, it should immediately update this guidance (or `AGENT.md`) with a concise, reusable rule that would have prevented the issue.
-- Keep each added rule specific, actionable, and short.
-- Do not add duplicate rules; prefer refining an existing related rule.

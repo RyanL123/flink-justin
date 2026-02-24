@@ -171,8 +171,12 @@ def infer_axis_limits(metric_name: str, values: list[float]) -> tuple[float, flo
     pad = span * 0.08
 
     if "slot" in lower_name and "used" in lower_name:
-        upper = math.ceil((max_v + 0.2) / 1.0) * 1.0
-        return 0.0, max(1.0, upper)
+        # Keep integer-friendly slot ticks, but avoid forcing a zero baseline
+        # so small changes around high slot counts are still visible.
+        slot_pad = max(0.5, pad)
+        lower = max(0.0, math.floor(min_v - slot_pad))
+        upper = math.ceil(max_v + slot_pad)
+        return lower, max(lower + 1.0, upper)
 
     return min_v - pad, max_v + pad
 

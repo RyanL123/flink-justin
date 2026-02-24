@@ -1,2 +1,3 @@
 run_id,iso_date,environment,run_commit,autoscaler
 2026-02-24-kind-q2-a4s-justin-partial-round1,2026-02-24T00:00:00Z,kind,not-captured,a4s
+2026-02-24-kind-q2-a4s-justin-10min-5s,2026-02-24,kind,Nexmark Query2,fec501aab8055661b6d5474c19f55b48,flink-justin:dais,flink-kubernetes-operator:dais,flink-rest,5,120,1480907.16,2196301.57,0.00,3151630.85,0.00,22.15,true,Normal  ScalingReport  23s (x3 over 6m58s)  Operator  Scaling execution enabled; begin scaling vertices:{ Vertex ID 0a448493b4782967b150582570326227 | Parallelism 7 -> 13 | Processing capacity 1882508.47 -> 3375181.00 | Target data rate 1557775.76},10-minute run at 5-second intervals. Prometheus scrape targets unavailable; Flink REST fallback used.
