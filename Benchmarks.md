@@ -20,7 +20,44 @@ spec:
 Open the [./notebooks/nexmark/xp.ipynb](http://localhost:8888/notebooks/notebooks/nexmark/xp.ipynb) notebook in your browser (make sure your jupyter server is still up and running, following the Requirements.md instruction).
 
 Recorded run results for long-term comparison are stored under:
-- `benchmarks/results/nexmark/q8/`
+- `benchmarks/results/nexmark/`
+
+### Scripted single-query run (async friendly)
+
+You can run one query end-to-end (deploy, sample, cleanup, save, plot) with:
+
+```bash
+venv/bin/python benchmarks/results/run_nexmark_experiment.py \
+  --query q1 \
+  --sampling-interval-sec 5 \
+  --duration-sec 600 \
+  --policy a4s-justin \
+  --note manual
+```
+
+Run it asynchronously (example):
+
+```bash
+nohup venv/bin/python benchmarks/results/run_nexmark_experiment.py \
+  --query q2 \
+  --sampling-interval-sec 5 \
+  --duration-sec 600 \
+  --policy a4s-justin \
+  --note overnight > /tmp/q2-benchmark.log 2>&1 &
+```
+
+The script automatically:
+1. applies the query manifest (`notebooks/nexmark/<query>/query<num>.yaml` by default)
+2. samples canonical metrics from Flink REST
+3. deletes the deployment at the end
+4. writes `<run_id>-samples.csv` and appends `runs.csv`
+5. generates `<run_id>-plot.png`
+
+Useful flags:
+- `--manifest <path>` to override manifest path
+- `--steady-window-sec <sec>` to control steady-state summary window
+- `--plot/--no-plot` to enable or disable plot generation
+- `--query-name <name>` to override the `query` field in `runs.csv`
 
 Before continuing, make sure that the Flink image name in the following file is the same as the one you used during the build phase:
 ```yaml

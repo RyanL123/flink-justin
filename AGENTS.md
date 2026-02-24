@@ -9,6 +9,8 @@
 - When checking whether a Kubernetes resource exists, treat `kubectl ... NotFound` as absence and do not loop waiting for deletion.
 - Avoid brittle readiness checks that rely on blocking stdout reads from background processes; prefer explicit health checks (for example, API endpoint probes).
 - For slot-usage plots, do not force a zero baseline when values are far from zero; use observed-range axis limits with padding to preserve readability.
+- When a user asks to build automation/script tooling, do not start running long experiments unless explicitly requested in the same message.
+- Before migrating repository data formats, verify the canonical schema from project templates (`runs.template.csv`) and one known-good file, then migrate.
 
 # Flink Justin Agent Guide
 
