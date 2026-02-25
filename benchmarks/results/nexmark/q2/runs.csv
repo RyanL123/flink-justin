@@ -1,3 +1,4 @@
-run_id,iso_date,environment,run_commit,autoscaler
-2026-02-24-kind-q2-a4s-justin-partial-round1,2026-02-24T00:00:00Z,kind,not-captured,a4s
-2026-02-24-kind-q2-a4s-justin-10min-5s,2026-02-24T00:00:00Z,kind,not-captured,a4s
+run_id,environment,run_commit,autoscaler
+1771909329001,kind,not-captured,a4s
+1771937485000,kind,not-captured,a4s
+1771963274000,kind,ed674e06,justin

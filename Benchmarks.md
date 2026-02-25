@@ -50,14 +50,12 @@ The script automatically:
 1. applies the query manifest (`notebooks/nexmark/<query>/query<num>.yaml` by default)
 2. samples canonical metrics from Flink REST
 3. deletes the deployment at the end
-4. writes `<run_id>-samples.csv` and appends `runs.csv`
-5. generates `<run_id>-plot.png`
+4. writes `<run_id>_<environment>_<autoscaler>/samples.csv` and appends `runs.csv`
+5. generates `<run_id>_<environment>_<autoscaler>/plot.png`
 
 Useful flags:
 - `--manifest <path>` to override manifest path
-- `--steady-window-sec <sec>` to control steady-state summary window
 - `--plot/--no-plot` to enable or disable plot generation
-- `--query-name <name>` to override the `query` field in `runs.csv`
 
 Before continuing, make sure that the Flink image name in the following file is the same as the one you used during the build phase:
 ```yaml

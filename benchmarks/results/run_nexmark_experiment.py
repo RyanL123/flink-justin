@@ -21,11 +21,10 @@ import subprocess
 import sys
 import time
 import urllib.parse
-from datetime import datetime, timezone
 from pathlib import Path
 
 
-RUNS_HEADER = ["run_id", "iso_date", "environment", "run_commit", "autoscaler"]
+RUNS_HEADER = ["run_id", "environment", "run_commit", "autoscaler"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -50,12 +49,6 @@ def parse_args() -> argparse.Namespace:
         help="Sampling interval in seconds (default: 5).",
     )
     parser.add_argument(
-        "--steady-window-sec",
-        type=int,
-        default=300,
-        help="Window for steady-state summary metrics in seconds (default: 300).",
-    )
-    parser.add_argument(
         "--environment",
         default="kind",
         help="Environment tag used in run_id and runs.csv (default: kind).",
@@ -66,38 +59,9 @@ def parse_args() -> argparse.Namespace:
         help="Policy tag used in run_id (default: a4s-justin).",
     )
     parser.add_argument(
-        "--note",
-        default="manual",
-        help="Free-form note tag used in run_id (default: manual).",
-    )
-    parser.add_argument(
-        "--date",
-        default=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        help="Date tag for run_id and runs.csv (default: UTC today YYYY-MM-DD).",
-    )
-    parser.add_argument(
-        "--query-name",
-        help="Query display name in runs.csv (default: Nexmark Query<number> when possible).",
-    )
-    parser.add_argument(
-        "--runtime-image",
-        default="flink-justin:dais",
-        help="Runtime image value for runs.csv (default: flink-justin:dais).",
-    )
-    parser.add_argument(
-        "--operator-image",
-        default="flink-kubernetes-operator:dais",
-        help="Operator image value for runs.csv (default: flink-kubernetes-operator:dais).",
-    )
-    parser.add_argument(
         "--results-root",
         default=str(Path(__file__).resolve().parent),
         help="Path to benchmarks/results root (default: this script's directory).",
-    )
-    parser.add_argument(
-        "--metric-source",
-        default="flink-rest",
-        help="Metric source label for runs.csv (default: flink-rest).",
     )
     parser.add_argument(
         "--wait-running-timeout-sec",
@@ -144,13 +108,6 @@ def default_manifest_for_query(repo_root: Path, query: str) -> Path:
         raise ValueError(f"Cannot infer manifest for query '{query}'. Provide --manifest.")
     qnum = match.group(1)
     return repo_root / f"notebooks/nexmark/{query}/query{qnum}.yaml"
-
-
-def default_query_name(query: str) -> str:
-    match = re.fullmatch(r"q(\d+)", query)
-    if not match:
-        return f"Nexmark {query}"
-    return f"Nexmark Query{match.group(1)}"
 
 
 def get_json_via_kubectl_raw(repo_root: Path, base_path: str, path: str, retries: int = 4) -> dict:
@@ -214,16 +171,36 @@ def wait_rest_ready(repo_root: Path, base_path: str, timeout_sec: int = 180) -> 
     raise TimeoutError("Timed out waiting for Flink REST readiness.")
 
 
-def get_source_vertex_ids(repo_root: Path, base_path: str, job_id: str) -> list[str]:
+def get_source_vertex_ids(repo_root: Path, base_path: str, job_id: str) -> tuple[list[str], dict[str, str]]:
     job = get_json_via_kubectl_raw(repo_root, base_path, f"/jobs/{job_id}")
     vertices = job.get("vertices", [])
-    source_ids = [v["id"] for v in vertices if "Source:" in v.get("name", "")]
-    if source_ids:
-        return source_ids
-    return [v["id"] for v in vertices if "source" in v.get("name", "").lower()]
+    source_vertices = [v for v in vertices if "Source:" in v.get("name", "")]
+    if not source_vertices:
+        source_vertices = [v for v in vertices if "source" in v.get("name", "").lower()]
+
+    source_ids = [v["id"] for v in source_vertices]
+    source_names = {v["id"]: v.get("name", "<unknown>") for v in source_vertices}
+
+    print("Detected source vertices:")
+    for v in source_vertices:
+        print(
+            f"  - id={v.get('id')} "
+            f"name={v.get('name', '<unknown>')} "
+            f"parallelism={v.get('parallelism', '<unknown>')}"
+        )
+    if not source_vertices:
+        print("  - none detected")
+
+    return source_ids, source_names
 
 
-def sample_once(repo_root: Path, base_path: str, job_id: str, source_vids: list[str]) -> tuple[int, float, float, float]:
+def sample_once(
+    repo_root: Path,
+    base_path: str,
+    job_id: str,
+    source_vids: list[str],
+    source_names: dict[str, str],
+) -> tuple[int, float, float, float]:
     ts = int(time.time())
     overview = get_json_via_kubectl_raw(repo_root, base_path, "/overview")
     slots_used = float(int(overview.get("slots-total", 0)) - int(overview.get("slots-available", 0)))
@@ -245,14 +222,26 @@ def sample_once(repo_root: Path, base_path: str, job_id: str, source_vids: list[
 
     throughput = 0.0
     for vid in source_vids:
+        source_name = source_names.get(vid, "<unknown>")
         metrics = get_json_via_kubectl_raw(repo_root, base_path, f"/jobs/{job_id}/vertices/{vid}/metrics", retries=2)
-        metric_ids = [
-            m["id"]
-            for m in metrics
-            if m.get("id", "").endswith(".numRecordsOutPerSecond") and m["id"][:1].isdigit()
-        ]
+        # Flink may expose multiple scoped metrics per subtask for chained operators
+        # (e.g. "<subtask>.Map.numRecordsOutPerSecond", "<subtask>.Timestamps/...").
+        # Count exactly one source-out metric per subtask to avoid duplicate summation.
+        metric_ids = sorted(
+            {
+                m["id"]
+                for m in metrics
+                if re.fullmatch(r"\d+\.numRecordsOutPerSecond", m.get("id", ""))
+            },
+            key=lambda mid: int(mid.split(".", 1)[0]),
+        )
         if not metric_ids:
+            print(f"[metrics] ts={ts} source={source_name} ({vid}) numRecordsOutPerSecond metrics=none")
             continue
+        print(
+            f"[metrics] ts={ts} source={source_name} ({vid}) "
+            f"numRecordsOutPerSecond metric_ids={','.join(metric_ids)}"
+        )
         encoded = urllib.parse.quote(",".join(metric_ids), safe=",")
         vals = get_json_via_kubectl_raw(
             repo_root,
@@ -262,9 +251,21 @@ def sample_once(repo_root: Path, base_path: str, job_id: str, source_vids: list[
         )
         for item in vals:
             try:
-                throughput += float(item["value"])
+                metric_value = float(item["value"])
+                throughput += metric_value
+                print(
+                    f"[metrics] ts={ts} source={source_name} ({vid}) "
+                    f"metric={item.get('id', '<unknown>')} value={metric_value}"
+                )
             except Exception:
                 pass
+
+    print(
+        f"[metrics] ts={ts} totals "
+        f"source_throughput_records_per_sec={throughput} "
+        f"total_managed_memory_used_bytes={mem_used} "
+        f"total_slots_used={slots_used}"
+    )
 
     return ts, throughput, mem_used, slots_used
 
@@ -278,7 +279,7 @@ def append_run_row(runs_csv: Path, row: dict[str, str]) -> None:
             if reader.fieldnames != RUNS_HEADER:
                 raise ValueError(
                     f"Unsupported runs.csv header in {runs_csv}. "
-                    "Expected header: run_id,iso_date,environment,run_commit,autoscaler."
+                    "Expected header: run_id,environment,run_commit,autoscaler."
                 )
             existing_rows = list(reader)
         if any(r.get("run_id") == row["run_id"] for r in existing_rows):
@@ -298,7 +299,6 @@ def build_run_row(
 ) -> dict[str, str]:
     return {
         "run_id": run_id,
-        "iso_date": f"{args.date}T00:00:00Z",
         "environment": args.environment,
         "run_commit": run_commit,
         "autoscaler": slugify(args.policy).split("-", 1)[0],
@@ -311,8 +311,6 @@ def main() -> None:
         raise ValueError("--duration-sec must be > 0")
     if args.sampling_interval_sec <= 0:
         raise ValueError("--sampling-interval-sec must be > 0")
-    if args.steady_window_sec <= 0:
-        raise ValueError("--steady-window-sec must be > 0")
 
     repo_root = Path(__file__).resolve().parents[2]
     results_root = Path(args.results_root).resolve()
@@ -321,16 +319,21 @@ def main() -> None:
     if not manifest.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest}")
 
-    run_id = f"{args.date}-{args.environment}-{query}-{slugify(args.policy)}-{slugify(args.note)}"
+    run_id = str(int(time.time() * 1000))
+    autoscaler = slugify(args.policy).split("-", 1)[0]
+    run_name = f"{run_id}_{slugify(args.environment)}_{slugify(autoscaler)}"
     query_dir = results_root / "nexmark" / query
     query_dir.mkdir(parents=True, exist_ok=True)
     runs_csv = query_dir / "runs.csv"
-    samples_csv = query_dir / f"{run_id}-samples.csv"
+    run_dir = query_dir / run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    samples_csv = run_dir / "samples.csv"
 
     base_path = "/api/v1/namespaces/default/services/http:flink-rest:8081/proxy"
     sample_count = max(1, math.ceil(args.duration_sec / args.sampling_interval_sec))
 
-    print(f"Starting run: {run_id}")
+    print(f"Starting run_id: {run_id}")
+    print(f"Run folder: {run_dir}")
     print(f"Manifest: {manifest}")
     print(f"Sampling: {sample_count} samples at {args.sampling_interval_sec}s interval")
 
@@ -343,11 +346,11 @@ def main() -> None:
         shell(f"kubectl apply -f '{manifest}'", repo_root)
         job_id = wait_job_running(repo_root, args.wait_running_timeout_sec)
         wait_rest_ready(repo_root, base_path)
-        vids = get_source_vertex_ids(repo_root, base_path, job_id)
+        vids, source_names = get_source_vertex_ids(repo_root, base_path, job_id)
 
         for i in range(sample_count):
             t0 = time.time()
-            rows.append(sample_once(repo_root, base_path, job_id, vids))
+            rows.append(sample_once(repo_root, base_path, job_id, vids, source_names))
             if i % max(1, math.ceil(60 / args.sampling_interval_sec)) == 0:
                 print(f"Progress: sample {i + 1}/{sample_count}")
             elapsed = time.time() - t0

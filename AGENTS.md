@@ -110,24 +110,24 @@ Directory layout (Nexmark):
 - Per-query folder: `benchmarks/results/nexmark/<query>/` (example: `q8`)
 - Required files per query folder:
   - `runs.csv`: one row per run summary (append only; do not rewrite prior rows)
-  - `<run_id>-samples.csv`: raw time-series samples for that run
+  - `<run_id>_<environment>_<autoscaler>/samples.csv`: raw time-series samples for that run
+  - `<run_id>_<environment>_<autoscaler>/plot.png`: plot for that run
   - Optional run notes in `README.md`
 - Header templates:
   - `benchmarks/results/nexmark/runs.template.csv`
   - `benchmarks/results/nexmark/samples.template.csv`
 
 Run ID convention:
-- `<YYYY-MM-DD>-<env>-<query>-<policy>-<note>`
-- Example: `2026-02-24-kind-q8-a4s-justin-baseline`
-- Keep `run_id` identical across `runs.csv`, samples filename, and generated plot filename.
+- `run_id` must be Unix timestamp in milliseconds (UTC), generated at run start.
+- Example: `1771966012345`
+- Run folder name must be exactly `<run_id>_<environment>_<autoscaler>`.
 
 Required `runs.csv` fields (minimum):
-- `run_id,iso_date,environment,run_commit,autoscaler`
-- `iso_date` must be full ISO-8601 (example: `2026-02-24T00:00:00Z`).
+- `run_id,environment,run_commit,autoscaler`
 - `run_commit` should be the latest git commit hash used for that run; use `not-captured` only if unavailable.
 - `autoscaler` should be either `justin` or `a4s`.
 
-Required `<run_id>-samples.csv` fields (minimum):
+Required `<run_id>_<environment>_<autoscaler>/samples.csv` fields (minimum):
 - `timestamp_epoch`
 - `source_throughput_records_per_sec`
 - `total_managed_memory_used_bytes`
@@ -140,7 +140,7 @@ Units and normalization:
 - Slots used stored as numeric count.
 
 Plot output convention:
-- Generate one image per run at `<query_dir>/<run_id>-plot.png`.
+- Generate one image per run at `<query_dir>/<run_id>_<environment>_<autoscaler>/plot.png`.
 - Keep y-axis ranges consistent across runs of the same query for visual comparability.
 
 Use Prometheus/Grafana queries to evaluate whether changes improve behavior.

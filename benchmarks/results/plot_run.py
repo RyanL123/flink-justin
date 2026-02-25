@@ -2,7 +2,7 @@
 """Plot benchmark run metrics from benchmarks/results.
 
 Usage examples:
-  python benchmarks/results/plot_run.py --query q8 --run-id 2026-02-24-kind-q8-a4s-justin-baseline
+  python benchmarks/results/plot_run.py --query q8 --run-id 1771965764000
   python benchmarks/results/plot_run.py --query q8 --latest
 """
 
@@ -32,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--run-id",
-        help="Run id from runs.csv (example: 2026-02-24-kind-q8-a4s-justin-baseline).",
+        help="Run id from runs.csv (example: 1771965764000).",
     )
     group.add_argument(
         "--latest",
@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output",
-        help="Output image path (default: <query_dir>/<run_id>-plot.png).",
+        help="Output image path (default: <query_dir>/<run_id>_<environment>_<autoscaler>/plot.png).",
     )
     return parser.parse_args()
 
@@ -77,19 +77,13 @@ def select_run_row(rows: list[dict[str, str]], run_id: str | None, latest: bool)
     raise ValueError("Could not resolve run selection.")
 
 
-def find_samples_file(query_dir: Path, run_id: str) -> Path:
-    exact = query_dir / f"{run_id}-samples.csv"
-    if exact.exists():
-        return exact
-
-    candidates = sorted(query_dir.glob(f"*{run_id}*samples.csv"))
-    if candidates:
-        return candidates[0]
-
-    raise FileNotFoundError(
-        f"No sample CSV found for run_id '{run_id}' in {query_dir}. "
-        f"Expected file like '{run_id}-samples.csv'."
-    )
+def run_name_from_row(run_row: dict[str, str]) -> str:
+    run_id = run_row.get("run_id", "").strip()
+    environment = run_row.get("environment", "").strip()
+    autoscaler = run_row.get("autoscaler", "").strip()
+    if not run_id or not environment or not autoscaler:
+        raise ValueError("Selected runs.csv row is missing run_id/environment/autoscaler.")
+    return f"{run_id}_{environment}_{autoscaler}"
 
 
 def detect_timestamp_column(columns: list[str]) -> str:
@@ -273,14 +267,18 @@ def main() -> None:
     if not run_id:
         raise ValueError("Selected runs.csv row has no run_id.")
 
-    samples_path = find_samples_file(query_dir, run_id)
+    run_name = run_name_from_row(run_row)
+    run_dir = query_dir / run_name
+    samples_path = run_dir / "samples.csv"
+    if not samples_path.exists():
+        raise FileNotFoundError(f"Missing samples CSV for run: {samples_path}")
     samples = read_csv_rows(samples_path)
     elapsed_seconds, series = build_series(samples)
 
     if args.output:
         output_path = Path(args.output).resolve()
     else:
-        output_path = query_dir / f"{run_id}-plot.png"
+        output_path = run_dir / "plot.png"
 
     plot_run(args.query, run_row, elapsed_seconds, series, output_path)
     print(f"Saved plot: {output_path}")

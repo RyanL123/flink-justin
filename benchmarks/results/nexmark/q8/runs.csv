@@ -1,2 +1,5 @@
-run_id,iso_date,environment,run_commit,autoscaler
-2026-02-24-kind-q8-a4s-justin-baseline,2026-02-24T00:00:00Z,kind,not-captured,a4s
+run_id,environment,run_commit,autoscaler
+1771906009000,kind,not-captured,a4s
+1771945914000,kind,ed674e06,a4s
+1771961564000,kind,ed674e06,justin
+1771979747589,kind,ed674e06,a4s
