@@ -53,6 +53,8 @@ import org.apache.flink.kubernetes.operator.service.SuspendMode;
 import org.apache.flink.kubernetes.operator.standalone.StandaloneKubernetesConfigOptionsInternal;
 import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.execution.ExecutionState;
+import org.apache.flink.runtime.instance.SlotSharingGroupId;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.SavepointConfigOptions;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.runtime.jobmaster.JobResult;
@@ -64,9 +66,16 @@ import org.apache.flink.runtime.messages.webmonitor.MultipleJobsDetails;
 import org.apache.flink.runtime.rest.messages.DashboardConfiguration;
 import org.apache.flink.runtime.rest.messages.EmptyResponseBody;
 import org.apache.flink.runtime.rest.messages.JobsOverviewHeaders;
+import org.apache.flink.runtime.rest.messages.job.JobDetailsHeaders;
+import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsHeaders;
+import org.apache.flink.runtime.rest.messages.job.metrics.IOMetricsInfo;
+import org.apache.flink.runtime.rest.messages.JobMessageParameters;
+import org.apache.flink.runtime.rest.messages.JobPlanInfo;
+import org.apache.flink.runtime.rest.messages.MessageParameters;
 import org.apache.flink.runtime.rest.util.RestClientException;
 import org.apache.flink.util.SerializedThrowable;
 import org.apache.flink.util.concurrent.Executors;
@@ -455,6 +464,11 @@ public class TestingFlinkService extends AbstractFlinkService {
                         return CompletableFuture.completedFuture(getMultipleJobsDetails());
                     } else if (messageHeaders instanceof AggregatedSubtaskMetricsHeaders) {
                         return CompletableFuture.completedFuture(getSubtaskMetrics());
+                    } else if (messageHeaders instanceof JobDetailsHeaders) {
+                        return CompletableFuture.completedFuture(
+                                getMockJobDetailsInfo(messageParameters));
+                    } else if (messageHeaders instanceof A4SAggregatedVertexMetricsHeaders) {
+                        return CompletableFuture.completedFuture(getA4SMetrics());
                     }
                     return CompletableFuture.completedFuture(EmptyResponseBody.getInstance());
                 });
@@ -471,6 +485,45 @@ public class TestingFlinkService extends AbstractFlinkService {
 
     private AggregatedMetricsResponseBody getSubtaskMetrics() {
         return new AggregatedMetricsResponseBody(aggregatedMetricsResponse);
+    }
+
+    private static final JobVertexID MOCK_A4S_VERTEX_ID =
+            JobVertexID.fromHexString("00000000000000000000000000000001");
+
+    private JobDetailsInfo getMockJobDetailsInfo(MessageParameters messageParameters) {
+        JobID jobId =
+                ((JobMessageParameters) messageParameters).jobPathParameter.getValue();
+        var vertex =
+                new JobDetailsInfo.JobVertexDetailsInfo(
+                        MOCK_A4S_VERTEX_ID,
+                        new SlotSharingGroupId(),
+                        "mock-vertex",
+                        1,
+                        1,
+                        ExecutionState.RUNNING,
+                        0L,
+                        0L,
+                        0L,
+                        Map.of(ExecutionState.RUNNING, 1),
+                        new IOMetricsInfo(0, false, 0, false, 0, false, 0, false, null, null, null));
+        return new JobDetailsInfo(
+                jobId,
+                "mock-job",
+                false,
+                JobStatus.RUNNING,
+                0L,
+                0L,
+                0L,
+                1L,
+                0L,
+                Map.of(),
+                List.of(vertex),
+                Map.of(ExecutionState.RUNNING, 1),
+                new JobPlanInfo.RawJson("{}"));
+    }
+
+    private AggregatedMetricsResponseBody getA4SMetrics() {
+        return new AggregatedMetricsResponseBody(Collections.emptyList());
     }
 
     private static JobDetails toJobDetails(JobStatusMessage jobStatus) {

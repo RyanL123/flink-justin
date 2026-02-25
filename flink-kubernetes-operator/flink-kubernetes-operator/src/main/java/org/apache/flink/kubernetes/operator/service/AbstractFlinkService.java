@@ -53,6 +53,7 @@ import org.apache.flink.kubernetes.operator.utils.EventRecorder;
 import org.apache.flink.kubernetes.operator.utils.FlinkUtils;
 import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.highavailability.nonha.standalone.StandaloneClientHAServices;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.RestoreMode;
 import org.apache.flink.runtime.jobmaster.JobResult;
 import org.apache.flink.runtime.messages.FlinkJobNotFoundException;
@@ -63,6 +64,8 @@ import org.apache.flink.runtime.rest.handler.async.AsynchronousOperationResult;
 import org.apache.flink.runtime.rest.messages.DashboardConfiguration;
 import org.apache.flink.runtime.rest.messages.EmptyMessageParameters;
 import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
+import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
+import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
 import org.apache.flink.runtime.rest.messages.JobsOverviewHeaders;
 import org.apache.flink.runtime.rest.messages.TriggerId;
 import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointIdPathParameter;
@@ -73,6 +76,9 @@ import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointStatusHeader
 import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointStatusMessageParameters;
 import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointTriggerHeaders;
 import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointTriggerRequestBody;
+import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsParameters;
 import org.apache.flink.runtime.rest.messages.job.metrics.JobMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalRequest;
 import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalTriggerHeaders;
@@ -975,6 +981,42 @@ public abstract class AbstractFlinkService implements FlinkService {
             return responseBody.getMetrics().stream()
                     .map(metric -> Tuple2.of(metric.getId(), metric.getValue()))
                     .collect(Collectors.toMap((t) -> t.f0, (t) -> t.f1));
+        }
+    }
+
+    @Override
+    public void ensureA4SMetricsConnectivity(Configuration conf, String jobId) {
+        if (jobId == null || jobId.isEmpty()) {
+            return;
+        }
+        try (var clusterClient = getClusterClient(conf)) {
+            JobDetailsInfo details =
+                    clusterClient
+                            .getJobDetails(JobID.fromHexString(jobId))
+                            .get(
+                                    operatorConfig.getFlinkClientTimeout().toSeconds(),
+                                    TimeUnit.SECONDS);
+            var vertices = details.getJobVertexInfos();
+            if (vertices == null || vertices.isEmpty()) {
+                LOG.debug("No job vertices for job {}, skipping A4S metrics connectivity check", jobId);
+                return;
+            }
+            JobVertexID vertexId = vertices.iterator().next().getJobVertexID();
+            var params = new AggregatedSubtaskMetricsParameters();
+            var pathIt = params.getPathParameters().iterator();
+            ((JobIDPathParameter) pathIt.next()).resolve(JobID.fromHexString(jobId));
+            ((JobVertexIdPathParameter) pathIt.next()).resolve(vertexId);
+            clusterClient
+                    .sendRequest(
+                            A4SAggregatedVertexMetricsHeaders.getInstance(),
+                            params,
+                            EmptyRequestBody.getInstance())
+                    .get(
+                            operatorConfig.getFlinkClientTimeout().toSeconds(),
+                            TimeUnit.SECONDS);
+            LOG.debug("A4S metrics connectivity verified for job {} vertex {}", jobId, vertexId);
+        } catch (Exception e) {
+            LOG.warn("A4S metrics connectivity check failed for job {}: {}", jobId, e.getMessage());
         }
     }
 

@@ -87,6 +87,9 @@ public class ClusterHealthObserver {
                     Integer.parseInt(metrics.get(NUMBER_OF_COMPLETED_CHECKPOINTS_METRIC_NAME)));
             LOG.debug("Observed cluster health: {}", observedClusterHealthInfo);
 
+            ctx.getFlinkService()
+                    .ensureA4SMetricsConnectivity(ctx.getObserveConfig(), jobId);
+
             clusterHealthEvaluator.evaluate(
                     ctx.getObserveConfig(),
                     deploymentStatus.getClusterInfo(),
