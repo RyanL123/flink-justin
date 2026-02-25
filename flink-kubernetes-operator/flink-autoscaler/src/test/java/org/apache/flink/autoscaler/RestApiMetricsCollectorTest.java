@@ -33,6 +33,8 @@ import org.apache.flink.runtime.rest.messages.MessageParameters;
 import org.apache.flink.runtime.rest.messages.RequestBody;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregateTaskManagerMetricsParameters;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsHeaders;
@@ -298,6 +300,55 @@ class RestApiMetricsCollectorTest {
         // Make sure we don't query the names again
         collector.queryTmMetrics(context);
         collector.queryTmMetrics(context);
+    }
+
+    @Test
+    void testQueryVertexMissRateCurve() throws Exception {
+        var conf = new Configuration();
+        var client =
+                new RestClusterClient<>(
+                        conf,
+                        "test-cluster",
+                        (c, e) -> new StandaloneClientHAServices("localhost")) {
+                    @Override
+                    public <
+                                    M extends MessageHeaders<R, P, U>,
+                                    U extends MessageParameters,
+                                    R extends RequestBody,
+                                    P extends ResponseBody>
+                            CompletableFuture<P> sendRequest(M headers, U parameters, R request) {
+                        if (headers instanceof A4SAggregatedVertexMetricsHeaders) {
+                            return (CompletableFuture<P>)
+                                    CompletableFuture.completedFuture(
+                                            new A4SAggregatedMetricsResponseBody(
+                                                    List.of(),
+                                                    List.of(
+                                                            new A4SAggregatedMetricsResponseBody.MRCPoint(
+                                                                    1048576L, 0.5),
+                                                            new A4SAggregatedMetricsResponseBody.MRCPoint(
+                                                                    2097152L, 0.25))));
+                        }
+                        return (CompletableFuture<P>)
+                                CompletableFuture.completedFuture(EmptyResponseBody.getInstance());
+                    }
+                };
+
+        JobID jobID = new JobID();
+        var context =
+                new JobAutoScalerContext<>(
+                        jobID,
+                        jobID,
+                        JobStatus.RUNNING,
+                        conf,
+                        new UnregisteredMetricsGroup(),
+                        () -> client);
+
+        var collector = new RestApiMetricsCollector<JobID, JobAutoScalerContext<JobID>>();
+        var curve = collector.queryVertexMissRateCurve(context, jobID, new JobVertexID());
+
+        assertThat(curve.getPoints()).hasSize(2);
+        assertThat(curve.getPoints().get(0).getCacheSizeMb()).isEqualTo(1.0);
+        assertThat(curve.getPoints().get(1).getMissRate()).isEqualTo(0.25);
     }
 
     private static void assertMetricsEquals(

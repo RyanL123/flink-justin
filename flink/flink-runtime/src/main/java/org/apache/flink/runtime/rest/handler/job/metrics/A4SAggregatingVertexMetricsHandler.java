@@ -24,6 +24,7 @@ import org.apache.flink.runtime.clusterframework.types.ResourceProfile;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
 import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.apache.flink.runtime.rest.handler.AbstractRestHandler;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;
 import org.apache.flink.runtime.rest.handler.legacy.ExecutionGraphCache;
@@ -33,12 +34,14 @@ import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
 import org.apache.flink.runtime.metrics.MetricNames;
-import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsParameters;
 import org.apache.flink.runtime.rest.messages.job.metrics.MetricsAggregationParameter;
 import org.apache.flink.runtime.rest.messages.job.metrics.MetricsFilterParameter;
+import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
+import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 import org.apache.flink.util.CollectionUtil;
@@ -81,7 +84,15 @@ import java.util.stream.Collectors;
  * {@code /jobs/:jobid/vertices/:vertexid/a4s-metrics?get=parallelism,resourceProfile.totalMemory}
  */
 public class A4SAggregatingVertexMetricsHandler
-        extends AbstractAggregatingMetricsHandler<AggregatedSubtaskMetricsParameters> {
+        extends AbstractRestHandler<
+                RestfulGateway,
+                EmptyRequestBody,
+                A4SAggregatedMetricsResponseBody,
+                AggregatedSubtaskMetricsParameters> {
+
+    private static final String STACK_DISTANCE_HISTOGRAM_METRIC_NAME =
+            "rocksdb.stack-distance-histogram";
+    private static final String CURVE_LOG_PREFIX = "A4S_CURVE";
 
     private final Executor executor;
     private final MetricFetcher fetcher;
@@ -94,16 +105,18 @@ public class A4SAggregatingVertexMetricsHandler
             Executor executor,
             MetricFetcher fetcher,
             ExecutionGraphCache executionGraphCache) {
-        super(leaderRetriever, timeout, responseHeaders,
-                A4SAggregatedVertexMetricsHeaders.getInstance(), executor, fetcher);
+        super(
+                leaderRetriever,
+                timeout,
+                responseHeaders,
+                A4SAggregatedVertexMetricsHeaders.getInstance());
         this.executor = executor;
         this.fetcher = fetcher;
         this.executionGraphCache = executionGraphCache;
     }
 
     @Nonnull
-    @Override
-    Collection<? extends MetricStore.ComponentMetricStore> getStores(
+    private Collection<? extends MetricStore.ComponentMetricStore> getStores(
             MetricStore store, HandlerRequest<EmptyRequestBody> request) {
         JobID jobID = request.getPathParameter(JobIDPathParameter.class);
         JobVertexID taskID = request.getPathParameter(JobVertexIdPathParameter.class);
@@ -117,7 +130,7 @@ public class A4SAggregatingVertexMetricsHandler
     }
 
     @Override
-    protected CompletableFuture<AggregatedMetricsResponseBody> handleRequest(
+    protected CompletableFuture<A4SAggregatedMetricsResponseBody> handleRequest(
             @Nonnull HandlerRequest<EmptyRequestBody> request, @Nonnull RestfulGateway gateway)
             throws RestHandlerException {
         return executionGraphCache.getExecutionGraphInfo(
@@ -149,7 +162,42 @@ public class A4SAggregatingVertexMetricsHandler
                         List<MetricsAggregationParameter.AggregationMode> requestedAggregations = request
                                 .getQueryParameter(MetricsAggregationParameter.class);
 
-                        Collection<? extends MetricStore.ComponentMetricStore> stores = getStores(store, request);
+                        Collection<? extends MetricStore.ComponentMetricStore> stores =
+                                getStores(store, request);
+                        JobID jobId = request.getPathParameter(JobIDPathParameter.class);
+
+                        List<StackHistogram> subtaskHistograms = new ArrayList<>(stores.size());
+                        int histogramSourceIndex = 0;
+                        for (MetricStore.ComponentMetricStore storeItem : stores) {
+                            String serializedHistogram = getStackDistanceHistogramValue(storeItem);
+                            if (serializedHistogram == null) {
+                                histogramSourceIndex++;
+                                continue;
+                            }
+
+                            try {
+                                StackHistogram histogram =
+                                        StackHistogram.fromSerializedValue(serializedHistogram);
+                                subtaskHistograms.add(histogram);
+                                logHistogramAndUnscaledMrc(
+                                        jobId,
+                                        vertexID,
+                                        histogramSourceIndex,
+                                        histogram,
+                                        serializedHistogram);
+                            } catch (IllegalArgumentException histogramParseException) {
+                                log.warn(
+                                        "Unable to parse stack histogram for job {}, vertex {}, source {}",
+                                        jobId,
+                                        vertexID,
+                                        histogramSourceIndex,
+                                        histogramParseException);
+                            }
+                            histogramSourceIndex++;
+                        }
+
+                        List<A4SAggregatedMetricsResponseBody.MRCPoint> scaledMrcPoints =
+                                buildScaledMrcPoints(jobId, vertexID, subtaskHistograms);
 
                         if (requestedMetrics.isEmpty()) {
                             Set<String> uniqueMetrics = CollectionUtil.newHashSetWithExpectedSize(32);
@@ -158,9 +206,11 @@ public class A4SAggregatingVertexMetricsHandler
                             }
                             // Add A4S-specific metrics to the list
                             uniqueMetrics.addAll(getA4SMetricNames());
-                            return new AggregatedMetricsResponseBody(uniqueMetrics.stream()
-                                    .map(AggregatedMetric::new)
-                                    .collect(Collectors.toList()));
+                            return new A4SAggregatedMetricsResponseBody(
+                                    uniqueMetrics.stream()
+                                            .map(AggregatedMetric::new)
+                                            .collect(Collectors.toList()),
+                                    scaledMrcPoints);
                         }
 
                         // Create accumulator factories
@@ -237,13 +287,104 @@ public class A4SAggregatingVertexMetricsHandler
                             }
                         }
 
-                        return new AggregatedMetricsResponseBody(aggregatedMetrics);
+                        return new A4SAggregatedMetricsResponseBody(
+                                aggregatedMetrics, scaledMrcPoints);
                     } catch (Exception e) {
                         log.warn("Could not retrieve A4S metrics.", e);
                         throw new CompletionException(new RestHandlerException(
                                 "Could not retrieve A4S metrics.", HttpResponseStatus.INTERNAL_SERVER_ERROR));
                     }
                 }, this.executor));
+    }
+
+    @Nullable
+    private static String getStackDistanceHistogramValue(MetricStore.ComponentMetricStore storeItem) {
+        for (Map.Entry<String, String> metricEntry : storeItem.metrics.entrySet()) {
+            if (metricEntry.getKey() != null
+                    && metricEntry.getKey().endsWith(STACK_DISTANCE_HISTOGRAM_METRIC_NAME)) {
+                return metricEntry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private List<A4SAggregatedMetricsResponseBody.MRCPoint> buildScaledMrcPoints(
+            JobID jobId, JobVertexID vertexID, List<StackHistogram> subtaskHistograms) {
+        if (subtaskHistograms.isEmpty()) {
+            log.info(
+                    "{} stage=jm_scaled_mrc jobId={} vertexId={} timestampEpochMs={} curveType=scaled_mrc numPoints=0 pointsJson=[]",
+                    CURVE_LOG_PREFIX,
+                    jobId,
+                    vertexID,
+                    System.currentTimeMillis());
+            return Collections.emptyList();
+        }
+
+        StackHistogram mergedHistogram = StackHistogram.merge(subtaskHistograms);
+        List<QuickMRC.MRCPoint> scaledMrc = QuickMRC.computeScaledMRC(mergedHistogram);
+        log.info(
+                "{} stage=jm_scaled_mrc jobId={} vertexId={} timestampEpochMs={} curveType=scaled_mrc numPoints={} pointsJson={}",
+                CURVE_LOG_PREFIX,
+                jobId,
+                vertexID,
+                System.currentTimeMillis(),
+                scaledMrc.size(),
+                toQuickMrcPointsJson(scaledMrc));
+
+        return scaledMrc.stream()
+                .map(
+                        p ->
+                                new A4SAggregatedMetricsResponseBody.MRCPoint(
+                                        p.getCacheSize(), p.getMissRate()))
+                .collect(Collectors.toList());
+    }
+
+    private void logHistogramAndUnscaledMrc(
+            JobID jobId,
+            JobVertexID vertexID,
+            int sourceIndex,
+            StackHistogram histogram,
+            String serializedHistogram) {
+        log.info(
+                "{} stage=tm_histogram jobId={} vertexId={} timestampEpochMs={} sourceIndex={} curveType=stack_histogram numBuckets={} maxStackDistance={} totalFrequency={} serializedHistogram={}",
+                CURVE_LOG_PREFIX,
+                jobId,
+                vertexID,
+                System.currentTimeMillis(),
+                sourceIndex,
+                histogram.getNumBuckets(),
+                histogram.getMaxStackDistance(),
+                histogram.getTotalFrequency(),
+                serializedHistogram);
+
+        List<QuickMRC.MRCPoint> unscaledMrc = QuickMRC.computeUnscaledMRC(histogram);
+        log.info(
+                "{} stage=tm_unscaled_mrc jobId={} vertexId={} timestampEpochMs={} sourceIndex={} curveType=unscaled_mrc numPoints={} pointsJson={}",
+                CURVE_LOG_PREFIX,
+                jobId,
+                vertexID,
+                System.currentTimeMillis(),
+                sourceIndex,
+                unscaledMrc.size(),
+                toQuickMrcPointsJson(unscaledMrc));
+    }
+
+    private static String toQuickMrcPointsJson(List<QuickMRC.MRCPoint> points) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (int i = 0; i < points.size(); i++) {
+            QuickMRC.MRCPoint point = points.get(i);
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append("{\"cacheSizeBytes\":")
+                    .append(point.getCacheSize())
+                    .append(",\"missRate\":")
+                    .append(point.getMissRate())
+                    .append('}');
+        }
+        sb.append(']');
+        return sb.toString();
     }
 
     private boolean isA4SVertexLevelMetric(String metricName) {

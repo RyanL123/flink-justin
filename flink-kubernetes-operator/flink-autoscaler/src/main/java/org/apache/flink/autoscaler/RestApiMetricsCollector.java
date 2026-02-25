@@ -17,6 +17,8 @@
 
 package org.apache.flink.autoscaler;
 
+import org.apache.flink.api.common.JobID;
+import org.apache.flink.autoscaler.a4s.MissRateCurve;
 import org.apache.flink.autoscaler.metrics.FlinkMetric;
 import org.apache.flink.client.program.rest.RestClusterClient;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
@@ -24,6 +26,8 @@ import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregateTaskManagerMetricsParameters;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsHeaders;
@@ -44,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.autoscaler.metrics.FlinkMetric.HEAP_MEMORY_MAX;
@@ -80,6 +85,20 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
                                 e -> queryAggregatedVertexMetrics(ctx, e.getKey(), e.getValue())));
     }
 
+    @Override
+    protected Map<JobVertexID, MissRateCurve> queryAllMissRateCurves(
+            Context ctx, Collection<JobVertexID> jobVertexIds) {
+        return jobVertexIds.stream()
+                .collect(
+                        Collectors.toMap(
+                                v -> v,
+                                v -> queryVertexMissRateCurve(ctx, ctx.getJobID(), v)))
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
     @SneakyThrows
     protected Map<FlinkMetric, AggregatedMetric> queryAggregatedVertexMetrics(
             Context ctx, JobVertexID jobVertexID, Map<String, FlinkMetric> metrics) {
@@ -109,6 +128,49 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
                             .get();
 
             return aggregateByFlinkMetric(metrics, responseBody);
+        }
+    }
+
+    protected MissRateCurve queryVertexMissRateCurve(Context ctx, JobID jobId, JobVertexID jobVertexID) {
+        var parameters = new AggregatedSubtaskMetricsParameters();
+        var pathIt = parameters.getPathParameters().iterator();
+        ((JobIDPathParameter) pathIt.next()).resolve(jobId);
+        ((JobVertexIdPathParameter) pathIt.next()).resolve(jobVertexID);
+
+        try (var restClient = ctx.getRestClusterClient()) {
+            A4SAggregatedMetricsResponseBody responseBody =
+                    restClient
+                            .sendRequest(
+                                    A4SAggregatedVertexMetricsHeaders.getInstance(),
+                                    parameters,
+                                    EmptyRequestBody.getInstance())
+                            .get();
+
+            if (responseBody.getScaledMrc().isEmpty()) {
+                return null;
+            }
+
+            MissRateCurve.Builder builder = new MissRateCurve.Builder();
+            for (A4SAggregatedMetricsResponseBody.MRCPoint point : responseBody.getScaledMrc()) {
+                double cacheSizeMb = point.getCacheSizeBytes() / (1024.0 * 1024.0);
+                builder.addPoint(cacheSizeMb, point.getMissRate());
+            }
+            MissRateCurve missRateCurve = builder.build();
+            LOG.info(
+                    "A4S_CURVE stage=operator_received_mrc jobId={} vertexId={} timestampEpochMs={} curveType=scaled_mrc numPoints={} pointsJson={}",
+                    jobId,
+                    jobVertexID,
+                    System.currentTimeMillis(),
+                    missRateCurve.getPoints().size(),
+                    toMissRateCurvePointsJson(missRateCurve));
+            return missRateCurve;
+        } catch (Exception e) {
+            LOG.debug(
+                    "Unable to fetch A4S miss-rate curve for job {}, vertex {}, continuing without MRC",
+                    jobId,
+                    jobVertexID,
+                    e);
+            return null;
         }
     }
 
@@ -234,5 +296,24 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
                                                 m1.getSkew() != null
                                                         ? Math.max(m1.getSkew(), m2.getSkew())
                                                         : null)));
+    }
+
+    private static String toMissRateCurvePointsJson(MissRateCurve curve) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        List<MissRateCurve.MRCPoint> points = curve.getPoints();
+        for (int i = 0; i < points.size(); i++) {
+            MissRateCurve.MRCPoint point = points.get(i);
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append("{\"cacheSizeMb\":")
+                    .append(point.getCacheSizeMb())
+                    .append(",\"missRate\":")
+                    .append(point.getMissRate())
+                    .append('}');
+        }
+        sb.append(']');
+        return sb.toString();
     }
 }

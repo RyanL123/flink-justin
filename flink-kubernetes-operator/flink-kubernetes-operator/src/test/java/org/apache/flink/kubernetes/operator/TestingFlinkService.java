@@ -69,6 +69,7 @@ import org.apache.flink.runtime.rest.messages.JobsOverviewHeaders;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsHeaders;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
 import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsHeaders;
@@ -522,8 +523,9 @@ public class TestingFlinkService extends AbstractFlinkService {
                 new JobPlanInfo.RawJson("{}"));
     }
 
-    private AggregatedMetricsResponseBody getA4SMetrics() {
-        return new AggregatedMetricsResponseBody(Collections.emptyList());
+    private A4SAggregatedMetricsResponseBody getA4SMetrics() {
+        return new A4SAggregatedMetricsResponseBody(
+                Collections.emptyList(), Collections.emptyList());
     }
 
     private static JobDetails toJobDetails(JobStatusMessage jobStatus) {

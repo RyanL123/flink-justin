@@ -1,11 +1,10 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,8 +26,8 @@ import org.apache.flink.runtime.rest.messages.RuntimeMessageHeaders;
 import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
- * Headers for A4S aggregating vertex metrics including parallelism and
- * ResourceProfile information.
+ * Headers for A4S aggregating vertex metrics including parallelism and ResourceProfile
+ * information.
  */
 public class A4SAggregatedVertexMetricsHeaders
         implements RuntimeMessageHeaders<
@@ -36,9 +35,13 @@ public class A4SAggregatedVertexMetricsHeaders
                 A4SAggregatedMetricsResponseBody,
                 AggregatedSubtaskMetricsParameters> {
 
-    private static final A4SAggregatedVertexMetricsHeaders INSTANCE = new A4SAggregatedVertexMetricsHeaders();
+    private static final A4SAggregatedVertexMetricsHeaders INSTANCE =
+            new A4SAggregatedVertexMetricsHeaders();
 
-    private A4SAggregatedVertexMetricsHeaders() {
+    private A4SAggregatedVertexMetricsHeaders() {}
+
+    public static A4SAggregatedVertexMetricsHeaders getInstance() {
+        return INSTANCE;
     }
 
     @Override
@@ -75,13 +78,9 @@ public class A4SAggregatedVertexMetricsHeaders
                 + "/a4s-metrics";
     }
 
-    public static A4SAggregatedVertexMetricsHeaders getInstance() {
-        return INSTANCE;
-    }
-
     @Override
     public String getDescription() {
-        return "Provides access to A4S-specific aggregated vertex metrics including" +
-                "parallelism and ResourceProfile information for Memory Parallelism Curves.";
+        return "Provides access to A4S-specific aggregated vertex metrics including"
+                + "parallelism and ResourceProfile information for Memory Parallelism Curves.";
     }
 }

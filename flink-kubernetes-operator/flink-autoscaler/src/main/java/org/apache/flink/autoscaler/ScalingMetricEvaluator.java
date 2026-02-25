@@ -30,6 +30,7 @@ import org.apache.flink.autoscaler.utils.AutoScalerUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 
+import org.apache.flink.autoscaler.a4s.MissRateCurve;
 import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,11 @@ public class ScalingMetricEvaluator {
         var memoryParallelismCurves = new HashMap<JobVertexID, MemoryParallelismCurve>();
         var metricsHistory = collectedMetrics.getMetricHistory();
         var topology = collectedMetrics.getJobTopology();
+        CollectedMetrics latestCollectedMetrics = metricsHistory.get(metricsHistory.lastKey());
+        Map<JobVertexID, MissRateCurve> collectedMissRateCurves =
+                latestCollectedMetrics.getMissRateCurves() == null
+                        ? Map.of()
+                        : latestCollectedMetrics.getMissRateCurves();
 
         boolean processingBacklog = isProcessingBacklog(topology, metricsHistory, conf);
 
@@ -111,15 +117,79 @@ public class ScalingMetricEvaluator {
             double scaledMemoryMB = vertexMemoryMB * throughputScalingFactor;
 
             if (scaledMemoryMB > 0 && !Double.isNaN(targetThroughput)) {
-                var mpc = generateMemoryParallelismCurveFromHeuristic(
-                        parallelism, scaledMemoryMB, targetThroughput, conf);
+                MemoryParallelismCurve mpc = null;
+                String mpcSource = "heuristic";
+                String fallbackReason = "none";
+
+                MissRateCurve missRateCurve = collectedMissRateCurves.get(vertex);
+                if (missRateCurve != null && !missRateCurve.getPoints().isEmpty()) {
+                    try {
+                        double missLatencySec =
+                                Math.max(0.001, conf.get(AutoScalerOptions.A4S_IO_LATENCY_THRESHOLD_MS) / 1000.0);
+                        double hitLatencySec = Math.max(0.0001, missLatencySec / 10.0);
+                        mpc =
+                                MemoryParallelismCurve.fromMissRateCurve(
+                                        targetThroughput, missLatencySec, hitLatencySec, missRateCurve, conf);
+                        mpcSource = "mrc";
+                    } catch (Exception mrcToMpcError) {
+                        fallbackReason = "mrc_conversion_failed";
+                        LOG.warn(
+                                "Failed to generate MRC-based MPC for vertex {}, falling back to heuristic",
+                                vertex,
+                                mrcToMpcError);
+                    }
+                } else {
+                    fallbackReason = "mrc_unavailable";
+                }
+
+                if (mpc == null) {
+                    mpc =
+                            generateMemoryParallelismCurveFromHeuristic(
+                                    parallelism, scaledMemoryMB, targetThroughput, conf);
+                }
+
                 memoryParallelismCurves.put(vertex, mpc);
-                LOG.debug("Generated MPC for vertex {}: parallelism={}, memory={}MB (scaled from {}MB by factor {}), throughput={}",
-                        vertex, parallelism, scaledMemoryMB, vertexMemoryMB, throughputScalingFactor, targetThroughput);
+                LOG.info(
+                        "A4S_CURVE stage=operator_mpc jobId=unknown vertexId={} timestampEpochMs={} curveType=mpc source={} fallbackReason={} numPoints={} pointsJson={}",
+                        vertex,
+                        System.currentTimeMillis(),
+                        mpcSource,
+                        fallbackReason,
+                        mpc.getPoints().size(),
+                        toMpcPointsJson(mpc));
+                LOG.debug(
+                        "Generated MPC for vertex {}: source={}, parallelism={}, memory={}MB (scaled from {}MB by factor {}), throughput={}",
+                        vertex,
+                        mpcSource,
+                        parallelism,
+                        scaledMemoryMB,
+                        vertexMemoryMB,
+                        throughputScalingFactor,
+                        targetThroughput);
             }
         }
 
-        return new EvaluatedMetrics(scalingOutput, globalMetrics, memoryParallelismCurves);
+        return new EvaluatedMetrics(
+                scalingOutput, globalMetrics, memoryParallelismCurves, collectedMissRateCurves);
+    }
+
+    private static String toMpcPointsJson(MemoryParallelismCurve mpc) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
+        for (int i = 0; i < points.size(); i++) {
+            MemoryParallelismCurve.CurvePoint point = points.get(i);
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append("{\"parallelism\":")
+                    .append(point.getParallelism())
+                    .append(",\"memoryMb\":")
+                    .append(point.getMemoryMB())
+                    .append('}');
+        }
+        sb.append(']');
+        return sb.toString();
     }
 
     @VisibleForTesting
