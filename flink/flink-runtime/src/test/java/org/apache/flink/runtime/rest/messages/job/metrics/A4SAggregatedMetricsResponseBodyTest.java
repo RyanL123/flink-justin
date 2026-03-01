@@ -20,6 +20,7 @@ package org.apache.flink.runtime.rest.messages.job.metrics;
 
 import org.apache.flink.runtime.rest.messages.RestResponseMarshallingTestBase;
 import org.apache.flink.runtime.rest.util.RestMapperUtils;
+import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
 
 import org.junit.Test;
 
@@ -42,18 +43,14 @@ public class A4SAggregatedMetricsResponseBodyTest
     @Override
     protected A4SAggregatedMetricsResponseBody getTestResponseInstance() {
         return new A4SAggregatedMetricsResponseBody(
-                List.of(new AggregatedMetric("busyTimeMsPerSecond", 1.0, 2.0, 1.5, 3.0)),
                 List.of(
-                        new A4SAggregatedMetricsResponseBody.MRCPoint(0L, 1.0),
-                        new A4SAggregatedMetricsResponseBody.MRCPoint(1048576L, 0.2)));
+                        new QuickMRC.MRCPoint(0L, 1.0),
+                        new QuickMRC.MRCPoint(1048576L, 0.2)));
     }
 
     @Override
     protected void assertOriginalEqualsToUnmarshalled(
             A4SAggregatedMetricsResponseBody expected, A4SAggregatedMetricsResponseBody actual) {
-        assertThat(actual.getMetrics(), hasSize(1));
-        AggregatedMetric metric = actual.getMetrics().iterator().next();
-        assertThat(metric.getId(), equalTo("busyTimeMsPerSecond"));
         assertThat(actual.getScaledMrc(), hasSize(2));
         assertThat(actual.getScaledMrc().get(1).getCacheSizeBytes(), equalTo(1048576L));
         assertThat(actual.getScaledMrc().get(1).getMissRate(), equalTo(0.2));

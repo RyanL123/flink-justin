@@ -524,8 +524,7 @@ public class TestingFlinkService extends AbstractFlinkService {
     }
 
     private A4SAggregatedMetricsResponseBody getA4SMetrics() {
-        return new A4SAggregatedMetricsResponseBody(
-                Collections.emptyList(), Collections.emptyList());
+        return new A4SAggregatedMetricsResponseBody(Collections.emptyList());
     }
 
     private static JobDetails toJobDetails(JobStatusMessage jobStatus) {

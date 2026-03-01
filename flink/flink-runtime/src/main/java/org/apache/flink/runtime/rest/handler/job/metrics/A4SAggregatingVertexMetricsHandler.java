@@ -86,14 +86,10 @@ import java.util.stream.Collectors;
  * {@code /jobs/:jobid/vertices/:vertexid/a4s-metrics?get=parallelism,resourceProfile.totalMemory}
  */
 public class A4SAggregatingVertexMetricsHandler
-        extends AbstractRestHandler<
-                RestfulGateway,
-                EmptyRequestBody,
-                A4SAggregatedMetricsResponseBody,
-                AggregatedSubtaskMetricsParameters> {
+        extends
+        AbstractRestHandler<RestfulGateway, EmptyRequestBody, A4SAggregatedMetricsResponseBody, AggregatedSubtaskMetricsParameters> {
 
-    private static final String STACK_DISTANCE_HISTOGRAM_METRIC_NAME =
-            "stack-distance-histogram";
+    private static final String STACK_DISTANCE_HISTOGRAM_METRIC_NAME = "stack-distance-histogram";
     private static final String CURVE_LOG_PREFIX = "A4S_CURVE";
     private static final String TRACE_LOG_PREFIX = "A4S_TRACE";
 
@@ -120,7 +116,7 @@ public class A4SAggregatingVertexMetricsHandler
 
     @Override
     protected CompletableFuture<A4SAggregatedMetricsResponseBody> handleRequest(
-            @Nonnull HandlerRequest<EmptyRequestBody> request, 
+            @Nonnull HandlerRequest<EmptyRequestBody> request,
             @Nonnull RestfulGateway gateway)
             throws RestHandlerException {
         JobID jobId = request.getPathParameter(JobIDPathParameter.class);
@@ -132,16 +128,15 @@ public class A4SAggregatingVertexMetricsHandler
                 TRACE_LOG_PREFIX,
                 jobId,
                 vertexID,
-                requestStartEpochMs
-            );
+                requestStartEpochMs);
 
         return executionGraphCache.getExecutionGraphInfo(jobId, gateway)
                 .thenCompose(executionGraphInfo -> CompletableFuture.supplyAsync(() -> {
                     try {
-                    return processRequest(
-                        jobId, 
-                        vertexID, 
-                        executionGraphInfo);
+                        return processRequest(
+                                jobId,
+                                vertexID,
+                                executionGraphInfo);
                     } catch (Exception e) {
                         log.warn(
                                 "{} stage=handler_failed jobId={} vertexId={} elapsedMs={} message={}",
@@ -170,19 +165,18 @@ public class A4SAggregatingVertexMetricsHandler
             return Collections.emptyList();
         }
         log.debug(
-            "{} stage=stores_found jobId={} vertexId={} subtaskStoreCount={}",
-            TRACE_LOG_PREFIX,
-            jobID,
-            taskID,
-            taskMetricStore.getAllSubtaskMetricStores().size());
+                "{} stage=stores_found jobId={} vertexId={} subtaskStoreCount={}",
+                TRACE_LOG_PREFIX,
+                jobID,
+                taskID,
+                taskMetricStore.getAllSubtaskMetricStores().size());
         return taskMetricStore.getAllSubtaskMetricStores().values();
     }
 
     private A4SAggregatedMetricsResponseBody processRequest(
-        JobID jobId,
-        JobVertexID vertexID,
-        ExecutionGraphInfo executionGraphInfo
-    ) throws Exception {
+            JobID jobId,
+            JobVertexID vertexID,
+            ExecutionGraphInfo executionGraphInfo) throws Exception {
         // === Stage 1: Query and update metrics from TMs ===
         long requestStartEpochMs = System.currentTimeMillis();
         log.info(
@@ -225,13 +219,13 @@ public class A4SAggregatingVertexMetricsHandler
                 stores.size());
 
         List<StackHistogram> subtaskHistograms = new ArrayList<>(stores.size());
-        for (MetricStore.SubtaskMetricStore storeItem : stores) {    
+        for (MetricStore.SubtaskMetricStore storeItem : stores) {
             log.info(
-                "{} stage=store_item_begin jobId={} vertexId={} metricCount={}",
-                TRACE_LOG_PREFIX,
-                jobId,
-                vertexID,
-                storeItem.metrics.size());
+                    "{} stage=store_item_begin jobId={} vertexId={} metricCount={}",
+                    TRACE_LOG_PREFIX,
+                    jobId,
+                    vertexID,
+                    storeItem.metrics.size());
             String histogramRaw = getStackDistanceHistogramRaw(storeItem.metrics);
             if (histogramRaw == null) {
                 continue;
@@ -249,11 +243,11 @@ public class A4SAggregatingVertexMetricsHandler
 
         // === Stage 3: Build scaled MRC points ===
         List<QuickMRC.MRCPoint> scaledMrcPoints = buildScaledMrcPoints(
-            jobId, 
-            vertexID, 
-            subtaskHistograms);
+                jobId,
+                vertexID,
+                subtaskHistograms);
         log.info(
-                "{} stage=response_ready jobId={} vertexId={} aggregatedMetricCount={} scaledMrcPointCount={} elapsedMs={}",
+                "{} stage=response_ready jobId={} vertexId={} scaledMrcPointCount={} elapsedMs={}",
                 TRACE_LOG_PREFIX,
                 jobId,
                 vertexID,
@@ -296,12 +290,11 @@ public class A4SAggregatingVertexMetricsHandler
 
         StackHistogram mergedHistogram = StackHistogram.merge(subtaskHistograms);
         log.info(
-                "{} stage=jm_histogram_merged jobId={} vertexId={} numBuckets={} maxStackDistance={} totalFrequency={}",
+                "{} stage=jm_histogram_merged jobId={} vertexId={} numBuckets={} totalFrequency={}",
                 TRACE_LOG_PREFIX,
                 jobId,
                 vertexID,
                 mergedHistogram.getNumBuckets(),
-                mergedHistogram.getMaxStackDistance(),
                 mergedHistogram.getTotalFrequency());
         List<QuickMRC.MRCPoint> mrc = QuickMRC.computeScaledMRC(mergedHistogram);
         log.info(

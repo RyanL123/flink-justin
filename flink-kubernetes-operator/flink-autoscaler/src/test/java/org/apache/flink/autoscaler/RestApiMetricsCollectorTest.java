@@ -321,7 +321,6 @@ class RestApiMetricsCollectorTest {
                             return (CompletableFuture<P>)
                                     CompletableFuture.completedFuture(
                                             new A4SAggregatedMetricsResponseBody(
-                                                    List.of(),
                                                     List.of(
                                                             new A4SAggregatedMetricsResponseBody.MRCPoint(
                                                                     1048576L, 0.5),
