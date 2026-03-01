@@ -23,64 +23,25 @@ import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Collection;
+import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
 import java.util.Collections;
 import java.util.List;
 
 /** A4S response body containing aggregated scalar metrics and scaled MRC points. */
 public class A4SAggregatedMetricsResponseBody implements ResponseBody {
 
-    public static final String FIELD_NAME_METRICS = "metrics";
     public static final String FIELD_NAME_SCALED_MRC = "scaledMrc";
 
-    @JsonProperty(FIELD_NAME_METRICS)
-    private final Collection<AggregatedMetric> metrics;
-
     @JsonProperty(FIELD_NAME_SCALED_MRC)
-    private final List<MRCPoint> scaledMrc;
+    private final List<QuickMRC.MRCPoint> scaledMrc;
 
     @JsonCreator
     public A4SAggregatedMetricsResponseBody(
-            @JsonProperty(FIELD_NAME_METRICS) Collection<AggregatedMetric> metrics,
-            @JsonProperty(FIELD_NAME_SCALED_MRC) List<MRCPoint> scaledMrc) {
-        this.metrics = metrics == null ? Collections.emptyList() : metrics;
+            @JsonProperty(FIELD_NAME_SCALED_MRC) List<QuickMRC.MRCPoint> scaledMrc) {
         this.scaledMrc = scaledMrc == null ? Collections.emptyList() : scaledMrc;
     }
 
-    public Collection<AggregatedMetric> getMetrics() {
-        return metrics;
-    }
-
-    public List<MRCPoint> getScaledMrc() {
+    public List<QuickMRC.MRCPoint> getScaledMrc() {
         return scaledMrc;
-    }
-
-    /** A single point on the scaled MRC curve. */
-    public static class MRCPoint {
-
-        public static final String FIELD_NAME_CACHE_SIZE_BYTES = "cacheSizeBytes";
-        public static final String FIELD_NAME_MISS_RATE = "missRate";
-
-        @JsonProperty(FIELD_NAME_CACHE_SIZE_BYTES)
-        private final long cacheSizeBytes;
-
-        @JsonProperty(FIELD_NAME_MISS_RATE)
-        private final double missRate;
-
-        @JsonCreator
-        public MRCPoint(
-                @JsonProperty(FIELD_NAME_CACHE_SIZE_BYTES) long cacheSizeBytes,
-                @JsonProperty(FIELD_NAME_MISS_RATE) double missRate) {
-            this.cacheSizeBytes = cacheSizeBytes;
-            this.missRate = missRate;
-        }
-
-        public long getCacheSizeBytes() {
-            return cacheSizeBytes;
-        }
-
-        public double getMissRate() {
-            return missRate;
-        }
     }
 }

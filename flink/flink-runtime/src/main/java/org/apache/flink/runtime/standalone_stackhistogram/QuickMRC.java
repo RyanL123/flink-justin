@@ -9,6 +9,8 @@ package org.apache.flink.runtime.standalone_stackhistogram;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Computes Miss Rate Curves (MRC) from merged StackHistogram objects.
  * 
@@ -32,16 +34,22 @@ public class QuickMRC {
      * Represents a point on the Miss Rate Curve: cache size -> miss rate.
      */
     public static class MRCPoint {
-        private final long cacheSize;
+        public static final String FIELD_NAME_CACHE_SIZE_BYTES = "cacheSizeBytes";
+        public static final String FIELD_NAME_MISS_RATE = "missRate";
+
+        @JsonProperty(FIELD_NAME_CACHE_SIZE_BYTES)
+        private final long cacheSizeBytes;
+
+        @JsonProperty(FIELD_NAME_MISS_RATE)
         private final double missRate;
 
-        public MRCPoint(long cacheSize, double missRate) {
-            this.cacheSize = cacheSize;
+        public MRCPoint(long cacheSizeBytes, double missRate) {
+            this.cacheSizeBytes = cacheSizeBytes;
             this.missRate = missRate;
         }
 
-        public long getCacheSize() {
-            return cacheSize;
+        public long getCacheSizeBytes() {
+            return cacheSizeBytes;
         }
 
         public double getMissRate() {
@@ -50,7 +58,7 @@ public class QuickMRC {
 
         @Override
         public String toString() {
-            return String.format("MRCPoint{cacheSize=%d, missRate=%.6f}", cacheSize, missRate);
+            return String.format("MRCPoint{cacheSizeBytes=%d, missRate=%.6f}", cacheSizeBytes, missRate);
         }
     }
 
@@ -160,7 +168,7 @@ public class QuickMRC {
         
         List<MRCPoint> scaledMRC = new ArrayList<>();
         for (MRCPoint point : unscaledMRC) {
-            long scaledCacheSize = point.getCacheSize() * horizontalScaleFactor;
+            long scaledCacheSize = point.getCacheSizeBytes() * horizontalScaleFactor;
             scaledMRC.add(new MRCPoint(scaledCacheSize, point.getMissRate()));
         }
         
