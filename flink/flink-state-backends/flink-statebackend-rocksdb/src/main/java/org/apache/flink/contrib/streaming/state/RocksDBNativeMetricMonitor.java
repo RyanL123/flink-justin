@@ -278,8 +278,8 @@ public class RocksDBNativeMetricMonitor implements Closeable {
     class RocksDBStackDistanceHistogramView
             implements StackDistanceHistogramProvider, Gauge<String> {
 
-        private static final int BUCKET_STEP = 32;
-        private static final int MAX_BUCKET_BOUNDARY = 1024;
+        private static final int BUCKET_STEP = 1024;
+        private static final int MAX_BUCKET_BOUNDARY = 1024 * 1024 ;
         private final long[] bucketBoundaries;
 
         @Nullable private final LRUCache viewLruCache;
