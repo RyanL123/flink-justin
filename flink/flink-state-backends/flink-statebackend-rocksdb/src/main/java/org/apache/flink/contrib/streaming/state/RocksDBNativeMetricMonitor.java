@@ -279,7 +279,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
             implements StackDistanceHistogramProvider, Gauge<String> {
 
         private static final int BUCKET_STEP = 1024;
-        private static final int MAX_BUCKET_BOUNDARY = 1024 * 1024 ;
+        private static final int MAX_BUCKET_BOUNDARY = 1024 * 1024;
         private final long[] bucketBoundaries;
 
         @Nullable private final LRUCache viewLruCache;
@@ -302,7 +302,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 }
                 try {
                     BucketStatistics stats = viewLruCache.getBucketStatistics();
-                    long[] counts = new long[bucketBoundaries.length + 1];
+                    long[] counts = new long[bucketBoundaries.length];
                     for (int i = 0; i < stats.size(); i++) {
                         counts[i] = stats.getHits()[i];
                     }
