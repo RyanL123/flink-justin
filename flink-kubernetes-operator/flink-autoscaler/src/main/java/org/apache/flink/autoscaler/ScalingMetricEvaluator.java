@@ -87,86 +87,31 @@ public class ScalingMetricEvaluator {
 
         var globalMetrics = evaluateGlobalMetrics(metricsHistory);
 
-        // Generate memory-parallelism curves for each vertex
-        double totalManagedMemoryMB = globalMetrics.containsKey(MANAGED_MEMORY_USED)
-                ? globalMetrics.get(MANAGED_MEMORY_USED).getAverage() / (1024.0 * 1024.0)
-                : 0.0;
-
-        // Calculate total parallelism across all vertices
-        int totalParallelism = topology.getVerticesInTopologicalOrder().stream()
-                .mapToInt(v -> (int) scalingOutput.get(v).get(PARALLELISM).getCurrent())
-                .sum();
+        double hitLatencySec = 5e-6;
+        double missLatencySec = hitLatencySec * 100;
 
         for (var vertex : topology.getVerticesInTopologicalOrder()) {
+            LOG.info("A4S: Evaluating metrics for vertex {}", vertex);
             var vertexMetrics = scalingOutput.get(vertex);
-            int parallelism = (int) vertexMetrics.get(PARALLELISM).getCurrent();
             double targetThroughput = vertexMetrics.get(TARGET_DATA_RATE).getAverage();
-            double currentThroughput = vertexMetrics.get(TRUE_PROCESSING_RATE).getAverage();
 
-            // Estimate vertex memory as proportional share of total managed memory
-            double vertexMemoryMB = totalParallelism > 0
-                    ? (totalManagedMemoryMB * parallelism) / totalParallelism
-                    : 0.0;
-
-            // Scale memory by the ratio of target throughput to current throughput
-            // If target > current, we need more memory; if target < current, we need less
-            double throughputScalingFactor = 1.0;
-            if (!Double.isNaN(currentThroughput) && currentThroughput > 0 && !Double.isInfinite(currentThroughput)) {
-                throughputScalingFactor = targetThroughput / currentThroughput;
+            MissRateCurve missRateCurve = collectedMissRateCurves.get(vertex);
+            if (missRateCurve == null) {
+                LOG.warn("A4S: No miss rate curve found for vertex {}, skipping", vertex);
+                continue;
             }
-            double scaledMemoryMB = vertexMemoryMB * throughputScalingFactor;
 
-            if (scaledMemoryMB > 0 && !Double.isNaN(targetThroughput)) {
-                MemoryParallelismCurve mpc = null;
-                String mpcSource = "heuristic";
-                String fallbackReason = "none";
+            LOG.info("A4S: Miss rate curve for vertex {}: {}", vertex, missRateCurve);
 
-                MissRateCurve missRateCurve = collectedMissRateCurves.get(vertex);
-                if (missRateCurve != null && !missRateCurve.getPoints().isEmpty()) {
-                    try {
-                        double missLatencySec =
-                                Math.max(0.001, conf.get(AutoScalerOptions.A4S_IO_LATENCY_THRESHOLD_MS) / 1000.0);
-                        double hitLatencySec = Math.max(0.0001, missLatencySec / 10.0);
-                        mpc =
-                                MemoryParallelismCurve.fromMissRateCurve(
-                                        targetThroughput, missLatencySec, hitLatencySec, missRateCurve, conf);
-                        mpcSource = "mrc";
-                    } catch (Exception mrcToMpcError) {
-                        fallbackReason = "mrc_conversion_failed";
-                        LOG.warn(
-                                "Failed to generate MRC-based MPC for vertex {}, falling back to heuristic",
-                                vertex,
-                                mrcToMpcError);
-                    }
-                } else {
-                    fallbackReason = "mrc_unavailable";
-                }
+            MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
+                targetThroughput, missLatencySec, hitLatencySec, missRateCurve, conf);
+            memoryParallelismCurves.put(vertex, mpc);
 
-                if (mpc == null) {
-                    mpc =
-                            generateMemoryParallelismCurveFromHeuristic(
-                                    parallelism, scaledMemoryMB, targetThroughput, conf);
-                }
-
-                memoryParallelismCurves.put(vertex, mpc);
-                LOG.info(
-                        "A4S_CURVE stage=operator_mpc jobId=unknown vertexId={} timestampEpochMs={} curveType=mpc source={} fallbackReason={} numPoints={} pointsJson={}",
-                        vertex,
-                        System.currentTimeMillis(),
-                        mpcSource,
-                        fallbackReason,
-                        mpc.getPoints().size(),
-                        toMpcPointsJson(mpc));
-                LOG.debug(
-                        "Generated MPC for vertex {}: source={}, parallelism={}, memory={}MB (scaled from {}MB by factor {}), throughput={}",
-                        vertex,
-                        mpcSource,
-                        parallelism,
-                        scaledMemoryMB,
-                        vertexMemoryMB,
-                        throughputScalingFactor,
-                        targetThroughput);
-            }
+            LOG.info(
+                    "A4S: MPC for vertex {}: numPoints={} pointsJson={}",
+                    vertex,
+                    mpc.getPoints().size(),
+                    toMpcPointsJson(mpc));
         }
 
         return new EvaluatedMetrics(

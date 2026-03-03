@@ -295,6 +295,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
         @Override
         public long[] fetchBucketCounts() {
             synchronized (lock) {
+                LOG.info("Fetching stack distance histogram from RocksDB for metric group: {}", metricGroup.getScopeComponents().toString());
                 if (viewLruCache == null) {
                     LOG.debug(
                             "LRUCache reference is null, returning empty stack distance histogram.");

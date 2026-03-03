@@ -89,13 +89,11 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
     protected Map<JobVertexID, MissRateCurve> queryAllMissRateCurves(
             Context ctx, Collection<JobVertexID> jobVertexIds) {
         return jobVertexIds.stream()
-                .collect(
-                        Collectors.toMap(
-                                v -> v,
-                                v -> queryVertexMissRateCurve(ctx, ctx.getJobID(), v)))
-                .entrySet()
-                .stream()
-                .filter(entry -> entry.getValue() != null)
+                .map(v -> {
+                    var curve = queryVertexMissRateCurve(ctx, ctx.getJobID(), v);
+                    return curve == null ? null : Map.entry(v, curve);
+                })
+                .filter(entry -> entry != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -132,6 +130,7 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
     }
 
     protected MissRateCurve queryVertexMissRateCurve(Context ctx, JobID jobId, JobVertexID jobVertexID) {
+        LOG.info("Querying miss rate curve for job {}, vertex {}", jobId, jobVertexID);
         var parameters = new AggregatedSubtaskMetricsParameters();
         var pathIt = parameters.getPathParameters().iterator();
         ((JobIDPathParameter) pathIt.next()).resolve(jobId);
