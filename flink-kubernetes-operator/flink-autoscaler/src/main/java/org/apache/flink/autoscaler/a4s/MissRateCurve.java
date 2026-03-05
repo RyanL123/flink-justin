@@ -17,6 +17,8 @@
 
 package org.apache.flink.autoscaler.a4s;
 
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,10 @@ public class MissRateCurve {
         @Getter
         private final double missRate;
 
-        public MRCPoint(double cacheSizeMb, double missRate) {
+        @JsonCreator
+        public MRCPoint(
+                @JsonProperty("cacheSizeMb") double cacheSizeMb,
+                @JsonProperty("missRate") double missRate) {
             this.cacheSizeMb = cacheSizeMb;
             this.missRate = Math.max(0.0, Math.min(1.0, missRate));
         }
@@ -65,7 +70,8 @@ public class MissRateCurve {
         }
     }
 
-    public MissRateCurve(List<MRCPoint> points) {
+    @JsonCreator
+    public MissRateCurve(@JsonProperty("points") List<MRCPoint> points) {
         this.points = new ArrayList<>(points);
         Collections.sort(this.points);
     }

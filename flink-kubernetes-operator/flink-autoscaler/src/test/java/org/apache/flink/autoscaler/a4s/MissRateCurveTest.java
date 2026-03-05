@@ -17,8 +17,15 @@
 
 package org.apache.flink.autoscaler.a4s;
 
+import org.apache.flink.autoscaler.utils.AutoScalerSerDeModule;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -204,5 +211,48 @@ public class MissRateCurveTest {
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(100.0);
+    }
+
+    @Test
+    void testJacksonRoundTrip() throws Exception {
+        var objectMapper = new ObjectMapper();
+        var mrc =
+                new MissRateCurve(
+                        List.of(
+                                new MissRateCurve.MRCPoint(64.0, 0.6),
+                                new MissRateCurve.MRCPoint(128.0, 0.3)));
+
+        var restored = objectMapper.readValue(objectMapper.writeValueAsString(mrc), MissRateCurve.class);
+
+        assertThat(restored.getPoints())
+                .extracting(MissRateCurve.MRCPoint::getCacheSizeMb, MissRateCurve.MRCPoint::getMissRate)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(64.0, 0.6),
+                        org.assertj.core.groups.Tuple.tuple(128.0, 0.3));
+    }
+
+    @Test
+    void testJacksonRoundTripInVertexMap() throws Exception {
+        var objectMapper = new ObjectMapper().registerModule(new AutoScalerSerDeModule());
+        var vertexId = new JobVertexID();
+        var curves =
+                Map.of(
+                        vertexId,
+                        new MissRateCurve(
+                                List.of(
+                                        new MissRateCurve.MRCPoint(64.0, 0.6),
+                                        new MissRateCurve.MRCPoint(128.0, 0.3))));
+
+        var restored =
+                objectMapper.readValue(
+                        objectMapper.writeValueAsString(curves),
+                        new TypeReference<Map<JobVertexID, MissRateCurve>>() {});
+
+        assertThat(restored).containsKey(vertexId);
+        assertThat(restored.get(vertexId).getPoints())
+                .extracting(MissRateCurve.MRCPoint::getCacheSizeMb, MissRateCurve.MRCPoint::getMissRate)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(64.0, 0.6),
+                        org.assertj.core.groups.Tuple.tuple(128.0, 0.3));
     }
 }
