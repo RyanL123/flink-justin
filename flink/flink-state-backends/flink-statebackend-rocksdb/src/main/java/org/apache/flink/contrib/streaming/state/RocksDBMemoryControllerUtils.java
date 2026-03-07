@@ -115,7 +115,17 @@ public class RocksDBMemoryControllerUtils {
     @VisibleForTesting
     static Cache createCache(long cacheCapacity, double highPriorityPoolRatio) {
         // TODO use strict capacity limit until FLINK-15532 resolved
-        return new LRUCache(cacheCapacity, -1, false, highPriorityPoolRatio);
+        return new LRUCache(
+            cacheCapacity, 
+            -1, 
+            false,          
+            highPriorityPoolRatio,
+            true,                   // quickMrcEnabled
+            60,                     // quickMrcMaxBucketSize (B)
+            1,                      // quickMrcGhostCacheMultiplier (G)
+            0.01,                   // quickMrcSamplingRate (~1%)
+            1                    // quickMrcHistogramBinSize
+        );
     }
 
     @VisibleForTesting
