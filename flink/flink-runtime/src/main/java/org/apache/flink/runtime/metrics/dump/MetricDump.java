@@ -155,18 +155,15 @@ public abstract class MetricDump {
         }
     }
 
-    /** Container for the bucket boundaries and counts of a stack distance histogram. */
+    /** Container for the bucket counts of a stack distance histogram. */
     public static class StackDistanceHistogramDump extends MetricDump {
-        public final long[] bucketBoundaries;
         public final long[] bucketCounts;
 
         public StackDistanceHistogramDump(
                 QueryScopeInfo scopeInfo,
                 String name,
-                long[] bucketBoundaries,
                 long[] bucketCounts) {
             super(scopeInfo, name);
-            this.bucketBoundaries = Preconditions.checkNotNull(bucketBoundaries);
             this.bucketCounts = Preconditions.checkNotNull(bucketCounts);
         }
 

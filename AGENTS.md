@@ -12,6 +12,15 @@
 - When a user asks to build automation/script tooling, do not start running long experiments unless explicitly requested in the same message.
 - Before migrating repository data formats, verify the canonical schema from project templates (`runs.template.csv`) and one known-good file, then migrate.
 - When adding new Flink REST message/header classes consumed by both autoscaler and operator modules, place shared copies under `flink-autoscaler` (same package) because operator compile classpath does not include `flink-runtime` directly.
+- Before running `benchmarks/results/plot_run.py`, verify `matplotlib` is installed (`python3 -c "import matplotlib"`), and install `python3-matplotlib` first if missing.
+- For experiments that need JM/TM log artifacts, collect pod logs before deployment cleanup; once `run_nexmark_experiment.py` deletes the `FlinkDeployment`, runtime pod logs are not recoverable.
+- After changing method signatures/overloads in `flink-runtime`, run targeted tests with `clean test` at least once to avoid stale compiled classes masking API conflicts.
+- Before changing REST metric units or JSON field names, confirm the external contract; keep existing units/field names unless the user explicitly requests an API change.
+- In a dirty branch, validate refactors with method-level targeted tests for touched behavior first; full class test suites may fail from unrelated in-progress assertions.
+- For classes persisted through autoscaler state YAML, add explicit shaded Jackson `@JsonCreator` and `@JsonProperty` constructors when fields are immutable/final.
+- In dirty modules, if targeted Maven tests are blocked by unrelated Spotless violations, rerun with `-Dspotless.check.skip=true` (and `-Dcheckstyle.skip=true` when needed) to validate behavior changes first.
+- If new RocksDB JNI methods are present in `custom-libs/rocksdbjni-6.20.3-linux64.jar` but Java compile cannot find them, reinstall that jar into local Maven as `org.rocksdb:frocksdbjni:6.20.3-custom` before retesting.
+- When running reactor builds with `-am` and a targeted `-Dtest=...`, add `-DfailIfNoTests=false` to avoid parent/pom modules failing before the target module tests run.
 
 # Flink Justin Agent Guide
 
@@ -46,13 +55,13 @@ Run tests from the correct project root:
 
 - Flink runtime tree (`flink/`):
   - `cd flink && ./mvnw test`
-  - Module-only: `cd flink && ./mvnw -pl <module-artifact-id> -am test`
-  - Single test: `cd flink && ./mvnw -Dtest=<TestClass>[#testMethod] test`
+  - Module-only: `cd flink && ./mvnw -pl <module-artifact-id> -am -Drat.skip=true test`
+  - Single test: `cd flink && ./mvnw -Dtest=<TestClass>[#testMethod] -Drat.skip=true test`
 
 - Flink Kubernetes Operator tree (`flink-kubernetes-operator/`):
   - `cd flink-kubernetes-operator && mvn test`
-  - Module-only: `cd flink-kubernetes-operator && mvn -pl <module-artifact-id> -am test`
-  - Single test: `cd flink-kubernetes-operator && mvn -Dtest=<TestClass>[#testMethod] test`
+  - Module-only: `cd flink-kubernetes-operator && mvn -pl <module-artifact-id> -am -Drat.skip=true test`
+  - Single test: `cd flink-kubernetes-operator && mvn -Dtest=<TestClass>[#testMethod] -Drat.skip=true test`
 
 ### Flink Kubernetes Operator
 - Build from `flink-kubernetes-operator/Dockerfile`

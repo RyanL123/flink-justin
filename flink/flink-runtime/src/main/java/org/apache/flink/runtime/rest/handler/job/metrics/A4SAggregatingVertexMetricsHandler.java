@@ -20,7 +20,6 @@ package org.apache.flink.runtime.rest.handler.job.metrics;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.runtime.clusterframework.types.ResourceProfile;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
 import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
@@ -33,19 +32,13 @@ import org.apache.flink.runtime.rest.handler.legacy.metrics.MetricStore;
 import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
-import org.apache.flink.runtime.metrics.MetricNames;
 import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
-import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsParameters;
-import org.apache.flink.runtime.rest.messages.job.metrics.MetricsAggregationParameter;
-import org.apache.flink.runtime.rest.messages.job.metrics.MetricsFilterParameter;
 import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
 import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
-import org.apache.flink.util.CollectionUtil;
-import org.apache.flink.util.Preconditions;
 
 import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
@@ -56,15 +49,11 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 
 /**
  * Request handler that returns A4S-specific metrics including parallelism and
@@ -97,13 +86,18 @@ public class A4SAggregatingVertexMetricsHandler
     private final MetricFetcher fetcher;
     private final ExecutionGraphCache executionGraphCache;
 
+    private final long cacheItemSizeBytes;
+    private final long bucketSizeScaling;
+
     public A4SAggregatingVertexMetricsHandler(
             GatewayRetriever<? extends RestfulGateway> leaderRetriever,
             Time timeout,
             Map<String, String> responseHeaders,
             Executor executor,
             MetricFetcher fetcher,
-            ExecutionGraphCache executionGraphCache) {
+            ExecutionGraphCache executionGraphCache,
+            long cacheItemSizeBytes,
+            long bucketSizeScaling) {
         super(
                 leaderRetriever,
                 timeout,
@@ -112,6 +106,8 @@ public class A4SAggregatingVertexMetricsHandler
         this.executor = executor;
         this.fetcher = fetcher;
         this.executionGraphCache = executionGraphCache;
+        this.cacheItemSizeBytes = cacheItemSizeBytes;
+        this.bucketSizeScaling = bucketSizeScaling;
     }
 
     @Override
@@ -245,7 +241,8 @@ public class A4SAggregatingVertexMetricsHandler
         List<QuickMRC.MRCPoint> scaledMrcPoints = buildScaledMrcPoints(
                 jobId,
                 vertexID,
-                subtaskHistograms);
+                subtaskHistograms
+        );
         log.info(
                 "{} stage=response_ready jobId={} vertexId={} scaledMrcPointCount={} elapsedMs={}",
                 TRACE_LOG_PREFIX,
@@ -296,7 +293,7 @@ public class A4SAggregatingVertexMetricsHandler
                 vertexID,
                 mergedHistogram.getNumBuckets(),
                 mergedHistogram.getTotalFrequency());
-        List<QuickMRC.MRCPoint> mrc = QuickMRC.computeScaledMRC(mergedHistogram);
+        List<QuickMRC.MRCPoint> mrc = QuickMRC.computeScaledMRC(mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
         log.info(
                 "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints={} pointsJson={}",
                 CURVE_LOG_PREFIX,

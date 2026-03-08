@@ -30,7 +30,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonPro
  * </ul>
  */
 public class QuickMRC {
-    private static final long DEFAULT_AVERAGE_ITEM_SIZE_BYTES = 4096L;
+    private static final long CACHE_ITEM_SIZE_BYTES = 4096L;
 
     /**
      * Represents a point on the Miss Rate Curve: cache size -> miss rate.
@@ -75,19 +75,27 @@ public class QuickMRC {
      * 
      * <p>Algorithm:
      * <ol>
-     *   <li>For each bucket i, compute the maximum stack distance represented by that bucket</li>
-     *   <li>For each cache size (incrementing by bucket width), compute cumulative frequency</li>
-     *   <li>Miss rate at cache size S = 1 - (cumulative frequency for distances <= S) / total frequency</li>
+     *   <li>Bucket position (1-based) is treated as the cache-size unit</li>
+     *   <li>For each bucket position, compute cumulative frequency</li>
+     *   <li>Miss rate at size S = 1 - (cumulative frequency for positions <= S) / total frequency</li>
      * </ol>
      * 
      * @param mergedHistogram The merged stack histogram (result of StackHistogram.merge())
+     * @param cacheItemSizeBytes cache item size in bytes
+     * @param bucketSizeScaling bucket size scaling
      * @return List of MRCPoint objects representing cache size -> miss rate pairs
      */
     public static List<MRCPoint> computeUnscaledMRC(
-        StackHistogram mergedHistogram,
-        long averageItemSizeBytes) {
+            StackHistogram mergedHistogram,
+            long cacheItemSizeBytes,
+            long bucketSizeScaling
+        ) {
         if (mergedHistogram == null) {
             throw new IllegalArgumentException("Merged histogram cannot be null");
+        }
+
+        if (cacheItemSizeBytes <= 0) {
+            cacheItemSizeBytes = CACHE_ITEM_SIZE_BYTES;
         }
 
         long totalFrequency = mergedHistogram.getTotalFrequency();
@@ -102,17 +110,13 @@ public class QuickMRC {
         long cumulativeFreqAtSize = 0L;
         for (int i = 0; i < numBuckets; i++) {
             cumulativeFreqAtSize += mergedHistogram.getFrequency(i);
-            long currentCacheSize = mergedHistogram.getRightBoundaryInclusive(i);
+            long currentCacheSize = (i + 1L) * bucketSizeScaling;
             double missRate = 1.0 - ((double) cumulativeFreqAtSize / totalFrequency);
             missRate = Math.max(0.0, Math.min(1.0, missRate));
-            mrc.add(new MRCPoint(currentCacheSize * averageItemSizeBytes, missRate));
+            mrc.add(new MRCPoint(currentCacheSize * cacheItemSizeBytes, missRate));
         }
 
         return mrc;
-    }
-
-    public static List<MRCPoint> computeUnscaledMRC(StackHistogram mergedHistogram) {
-        return computeUnscaledMRC(mergedHistogram, DEFAULT_AVERAGE_ITEM_SIZE_BYTES);
     }
 
     /**
@@ -121,26 +125,25 @@ public class QuickMRC {
      * <p>Per the paper: scale horizontally by number of tasks. The cache size axis is multiplied
      * by the given factor (e.g. numTasks); miss rate is unchanged.
      *
-     * <p>The input histogram axis is interpreted as number of items. To convert this into memory
-     * capacity for the generated MRC, callers must provide the average item size in bytes.
+     * <p>The input histogram axis is interpreted as bucket units. To convert this into memory
+     * capacity for the generated MRC, callers provide the bucket size scaling in bytes.
      * Output MRC points use bytes on the x-axis.
      * 
      * <p>So each point (cacheSize, missRate) becomes (cacheSize * horizontalScaleFactor, missRate).
      * 
      * @param mergedHistogram The merged stack histogram
      * @param horizontalScaleFactor Factor to multiply cache size by (e.g. numPartitions)
-     * @param averageItemSizeBytes average size per item (in bytes)
+     * @param cacheItemSizeBytes cache item size in bytes
+     * @param bucketSizeScaling bucket size scaling
      * @return List of MRCPoint objects: (scaled cache size in bytes, miss rate) pairs
      */
     public static List<MRCPoint> computeScaledMRC(
             StackHistogram mergedHistogram,
-            long averageItemSizeBytes) {
-        List<MRCPoint> unscaledMRC = computeUnscaledMRC(mergedHistogram, averageItemSizeBytes);
-        
-        if (averageItemSizeBytes <= 0) {
-            averageItemSizeBytes = DEFAULT_AVERAGE_ITEM_SIZE_BYTES;
-        }
-        
+            long cacheItemSizeBytes,
+            long bucketSizeScaling
+        ) {
+        List<MRCPoint> unscaledMRC = computeUnscaledMRC(mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
+
         List<MRCPoint> scaledMRC = new ArrayList<>();
         for (MRCPoint point : unscaledMRC) {
             long cacheSizeItems = point.getCacheSizeBytes();
@@ -149,15 +152,5 @@ public class QuickMRC {
         }
         
         return scaledMRC;
-    }
-
-    /**
-     * Computes the scaled MRC with default step size and horizontal scaling by numPartitions.
-     *
-     * @param mergedHistogram The merged stack histogram
-     * @return List of MRCPoint objects: (scaled cache size in bytes, miss rate) pairs
-     */
-    public static List<MRCPoint> computeScaledMRC(StackHistogram mergedHistogram) {
-        return computeScaledMRC(mergedHistogram, DEFAULT_AVERAGE_ITEM_SIZE_BYTES);
     }
 }

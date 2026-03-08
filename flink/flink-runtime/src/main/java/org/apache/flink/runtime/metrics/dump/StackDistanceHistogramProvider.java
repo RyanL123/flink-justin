@@ -21,8 +21,8 @@ package org.apache.flink.runtime.metrics.dump;
 import org.apache.flink.metrics.Metric;
 
 /**
- * A metric provider for stack distance histograms. Implementations supply fixed-size bucket
- * boundaries and on-demand bucket counts fetched from a backing store (e.g. RocksDB).
+ * A metric provider for stack distance histograms. Implementations supply on-demand bucket counts
+ * fetched from a backing store (e.g. RocksDB).
  *
  * <p>Unlike regular Flink metrics that are periodically pushed, stack distance histograms are
  * fetched on demand when the JobManager queries TaskManagers.
@@ -32,17 +32,7 @@ public interface StackDistanceHistogramProvider extends Metric {
     /**
      * Fetches the current bucket counts on demand from the backing store.
      *
-     * <p>The returned array has {@code getBucketBoundaries().length + 1} entries: one count per
-     * bucket interval plus an overflow bucket for values exceeding the last boundary.
-     *
      * @return the current bucket counts
      */
     long[] fetchBucketCounts();
-
-    /**
-     * Returns the fixed bucket boundaries for this histogram.
-     *
-     * @return the bucket boundaries array
-     */
-    long[] getBucketBoundaries();
 }

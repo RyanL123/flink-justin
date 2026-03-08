@@ -307,17 +307,14 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
 
         // Group by metric name and aggregate bucket counts element-wise
         Map<String, long[]> aggregatedCounts = new HashMap<>();
-        Map<String, long[]> boundariesByName = new HashMap<>();
         Map<String, QueryScopeInfo> scopeByName = new HashMap<>();
 
         for (StackDistanceHistogramResult result : results) {
             String name = result.getName();
             long[] counts = result.getBucketCounts();
-            long[] boundaries = result.getBucketBoundaries();
 
             if (!aggregatedCounts.containsKey(name)) {
                 aggregatedCounts.put(name, counts.clone());
-                boundariesByName.put(name, boundaries);
                 scopeByName.put(name, result.getScopeInfo());
             } else {
                 long[] existing = aggregatedCounts.get(name);
@@ -334,9 +331,7 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
             MetricDump.StackDistanceHistogramDump dump = new MetricDump.StackDistanceHistogramDump(
                     scopeByName.get(name),
                     name,
-                    boundariesByName.get(name),
                     entry.getValue());
-            LOG.debug("Histogram boundaries: {}", dump.bucketBoundaries);
             LOG.debug("Histogram counts: {}", dump.bucketCounts);
             dumps.add(dump);
         }

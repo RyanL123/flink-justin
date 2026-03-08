@@ -32,17 +32,14 @@ public class StackDistanceHistogramResult implements Serializable {
 
     private final QueryScopeInfo scopeInfo;
     private final String name;
-    private final long[] bucketBoundaries;
     private final long[] bucketCounts;
 
     public StackDistanceHistogramResult(
             QueryScopeInfo scopeInfo,
             String name,
-            long[] bucketBoundaries,
             long[] bucketCounts) {
         this.scopeInfo = Preconditions.checkNotNull(scopeInfo);
         this.name = Preconditions.checkNotNull(name);
-        this.bucketBoundaries = Preconditions.checkNotNull(bucketBoundaries);
         this.bucketCounts = Preconditions.checkNotNull(bucketCounts);
     }
 
@@ -52,10 +49,6 @@ public class StackDistanceHistogramResult implements Serializable {
 
     public String getName() {
         return name;
-    }
-
-    public long[] getBucketBoundaries() {
-        return bucketBoundaries;
     }
 
     public long[] getBucketCounts() {

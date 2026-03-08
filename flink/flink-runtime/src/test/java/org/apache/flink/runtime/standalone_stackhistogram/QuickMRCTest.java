@@ -1,10 +1,12 @@
 package org.apache.flink.runtime.standalone_stackhistogram;
 
 import org.junit.jupiter.api.Test;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram.Bucket;
 class QuickMRCTest {
     /**
      * Test 1: Verify Merge Logic
@@ -12,18 +14,8 @@ class QuickMRCTest {
      */
     @Test
     void testMerge_preservesSumsAndPartitions() {
-        StackHistogram h1 = new StackHistogram(
-            List.of(
-                new Bucket(1L, 3L),
-                new Bucket(2L, 1L),
-                new Bucket(3L, 1L)
-            ), 1);
-        StackHistogram h2 = new StackHistogram(
-            List.of(
-                new Bucket(1L, 2L),
-                new Bucket(2L, 2L),
-                new Bucket(3L, 1L)
-            ), 2);
+        StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
+        StackHistogram h2 = new StackHistogram(List.of(2L, 2L, 1L), 2);
 
         StackHistogram merged = StackHistogram.merge(List.of(h1, h2));
 
@@ -40,15 +32,15 @@ class QuickMRCTest {
      */
     @Test
     void testScaledMRC_horizontalScalingLogic() {
-        List<Bucket> buckets = new ArrayList<>();
-        buckets.add(new Bucket(1L, 5L)); // 5 hits in first bucket
-        buckets.add(new Bucket(2L, 3L)); // 3 hits in second bucket
-        buckets.add(new Bucket(3L, 2L)); // 2 hits in third bucket
+        List<Long> buckets = new ArrayList<>();
+        buckets.add(5L); // 5 hits in first bucket
+        buckets.add(3L); // 3 hits in second bucket
+        buckets.add(2L); // 2 hits in third bucket
         int partitions = 2;
         StackHistogram histogram = new StackHistogram(buckets, partitions);
 
-        List<QuickMRC.MRCPoint> scaled = QuickMRC.computeScaledMRC(histogram);
-        List<QuickMRC.MRCPoint> unscaled = QuickMRC.computeUnscaledMRC(histogram);
+        List<QuickMRC.MRCPoint> scaled = QuickMRC.computeScaledMRC(histogram, 4096L, 1L);
+        List<QuickMRC.MRCPoint> unscaled = QuickMRC.computeUnscaledMRC(histogram, 4096L, 1L);
 
         assertEquals(unscaled.size(), scaled.size());
 
@@ -80,19 +72,17 @@ class QuickMRCTest {
     @Test
     void testMRC_emptyHistogram() {
         StackHistogram empty = new StackHistogram(new ArrayList<>(), 1);
-        assertTrue(QuickMRC.computeUnscaledMRC(empty).isEmpty());
-        assertTrue(QuickMRC.computeScaledMRC(empty).isEmpty());
+        assertTrue(QuickMRC.computeUnscaledMRC(empty, 4096L, 1L).isEmpty());
+        assertTrue(QuickMRC.computeScaledMRC(empty, 4096L, 1L).isEmpty());
     }
 
     @Test
     void testFromSerializedValue_parsesRocksDBPayload() {
-        String payload = "{\"boundaries\":[32,64,96],\"counts\":[5,7,11]}";
+        String payload = "[5,7,11]";
 
         StackHistogram histogram = StackHistogram.fromSerializedValue(payload);
 
         assertEquals(3, histogram.getNumBuckets());
-        assertEquals(96L, histogram.getRightBoundaryInclusive(2));
-        
         assertEquals(1, histogram.getNumPartitions());
         assertEquals(5L, histogram.getFrequency(0));
         assertEquals(7L, histogram.getFrequency(1));
@@ -102,33 +92,22 @@ class QuickMRCTest {
 
     @Test
     void testFromSerializedValue_keepsSparseMapForZeroCountBuckets() {
-        String payload = "{\"boundaries\":[32,64,96],\"counts\":[0,10,0]}";
+        String payload = "[0,10,0]";
 
         StackHistogram histogram = StackHistogram.fromSerializedValue(payload);
-        List<Bucket> buckets = histogram.getBuckets();
+        List<Long> buckets = histogram.getBucketCounts();
 
         assertEquals(3, histogram.getNumBuckets());
         assertEquals(3, buckets.size());
-        assertEquals(10L, buckets.get(1).getCount());
-        assertEquals(0L, buckets.get(0).getCount());
-        assertEquals(0L, buckets.get(2).getCount());
+        assertEquals(10L, buckets.get(1));
+        assertEquals(0L, buckets.get(0));
+        assertEquals(0L, buckets.get(2));
     }
 
     @Test
     void testFromSerializedValue_throwsWhenCountsLengthIsInvalid() {
-        String payload = "{\"boundaries\":[32,64,96],\"counts\":[5,7,11,13]}";
+        String payload = "[5,-1,11]";
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> StackHistogram.fromSerializedValue(payload));
-    }
-
-    @Test
-    void testFromSerializedValue_throwsWhenFieldMissing() {
-        String payload = "{\"boundaries\":[32,64,96]}";
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> StackHistogram.fromSerializedValue(payload));
+        assertThrows(IllegalArgumentException.class, () -> StackHistogram.fromSerializedValue(payload));
     }
 }

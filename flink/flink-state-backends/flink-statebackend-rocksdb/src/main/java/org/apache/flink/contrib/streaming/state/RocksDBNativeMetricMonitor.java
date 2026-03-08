@@ -40,6 +40,7 @@ import javax.annotation.concurrent.GuardedBy;
 
 import java.io.Closeable;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 /**
  * A monitor which pulls {{@link RocksDB}} native metrics and forwards them to Flink's metric group.
@@ -260,26 +261,17 @@ public class RocksDBNativeMetricMonitor implements Closeable {
      * MetricQueryService}) and {@link Gauge} (so it can be registered through the standard {@code
      * metricGroup.gauge()} path).
      *
-     * <p>The bucket boundaries are fixed power-of-2 constants. The {@link
-     * MetricQueryService#addMetric} method checks for {@code StackDistanceHistogramProvider} before
-     * {@code Gauge}, so this metric is routed to the dedicated stack distance histogram map rather
-     * than the gauges map.
+     * <p>The {@link MetricQueryService#addMetric} method checks for {@code
+     * StackDistanceHistogramProvider} before {@code Gauge}, so this metric is routed to the
+     * dedicated stack distance histogram map rather than the gauges map.
      */
     class RocksDBStackDistanceHistogramView
             implements StackDistanceHistogramProvider, Gauge<String> {
-
-        private static final int BUCKET_STEP = 1024;
-        private static final int MAX_BUCKET_BOUNDARY = 1024 * 1024;
-        private final long[] bucketBoundaries;
 
         @Nullable private final LRUCache viewLruCache;
 
         RocksDBStackDistanceHistogramView(@Nullable LRUCache lruCache) {
             this.viewLruCache = lruCache;
-            this.bucketBoundaries = new long[MAX_BUCKET_BOUNDARY / BUCKET_STEP];
-            for (int i = 0; i < bucketBoundaries.length; i++) {
-                bucketBoundaries[i] = (long) (i + 1) * BUCKET_STEP;
-            }
         }
 
         @Override
@@ -289,58 +281,29 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 if (viewLruCache == null) {
                     LOG.debug(
                             "LRUCache reference is null, returning empty stack distance histogram.");
-                    return new long[bucketBoundaries.length];
+                    return new long[0];
                 }
                 try {
                     long[] histogramCounts = viewLruCache.getStackDistanceHistogram();
                     if (histogramCounts == null) {
                         LOG.warn(
                                 "RocksDB returned null stack distance histogram, returning empty counts.");
-                        return new long[bucketBoundaries.length];
+                        return new long[0];
                     }
 
-                    long[] counts = new long[bucketBoundaries.length];
-                    int copyLength = Math.min(histogramCounts.length, counts.length);
-                    System.arraycopy(histogramCounts, 0, counts, 0, copyLength);
-                    if (histogramCounts.length != counts.length) {
-                        LOG.debug(
-                                "RocksDB histogram size {} differs from expected boundary size {}, truncating/padding counts.",
-                                histogramCounts.length,
-                                counts.length);
-                    }
-                    return counts;
+                    return histogramCounts;
                 } catch (RuntimeException e) {
                     LOG.warn("Failed to fetch stack distance histogram from RocksDB.", e);
-                    return new long[bucketBoundaries.length];
+                    return new long[0];
                 }
             }
         }
 
-        @Override
-        public long[] getBucketBoundaries() {
-            return bucketBoundaries;
-        }
+
 
         @Override
         public String getValue() {
-            long[] counts = fetchBucketCounts();
-            StringBuilder sb = new StringBuilder();
-            sb.append("{\"boundaries\":[");
-            for (int i = 0; i < bucketBoundaries.length; i++) {
-                if (i > 0) {
-                    sb.append(',');
-                }
-                sb.append(bucketBoundaries[i]);
-            }
-            sb.append("],\"counts\":[");
-            for (int i = 0; i < counts.length; i++) {
-                if (i > 0) {
-                    sb.append(',');
-                }
-                sb.append(counts[i]);
-            }
-            sb.append("]}");
-            return sb.toString();
+            return Arrays.toString(fetchBucketCounts());
         }
     }
 }

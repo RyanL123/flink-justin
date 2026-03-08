@@ -168,6 +168,7 @@ import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 import org.apache.flink.util.concurrent.FutureUtils;
 
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.shaded.guava31.com.google.common.cache.Cache;
 import org.apache.flink.shaded.guava31.com.google.common.cache.CacheBuilder;
 import org.apache.flink.shaded.netty4.io.netty.channel.ChannelInboundHandler;
@@ -529,6 +530,8 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
                 new AggregatingSubtasksMetricsHandler(
                         leaderRetriever, timeout, responseHeaders, executor, metricFetcher);
 
+        final long cacheItemSizeBytes = clusterConfiguration.getLong(TaskManagerOptions.A4S_CACHE_ITEM_SIZE_BYTES);
+        final long bucketSizeScaling = clusterConfiguration.getLong(TaskManagerOptions.A4S_BUCKET_SIZE_SCALING);
         final A4SAggregatingVertexMetricsHandler a4sAggregatingVertexMetricsHandler =
                 new A4SAggregatingVertexMetricsHandler(
                         leaderRetriever,
@@ -536,7 +539,9 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
                         responseHeaders,
                         executor,
                         metricFetcher,
-                        executionGraphCache);
+                        executionGraphCache,
+                        cacheItemSizeBytes,
+                        bucketSizeScaling);
 
         final JobVertexTaskManagersHandler jobVertexTaskManagersHandler =
                 new JobVertexTaskManagersHandler(

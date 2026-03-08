@@ -3,40 +3,14 @@ package org.apache.flink.runtime.standalone_stackhistogram;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Stack histogram with bucket entries [x_i, y_i], where x_i is right boundary (inclusive). */
+/** Stack histogram with fixed-order bucket counts. */
 public class StackHistogram {
-
-    public static final int DEFAULT_NUM_BUCKETS = 50;
-
-    public static final class Bucket {
-        private final long rightBoundaryInclusive;
-        private long count;
-
-        public Bucket(long rightBoundaryInclusive, long count) {
-            this.rightBoundaryInclusive = rightBoundaryInclusive;
-            this.count = count;
-        }
-
-        public long getRightBoundaryInclusive() {
-            return rightBoundaryInclusive;
-        }
-
-        public long getCount() {
-            return count;
-        }
-
-        public void addCount(long count) {
-            this.count += count;
-        }
-    }
-
-    private final List<Bucket> buckets;
+    private final List<Long> bucketCounts;
     private final int numPartitions;
 
-    public StackHistogram(
-        List<Bucket> buckets,
-        int numPartitions) {
-        this.buckets = List.copyOf(buckets);
+    public StackHistogram(List<Long> bucketCounts, int numPartitions) {
+        validateCounts(bucketCounts);
+        this.bucketCounts = List.copyOf(bucketCounts);
         this.numPartitions = numPartitions;
     }
 
@@ -45,43 +19,27 @@ public class StackHistogram {
             throw new IllegalArgumentException("Serialized histogram must not be null or empty");
         }
 
-        long[] boundaries = parseLongArrayField(serializedHistogram, "boundaries");
-        long[] counts = parseLongArrayField(serializedHistogram, "counts");
+        long[] counts = parseLongArray(serializedHistogram);
 
-        if (counts.length != boundaries.length) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "Invalid histogram payload: counts length (%d) must equal boundaries length (%d)",
-                            counts.length, boundaries.length));
-        }
-
-        List<Bucket> parsedBuckets = new ArrayList<>(counts.length);
+        List<Long> parsedCounts = new ArrayList<>(counts.length);
         for (int i = 0; i < counts.length; i++) {
             if (counts[i] < 0L) {
                 throw new IllegalArgumentException(
                         "Invalid histogram payload: counts must be non-negative");
             }
-            parsedBuckets.add(new Bucket(boundaries[i], counts[i]));
+            parsedCounts.add(counts[i]);
         }
-        return new StackHistogram(parsedBuckets, 1);
+        return new StackHistogram(parsedCounts, 1);
     }
 
-    private static long[] parseLongArrayField(String json, String fieldName) {
-        String key = "\"" + fieldName + "\":[";
-        int start = json.indexOf(key);
-        if (start < 0) {
+    private static long[] parseLongArray(String serializedArray) {
+        String trimmed = serializedArray.trim();
+        if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
             throw new IllegalArgumentException(
-                    "Invalid histogram payload: missing field '" + fieldName + "'");
+                    "Invalid histogram payload: expected JSON array of counts");
         }
 
-        int arrayStart = start + key.length();
-        int arrayEnd = json.indexOf(']', arrayStart);
-        if (arrayEnd < 0) {
-            throw new IllegalArgumentException(
-                    "Invalid histogram payload: unterminated array for field '" + fieldName + "'");
-        }
-
-        String body = json.substring(arrayStart, arrayEnd).trim();
+        String body = trimmed.substring(1, trimmed.length() - 1).trim();
         if (body.isEmpty()) {
             return new long[0];
         }
@@ -94,21 +52,31 @@ public class StackHistogram {
                 values[i] = Long.parseLong(token);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(
-                        "Invalid histogram payload: non-numeric value '" + token + "' in field '"
-                                + fieldName
-                                + "'",
+                        "Invalid histogram payload: non-numeric value '" + token + "'",
                         e);
             }
         }
         return values;
     }
 
-    public List<Bucket> getBuckets() {
-        return buckets;
+    private static void validateCounts(List<Long> counts) {
+        if (counts == null) {
+            throw new IllegalArgumentException("Bucket counts must not be null");
+        }
+        for (Long count : counts) {
+            if (count == null || count < 0L) {
+                throw new IllegalArgumentException(
+                        "Bucket counts must be non-null and non-negative");
+            }
+        }
+    }
+
+    public List<Long> getBucketCounts() {
+        return bucketCounts;
     }
 
     public int getNumBuckets() {
-        return buckets.size();
+        return bucketCounts.size();
     }
 
     public int getNumPartitions() {
@@ -123,39 +91,42 @@ public class StackHistogram {
         if (histograms.size() == 1) {
             return histograms.get(0);
         }
-        
-        List<Bucket> buckets = List.copyOf(histograms.get(0).getBuckets());
-        int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
 
-        for (int i = 0; i < buckets.size(); i++) {
-            Bucket bucket = buckets.get(i);
-            for (StackHistogram h : histograms.subList(1, histograms.size())) {
-                bucket.addCount(h.getBuckets().get(i).getCount());
+        int numBuckets = histograms.get(0).getNumBuckets();
+        for (StackHistogram histogram : histograms) {
+            if (histogram.getNumBuckets() != numBuckets) {
+                throw new IllegalArgumentException(
+                        "Cannot merge histograms with different bucket counts");
             }
         }
-        return new StackHistogram(buckets, totalPartitions);
+
+        List<Long> mergedCounts = new ArrayList<>(numBuckets);
+        for (int i = 0; i < numBuckets; i++) {
+            mergedCounts.add(histograms.get(0).getFrequency(i));
+        }
+        int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
+
+        for (StackHistogram histogram : histograms.subList(1, histograms.size())) {
+            for (int i = 0; i < numBuckets; i++) {
+                mergedCounts.set(i, mergedCounts.get(i) + histogram.getFrequency(i));
+            }
+        }
+        return new StackHistogram(mergedCounts, totalPartitions);
     }
 
     public long getTotalFrequency() {
         long total = 0L;
-        for (Bucket bucket : buckets) {
-            total += bucket.getCount();
+        for (long count : bucketCounts) {
+            total += count;
         }
         return total;
     }
 
     public long getFrequency(int bucketIndex) {
-        if (bucketIndex < 0 || bucketIndex >= buckets.size()) {
+        if (bucketIndex < 0 || bucketIndex >= bucketCounts.size()) {
             return 0L;
         }
-        return buckets.get(bucketIndex).getCount();
-    }
-
-    public long getRightBoundaryInclusive(int bucketIndex) {
-        if (bucketIndex < 0 || bucketIndex >= buckets.size()) {
-            return 0L;
-        }
-        return buckets.get(bucketIndex).getRightBoundaryInclusive();
+        return bucketCounts.get(bucketIndex);
     }
 
     @Override

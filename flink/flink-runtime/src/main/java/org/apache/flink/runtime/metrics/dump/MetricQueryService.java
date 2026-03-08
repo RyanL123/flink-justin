@@ -164,10 +164,9 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
                             QueryScopeInfo info = entry.getValue().f0;
                             String name = entry.getValue().f1;
                             long[] counts = provider.fetchBucketCounts();
-                            long[] boundaries = provider.getBucketBoundaries();
                             results.add(
                                     new StackDistanceHistogramResult(
-                                            info, name, boundaries, counts));
+                                            info, name, counts));
                         } catch (Exception e) {
                             LOG.warn(
                                     "Failed to fetch stack distance histogram for '{}'.",

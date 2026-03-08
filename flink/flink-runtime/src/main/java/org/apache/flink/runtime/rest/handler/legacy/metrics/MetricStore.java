@@ -458,29 +458,9 @@ public class MetricStore {
             case METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM:
                 MetricDump.StackDistanceHistogramDump sdHistogram =
                         (MetricDump.StackDistanceHistogramDump) metric;
-                target.put(name, toJson(sdHistogram.bucketBoundaries, sdHistogram.bucketCounts));
+                target.put(name, Arrays.toString(sdHistogram.bucketCounts));
                 break;
         }
-    }
-
-    private static String toJson(long[] boundaries, long[] counts) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"boundaries\":[");
-        for (int i = 0; i < boundaries.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append(boundaries[i]);
-        }
-        sb.append("],\"counts\":[");
-        for (int i = 0; i < counts.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append(counts[i]);
-        }
-        sb.append("]}");
-        return sb.toString();
     }
 
     private static boolean isTransientMetric(String fullMetricName) {
