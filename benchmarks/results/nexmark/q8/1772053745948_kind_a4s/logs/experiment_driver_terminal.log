@@ -1,0 +1,712 @@
+---
+pid: 167474
+cwd: "/mnt/home/ryanl123/dev/flink-justin"
+command: "python3 benchmarks/results/run_nexmark_experiment.py --query q8 --policy a4s --environment kind"
+started_at: 2026-02-25T21:09:05.750Z
+running_for_seconds: 670   
+---
+Starting run_id: 1772053745948
+Run folder: /mnt/home/ryanl123/dev/flink-justin/benchmarks/results/nexmark/q8/1772053745948_kind_a4s
+Manifest: /mnt/home/ryanl123/dev/flink-justin/notebooks/nexmark/q8/query8.yaml
+Sampling: 120 samples at 5s interval
+Detected source vertices:
+  - id=cbc357ccb763df2852fee8c4fc7d55f2 name=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map parallelism=2
+  - id=6cdc5bb954874d922eaee11a8e7b5dd5 name=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map parallelism=2
+[metrics] ts=1772053810 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053810 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=1906.4333333333334
+[metrics] ts=1772053810 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=1906.15
+[metrics] ts=1772053810 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053810 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=856.9166666666666
+[metrics] ts=1772053810 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=856.8666666666667
+[metrics] ts=1772053810 totals source_throughput_records_per_sec=5526.366666666667 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+Progress: sample 1/120
+[metrics] ts=1772053815 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053815 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=1906.4333333333334
+[metrics] ts=1772053815 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=1906.15
+[metrics] ts=1772053815 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053815 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=856.9166666666666
+[metrics] ts=1772053815 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=856.8666666666667
+[metrics] ts=1772053815 totals source_throughput_records_per_sec=5526.366666666667 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053820 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053820 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=4388.45
+[metrics] ts=1772053820 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=4388.45
+[metrics] ts=1772053820 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053820 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=1976.85
+[metrics] ts=1772053820 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=1975.7666666666667
+[metrics] ts=1772053820 totals source_throughput_records_per_sec=12729.516666666666 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053825 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053825 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=4388.45
+[metrics] ts=1772053825 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=4388.45
+[metrics] ts=1772053825 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053825 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=1976.85
+[metrics] ts=1772053825 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=1975.7666666666667
+[metrics] ts=1772053825 totals source_throughput_records_per_sec=12729.516666666666 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053830 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053830 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6037.216666666666
+[metrics] ts=1772053830 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=6037.216666666666
+[metrics] ts=1772053830 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053830 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=2716.633333333333
+[metrics] ts=1772053830 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=2715.55
+[metrics] ts=1772053830 totals source_throughput_records_per_sec=17506.616666666665 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053835 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053835 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6037.216666666666
+[metrics] ts=1772053835 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=6037.216666666666
+[metrics] ts=1772053835 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053835 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=2716.633333333333
+[metrics] ts=1772053835 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=2715.55
+[metrics] ts=1772053835 totals source_throughput_records_per_sec=17506.616666666665 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053840 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053840 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7716.5
+[metrics] ts=1772053840 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7716.5
+[metrics] ts=1772053840 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053840 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3473.0666666666666
+[metrics] ts=1772053840 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3471.983333333333
+[metrics] ts=1772053840 totals source_throughput_records_per_sec=22378.05 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053845 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053845 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7716.5
+[metrics] ts=1772053845 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7716.5
+[metrics] ts=1772053845 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053845 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3473.0666666666666
+[metrics] ts=1772053845 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3471.983333333333
+[metrics] ts=1772053845 totals source_throughput_records_per_sec=22378.05 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053850 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053850 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9405.366666666667
+[metrics] ts=1772053850 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9405.366666666667
+[metrics] ts=1772053850 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053850 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4233.55
+[metrics] ts=1772053850 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4232.45
+[metrics] ts=1772053850 totals source_throughput_records_per_sec=27276.733333333334 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053855 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053855 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9405.366666666667
+[metrics] ts=1772053855 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9405.366666666667
+[metrics] ts=1772053855 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053855 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4233.55
+[metrics] ts=1772053855 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4232.45
+[metrics] ts=1772053855 totals source_throughput_records_per_sec=27276.733333333334 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053860 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053860 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9934.35
+[metrics] ts=1772053860 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9933.983333333334
+[metrics] ts=1772053860 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053860 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4473.716666666666
+[metrics] ts=1772053860 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4472.883333333333
+[metrics] ts=1772053860 totals source_throughput_records_per_sec=28814.933333333334 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053865 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053865 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9934.35
+[metrics] ts=1772053865 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9933.983333333334
+[metrics] ts=1772053865 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053865 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4473.716666666666
+[metrics] ts=1772053865 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4472.883333333333
+[metrics] ts=1772053865 totals source_throughput_records_per_sec=28814.933333333334 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053870 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053870 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9934.35
+[metrics] ts=1772053870 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9933.983333333334
+[metrics] ts=1772053870 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053870 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4343.166666666667
+[metrics] ts=1772053870 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4344.266666666666
+[metrics] ts=1772053870 totals source_throughput_records_per_sec=28555.76666666667 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+Progress: sample 13/120
+[metrics] ts=1772053875 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053875 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9645.383333333333
+[metrics] ts=1772053875 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9645.383333333333
+[metrics] ts=1772053875 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053875 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4343.166666666667
+[metrics] ts=1772053875 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4344.266666666666
+[metrics] ts=1772053875 totals source_throughput_records_per_sec=27978.2 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053880 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053880 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9645.383333333333
+[metrics] ts=1772053880 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9645.383333333333
+[metrics] ts=1772053880 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053880 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4402.516666666666
+[metrics] ts=1772053880 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4402.5
+[metrics] ts=1772053880 totals source_throughput_records_per_sec=28095.783333333333 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053885 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053885 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9778.866666666667
+[metrics] ts=1772053885 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9778.866666666667
+[metrics] ts=1772053885 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053885 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4402.516666666666
+[metrics] ts=1772053885 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4402.5
+[metrics] ts=1772053885 totals source_throughput_records_per_sec=28362.75 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053890 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053890 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9778.866666666667
+[metrics] ts=1772053890 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9778.866666666667
+[metrics] ts=1772053890 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053890 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4253.066666666667
+[metrics] ts=1772053890 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4253.05
+[metrics] ts=1772053890 totals source_throughput_records_per_sec=28063.85 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053895 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053895 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9443.583333333334
+[metrics] ts=1772053895 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9441.15
+[metrics] ts=1772053895 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053895 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4253.066666666667
+[metrics] ts=1772053895 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4253.05
+[metrics] ts=1772053895 totals source_throughput_records_per_sec=27390.85 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053900 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053900 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=9443.583333333334
+[metrics] ts=1772053900 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=9441.15
+[metrics] ts=1772053900 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053900 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4253.066666666667
+[metrics] ts=1772053900 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4253.05
+[metrics] ts=1772053900 totals source_throughput_records_per_sec=27390.85 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053905 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053905 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8932.25
+[metrics] ts=1772053905 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=8932.25
+[metrics] ts=1772053905 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053905 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4022.1666666666665
+[metrics] ts=1772053905 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4023.25
+[metrics] ts=1772053905 totals source_throughput_records_per_sec=25909.916666666668 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053910 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053910 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8932.25
+[metrics] ts=1772053910 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=8932.25
+[metrics] ts=1772053910 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053910 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4022.1666666666665
+[metrics] ts=1772053910 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=4023.25
+[metrics] ts=1772053910 totals source_throughput_records_per_sec=25909.916666666668 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053915 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053915 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8775.3
+[metrics] ts=1772053915 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=8775.3
+[metrics] ts=1772053915 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053915 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3950.25
+[metrics] ts=1772053915 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3950.266666666667
+[metrics] ts=1772053915 totals source_throughput_records_per_sec=25451.116666666665 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053920 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053920 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8775.3
+[metrics] ts=1772053920 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=8775.3
+[metrics] ts=1772053920 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053920 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3950.25
+[metrics] ts=1772053920 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3950.266666666667
+[metrics] ts=1772053920 totals source_throughput_records_per_sec=25451.116666666665 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053925 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053925 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8232.116666666667
+[metrics] ts=1772053925 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=8232.45
+[metrics] ts=1772053925 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053925 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3713.0333333333333
+[metrics] ts=1772053925 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3713.0333333333333
+[metrics] ts=1772053925 totals source_throughput_records_per_sec=23890.63333333333 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053930 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053930 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8232.116666666667
+[metrics] ts=1772053930 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=8232.45
+[metrics] ts=1772053930 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053930 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3713.0333333333333
+[metrics] ts=1772053930 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3713.0333333333333
+[metrics] ts=1772053930 totals source_throughput_records_per_sec=23890.63333333333 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+Progress: sample 25/120
+[metrics] ts=1772053935 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053935 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7778.55
+[metrics] ts=1772053935 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7777.983333333334
+[metrics] ts=1772053935 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053935 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3506.866666666667
+[metrics] ts=1772053935 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3507.983333333333
+[metrics] ts=1772053935 totals source_throughput_records_per_sec=22571.383333333335 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053940 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053940 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7778.55
+[metrics] ts=1772053940 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7777.983333333334
+[metrics] ts=1772053940 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053940 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3506.866666666667
+[metrics] ts=1772053940 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3507.983333333333
+[metrics] ts=1772053940 totals source_throughput_records_per_sec=22571.383333333335 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053945 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053945 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7549.766666666666
+[metrics] ts=1772053945 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7547.333333333333
+[metrics] ts=1772053945 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053945 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3404.5666666666666
+[metrics] ts=1772053945 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3403.4666666666667
+[metrics] ts=1772053945 totals source_throughput_records_per_sec=21905.13333333333 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053950 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053950 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7549.766666666666
+[metrics] ts=1772053950 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7547.333333333333
+[metrics] ts=1772053950 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053950 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3404.5666666666666
+[metrics] ts=1772053950 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3403.4666666666667
+[metrics] ts=1772053950 totals source_throughput_records_per_sec=21905.13333333333 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053955 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053955 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7262.65
+[metrics] ts=1772053955 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7264.566666666667
+[metrics] ts=1772053955 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053955 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3276.1
+[metrics] ts=1772053955 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3276.9
+[metrics] ts=1772053955 totals source_throughput_records_per_sec=21080.216666666667 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053960 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053960 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=7262.65
+[metrics] ts=1772053960 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=7264.566666666667
+[metrics] ts=1772053960 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053960 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3276.1
+[metrics] ts=1772053960 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3276.9
+[metrics] ts=1772053960 totals source_throughput_records_per_sec=21080.216666666667 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053965 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053965 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053965 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053965 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053965 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3078.95
+[metrics] ts=1772053965 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3080.0333333333333
+[metrics] ts=1772053965 totals source_throughput_records_per_sec=19810.35 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053970 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053970 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053970 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053970 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053970 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3078.95
+[metrics] ts=1772053970 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3080.0333333333333
+[metrics] ts=1772053970 totals source_throughput_records_per_sec=19810.35 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053975 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053975 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053975 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053975 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053975 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3078.95
+[metrics] ts=1772053975 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3080.0333333333333
+[metrics] ts=1772053975 totals source_throughput_records_per_sec=19810.35 total_managed_memory_used_bytes=166429984.0 total_slots_used=5.0
+[metrics] ts=1772053980 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053980 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053980 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=1.numRecordsOutPerSecond value=6825.683333333333
+[metrics] ts=1772053980 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053980 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=3078.95
+[metrics] ts=1772053980 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=1.numRecordsOutPerSecond value=3080.0333333333333
+[metrics] ts=1772053980 totals source_throughput_records_per_sec=19810.35 total_managed_memory_used_bytes=0.0 total_slots_used=3.0
+[metrics] ts=1772053985 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond,1.numRecordsOutPerSecond
+[metrics] ts=1772053985 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=761.1333333333333
+[metrics] ts=1772053985 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772053985 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=585.5
+[metrics] ts=1772053985 totals source_throughput_records_per_sec=1346.6333333333332 total_managed_memory_used_bytes=0.0 total_slots_used=3.0
+[metrics] ts=1772053990 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772053990 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=761.1333333333333
+[metrics] ts=1772053990 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772053990 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=585.5
+[metrics] ts=1772053990 totals source_throughput_records_per_sec=1346.6333333333332 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 37/120
+[metrics] ts=1772053995 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772053995 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=2744.983333333333
+[metrics] ts=1772053995 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772053995 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=2573.9
+[metrics] ts=1772053995 totals source_throughput_records_per_sec=5318.883333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054000 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054000 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=2744.983333333333
+[metrics] ts=1772054000 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054000 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=2573.9
+[metrics] ts=1772054000 totals source_throughput_records_per_sec=5318.883333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054005 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054005 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=2744.983333333333
+[metrics] ts=1772054005 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054005 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4729.1
+[metrics] ts=1772054005 totals source_throughput_records_per_sec=7474.083333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054010 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054010 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=4622.416666666667
+[metrics] ts=1772054010 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054010 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=4729.1
+[metrics] ts=1772054010 totals source_throughput_records_per_sec=9351.516666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054015 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054015 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=4622.416666666667
+[metrics] ts=1772054015 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054015 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=6599.966666666666
+[metrics] ts=1772054015 totals source_throughput_records_per_sec=11222.383333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054020 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054020 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6626.533333333334
+[metrics] ts=1772054020 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054020 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=6599.966666666666
+[metrics] ts=1772054020 totals source_throughput_records_per_sec=13226.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054025 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054025 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=6626.533333333334
+[metrics] ts=1772054025 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054025 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=6599.966666666666
+[metrics] ts=1772054025 totals source_throughput_records_per_sec=13226.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054030 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054030 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8541.116666666667
+[metrics] ts=1772054030 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054030 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=8311.95
+[metrics] ts=1772054030 totals source_throughput_records_per_sec=16853.066666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054035 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054035 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=8541.116666666667
+[metrics] ts=1772054035 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054035 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=8311.95
+[metrics] ts=1772054035 totals source_throughput_records_per_sec=16853.066666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054040 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054040 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=10600.0
+[metrics] ts=1772054040 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054040 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=10384.316666666668
+[metrics] ts=1772054040 totals source_throughput_records_per_sec=20984.316666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054045 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054045 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=10600.0
+[metrics] ts=1772054045 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054045 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=10384.316666666668
+[metrics] ts=1772054045 totals source_throughput_records_per_sec=20984.316666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054050 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054050 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11838.866666666667
+[metrics] ts=1772054050 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054050 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11845.166666666666
+[metrics] ts=1772054050 totals source_throughput_records_per_sec=23684.033333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 49/120
+[metrics] ts=1772054055 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054055 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11838.866666666667
+[metrics] ts=1772054055 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054055 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11845.166666666666
+[metrics] ts=1772054055 totals source_throughput_records_per_sec=23684.033333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054060 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054060 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11975.466666666667
+[metrics] ts=1772054060 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054060 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11842.616666666667
+[metrics] ts=1772054060 totals source_throughput_records_per_sec=23818.083333333336 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054065 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054065 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11975.466666666667
+[metrics] ts=1772054065 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054065 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11842.616666666667
+[metrics] ts=1772054065 totals source_throughput_records_per_sec=23818.083333333336 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054070 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054070 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11935.2
+[metrics] ts=1772054070 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054070 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12231.966666666667
+[metrics] ts=1772054070 totals source_throughput_records_per_sec=24167.166666666668 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054075 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054075 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11935.2
+[metrics] ts=1772054075 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054075 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12231.966666666667
+[metrics] ts=1772054075 totals source_throughput_records_per_sec=24167.166666666668 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054080 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054080 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11935.2
+[metrics] ts=1772054080 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054080 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12096.933333333332
+[metrics] ts=1772054080 totals source_throughput_records_per_sec=24032.13333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054085 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054085 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054085 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054085 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12096.933333333332
+[metrics] ts=1772054085 totals source_throughput_records_per_sec=24096.933333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054090 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054090 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054090 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054090 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12379.716666666667
+[metrics] ts=1772054090 totals source_throughput_records_per_sec=24379.716666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054095 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054095 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054095 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054095 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12379.716666666667
+[metrics] ts=1772054095 totals source_throughput_records_per_sec=24379.716666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054100 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054100 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054100 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054100 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12477.95
+[metrics] ts=1772054100 totals source_throughput_records_per_sec=24477.95 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054105 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054105 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054105 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054105 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12477.95
+[metrics] ts=1772054105 totals source_throughput_records_per_sec=24477.95 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054110 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054110 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054110 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054110 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12171.133333333333
+[metrics] ts=1772054110 totals source_throughput_records_per_sec=24171.13333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 61/120
+[metrics] ts=1772054115 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054115 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054115 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054115 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12171.133333333333
+[metrics] ts=1772054115 totals source_throughput_records_per_sec=24171.13333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054120 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054120 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054120 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054120 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12213.3
+[metrics] ts=1772054120 totals source_throughput_records_per_sec=24213.3 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054125 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054125 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11951.2
+[metrics] ts=1772054125 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054125 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12213.3
+[metrics] ts=1772054125 totals source_throughput_records_per_sec=24164.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054130 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054130 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11951.2
+[metrics] ts=1772054130 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054130 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11816.733333333334
+[metrics] ts=1772054130 totals source_throughput_records_per_sec=23767.933333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054135 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054135 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11988.466666666667
+[metrics] ts=1772054135 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054135 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11816.733333333334
+[metrics] ts=1772054135 totals source_throughput_records_per_sec=23805.2 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054140 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054140 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11988.466666666667
+[metrics] ts=1772054140 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054140 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11816.733333333334
+[metrics] ts=1772054140 totals source_throughput_records_per_sec=23805.2 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054145 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054145 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054145 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054145 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12065.85
+[metrics] ts=1772054145 totals source_throughput_records_per_sec=24065.85 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054150 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054150 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12000.0
+[metrics] ts=1772054150 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054150 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12065.85
+[metrics] ts=1772054150 totals source_throughput_records_per_sec=24065.85 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054155 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054155 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11915.8
+[metrics] ts=1772054155 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054155 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11736.95
+[metrics] ts=1772054155 totals source_throughput_records_per_sec=23652.75 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054160 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054160 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11915.8
+[metrics] ts=1772054160 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054160 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11736.95
+[metrics] ts=1772054160 totals source_throughput_records_per_sec=23652.75 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054165 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054165 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11954.683333333332
+[metrics] ts=1772054165 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054165 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12052.366666666667
+[metrics] ts=1772054165 totals source_throughput_records_per_sec=24007.05 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054170 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054170 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11954.683333333332
+[metrics] ts=1772054170 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054170 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12052.366666666667
+[metrics] ts=1772054170 totals source_throughput_records_per_sec=24007.05 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 73/120
+[metrics] ts=1772054175 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054175 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11914.666666666666
+[metrics] ts=1772054175 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054175 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11995.3
+[metrics] ts=1772054175 totals source_throughput_records_per_sec=23909.966666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054180 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054180 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11914.666666666666
+[metrics] ts=1772054180 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054180 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11995.3
+[metrics] ts=1772054180 totals source_throughput_records_per_sec=23909.966666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054185 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054185 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11919.583333333334
+[metrics] ts=1772054185 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054185 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12149.933333333332
+[metrics] ts=1772054185 totals source_throughput_records_per_sec=24069.516666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054190 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054190 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11919.583333333334
+[metrics] ts=1772054190 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054190 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12149.933333333332
+[metrics] ts=1772054190 totals source_throughput_records_per_sec=24069.516666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054195 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054195 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12009.116666666667
+[metrics] ts=1772054195 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054195 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12195.033333333333
+[metrics] ts=1772054195 totals source_throughput_records_per_sec=24204.15 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054200 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054200 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12009.116666666667
+[metrics] ts=1772054200 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054200 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12195.033333333333
+[metrics] ts=1772054200 totals source_throughput_records_per_sec=24204.15 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054205 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054205 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11921.066666666668
+[metrics] ts=1772054205 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054205 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11953.85
+[metrics] ts=1772054205 totals source_throughput_records_per_sec=23874.916666666668 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054210 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054210 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11921.066666666668
+[metrics] ts=1772054210 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054210 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11953.85
+[metrics] ts=1772054210 totals source_throughput_records_per_sec=23874.916666666668 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054215 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054215 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11971.783333333333
+[metrics] ts=1772054215 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054215 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11924.516666666666
+[metrics] ts=1772054215 totals source_throughput_records_per_sec=23896.3 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054220 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054220 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11971.783333333333
+[metrics] ts=1772054220 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054220 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11924.516666666666
+[metrics] ts=1772054220 totals source_throughput_records_per_sec=23896.3 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054225 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054225 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11971.783333333333
+[metrics] ts=1772054225 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054225 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12160.783333333333
+[metrics] ts=1772054225 totals source_throughput_records_per_sec=24132.566666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054230 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054230 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11986.516666666666
+[metrics] ts=1772054230 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054230 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12160.783333333333
+[metrics] ts=1772054230 totals source_throughput_records_per_sec=24147.3 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 85/120
+[metrics] ts=1772054235 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054235 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11986.516666666666
+[metrics] ts=1772054235 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054235 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12028.35
+[metrics] ts=1772054235 totals source_throughput_records_per_sec=24014.86666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054240 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054240 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11982.466666666667
+[metrics] ts=1772054240 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054240 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12028.35
+[metrics] ts=1772054240 totals source_throughput_records_per_sec=24010.816666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054245 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054245 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11982.466666666667
+[metrics] ts=1772054245 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054245 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11862.516666666666
+[metrics] ts=1772054245 totals source_throughput_records_per_sec=23844.983333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054250 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054250 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11912.416666666666
+[metrics] ts=1772054250 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054250 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11862.516666666666
+[metrics] ts=1772054250 totals source_throughput_records_per_sec=23774.933333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054255 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054255 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11912.416666666666
+[metrics] ts=1772054255 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054255 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11862.516666666666
+[metrics] ts=1772054255 totals source_throughput_records_per_sec=23774.933333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054260 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054260 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11908.083333333334
+[metrics] ts=1772054260 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054260 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11619.4
+[metrics] ts=1772054260 totals source_throughput_records_per_sec=23527.483333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054265 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054265 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11908.083333333334
+[metrics] ts=1772054265 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054265 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11619.4
+[metrics] ts=1772054265 totals source_throughput_records_per_sec=23527.483333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054270 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054270 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11998.183333333332
+[metrics] ts=1772054270 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054270 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12111.883333333333
+[metrics] ts=1772054270 totals source_throughput_records_per_sec=24110.066666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054275 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054275 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11998.183333333332
+[metrics] ts=1772054275 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054275 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12111.883333333333
+[metrics] ts=1772054275 totals source_throughput_records_per_sec=24110.066666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054280 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054280 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11940.333333333334
+[metrics] ts=1772054280 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054280 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11915.15
+[metrics] ts=1772054280 totals source_throughput_records_per_sec=23855.483333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054285 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054285 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11940.333333333334
+[metrics] ts=1772054285 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054285 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11915.15
+[metrics] ts=1772054285 totals source_throughput_records_per_sec=23855.483333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054290 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054290 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11936.466666666667
+[metrics] ts=1772054290 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054290 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11783.516666666666
+[metrics] ts=1772054290 totals source_throughput_records_per_sec=23719.983333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 97/120
+[metrics] ts=1772054295 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054295 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11936.466666666667
+[metrics] ts=1772054295 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054295 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11783.516666666666
+[metrics] ts=1772054295 totals source_throughput_records_per_sec=23719.983333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054300 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054300 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11953.083333333334
+[metrics] ts=1772054300 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054300 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11968.816666666668
+[metrics] ts=1772054300 totals source_throughput_records_per_sec=23921.9 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054305 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054305 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11953.083333333334
+[metrics] ts=1772054305 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054305 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11968.816666666668
+[metrics] ts=1772054305 totals source_throughput_records_per_sec=23921.9 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054310 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054310 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11967.116666666667
+[metrics] ts=1772054310 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054310 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11900.0
+[metrics] ts=1772054310 totals source_throughput_records_per_sec=23867.11666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054315 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054315 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11967.116666666667
+[metrics] ts=1772054315 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054315 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11900.0
+[metrics] ts=1772054315 totals source_throughput_records_per_sec=23867.11666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054320 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054320 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12037.633333333333
+[metrics] ts=1772054320 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054320 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12267.95
+[metrics] ts=1772054320 totals source_throughput_records_per_sec=24305.583333333336 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054325 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054325 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=12037.633333333333
+[metrics] ts=1772054325 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054325 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12267.95
+[metrics] ts=1772054325 totals source_throughput_records_per_sec=24305.583333333336 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054330 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054330 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.216666666667
+[metrics] ts=1772054330 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054330 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11915.383333333333
+[metrics] ts=1772054330 totals source_throughput_records_per_sec=23876.6 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054335 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054335 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.216666666667
+[metrics] ts=1772054335 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054335 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11915.383333333333
+[metrics] ts=1772054335 totals source_throughput_records_per_sec=23876.6 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054340 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054340 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.216666666667
+[metrics] ts=1772054340 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054340 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11977.85
+[metrics] ts=1772054340 totals source_throughput_records_per_sec=23939.066666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054345 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054345 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.633333333333
+[metrics] ts=1772054345 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054345 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11977.85
+[metrics] ts=1772054345 totals source_throughput_records_per_sec=23939.483333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054350 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054350 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.633333333333
+[metrics] ts=1772054350 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054350 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12157.133333333333
+[metrics] ts=1772054350 totals source_throughput_records_per_sec=24118.766666666666 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Progress: sample 109/120
+[metrics] ts=1772054355 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054355 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11982.95
+[metrics] ts=1772054355 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054355 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12157.133333333333
+[metrics] ts=1772054355 totals source_throughput_records_per_sec=24140.083333333336 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054360 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054360 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11982.95
+[metrics] ts=1772054360 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054360 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11995.016666666666
+[metrics] ts=1772054360 totals source_throughput_records_per_sec=23977.966666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054365 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054365 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11964.783333333333
+[metrics] ts=1772054365 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054365 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11995.016666666666
+[metrics] ts=1772054365 totals source_throughput_records_per_sec=23959.8 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054370 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054370 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11964.783333333333
+[metrics] ts=1772054370 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054370 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12080.2
+[metrics] ts=1772054370 totals source_throughput_records_per_sec=24044.983333333334 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054375 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054375 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.433333333332
+[metrics] ts=1772054375 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054375 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12080.2
+[metrics] ts=1772054375 totals source_throughput_records_per_sec=24041.63333333333 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054380 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054380 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11961.433333333332
+[metrics] ts=1772054380 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054380 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11788.683333333332
+[metrics] ts=1772054380 totals source_throughput_records_per_sec=23750.116666666665 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054385 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054385 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11951.816666666668
+[metrics] ts=1772054385 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054385 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11788.683333333332
+[metrics] ts=1772054385 totals source_throughput_records_per_sec=23740.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054390 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054390 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11951.816666666668
+[metrics] ts=1772054390 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054390 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11788.683333333332
+[metrics] ts=1772054390 totals source_throughput_records_per_sec=23740.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054395 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054395 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11989.966666666667
+[metrics] ts=1772054395 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054395 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11950.533333333333
+[metrics] ts=1772054395 totals source_throughput_records_per_sec=23940.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054400 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054400 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11989.966666666667
+[metrics] ts=1772054400 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054400 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=11950.533333333333
+[metrics] ts=1772054400 totals source_throughput_records_per_sec=23940.5 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+[metrics] ts=1772054405 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054405 source=Source: Custom Source: Persons -> Timestamps/Watermarks -> Map (cbc357ccb763df2852fee8c4fc7d55f2) metric=0.numRecordsOutPerSecond value=11992.783333333333
+[metrics] ts=1772054405 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) numRecordsOutPerSecond metric_ids=0.numRecordsOutPerSecond
+[metrics] ts=1772054405 source=Source: Custom Source: Auctions -> Timestamps/Watermarks -> Map (6cdc5bb954874d922eaee11a8e7b5dd5) metric=0.numRecordsOutPerSecond value=12043.433333333332
+[metrics] ts=1772054405 totals source_throughput_records_per_sec=24036.216666666667 total_managed_memory_used_bytes=165675008.0 total_slots_used=3.0
+Plot generation failed:
+Traceback (most recent call last):
+  File "/mnt/home/ryanl123/dev/flink-justin/benchmarks/results/plot_run.py", line 16, in <module>
+    import matplotlib.pyplot as plt
+ModuleNotFoundError: No module named 'matplotlib'
+
+Traceback (most recent call last):
+  File "/mnt/home/ryanl123/dev/flink-justin/benchmarks/results/run_nexmark_experiment.py", line 403, in <module>
+    main()
+  File "/mnt/home/ryanl123/dev/flink-justin/benchmarks/results/run_nexmark_experiment.py", line 394, in main
+    raise RuntimeError("plot_run.py failed")
+RuntimeError: plot_run.py failed
+
+---
+exit_code: 1
+elapsed_ms: 670522
+ended_at: 2026-02-25T21:20:16.272Z
+---
