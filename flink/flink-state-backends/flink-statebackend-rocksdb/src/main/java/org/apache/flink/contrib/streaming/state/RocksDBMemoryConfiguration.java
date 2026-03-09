@@ -55,6 +55,21 @@ public final class RocksDBMemoryConfiguration implements Serializable {
     /** Flag whether to use partition index/filters. Null if not set. */
     @Nullable private Boolean usePartitionedIndexFilters;
 
+    /** Whether QuickMRC is enabled for shared RocksDB cache. Null if not set. */
+    @Nullable private Boolean quickMrcEnabled;
+
+    /** QuickMRC max bucket size. Null if not set. */
+    @Nullable private Integer quickMrcMaxBucketSize;
+
+    /** QuickMRC ghost cache multiplier. Null if not set. */
+    @Nullable private Integer quickMrcGhostCacheMultiplier;
+
+    /** QuickMRC sampling rate. Null if not set. */
+    @Nullable private Double quickMrcSamplingRate;
+
+    /** QuickMRC histogram bin size. Null if not set. */
+    @Nullable private Integer quickMrcHistogramBinSize;
+
     // ------------------------------------------------------------------------
 
     /**
@@ -181,6 +196,36 @@ public final class RocksDBMemoryConfiguration implements Serializable {
                 : RocksDBOptions.USE_PARTITIONED_INDEX_FILTERS.defaultValue();
     }
 
+    public boolean isQuickMrcEnabled() {
+        return quickMrcEnabled != null
+                ? quickMrcEnabled
+                : RocksDBOptions.A4S_QUICK_MRC_ENABLED.defaultValue();
+    }
+
+    public int getQuickMrcMaxBucketSize() {
+        return quickMrcMaxBucketSize != null
+                ? quickMrcMaxBucketSize
+                : RocksDBOptions.A4S_QUICK_MRC_MAX_BUCKET_SIZE.defaultValue();
+    }
+
+    public int getQuickMrcGhostCacheMultiplier() {
+        return quickMrcGhostCacheMultiplier != null
+                ? quickMrcGhostCacheMultiplier
+                : RocksDBOptions.A4S_QUICK_MRC_GHOST_CACHE_MULTIPLIER.defaultValue();
+    }
+
+    public double getQuickMrcSamplingRate() {
+        return quickMrcSamplingRate != null
+                ? quickMrcSamplingRate
+                : RocksDBOptions.A4S_QUICK_MRC_SAMPLING_RATE.defaultValue();
+    }
+
+    public int getQuickMrcHistogramBinSize() {
+        return quickMrcHistogramBinSize != null
+                ? quickMrcHistogramBinSize
+                : RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE.defaultValue();
+    }
+
     // ------------------------------------------------------------------------
 
     /** Validates if the configured options are valid with respect to one another. */
@@ -238,6 +283,31 @@ public final class RocksDBMemoryConfiguration implements Serializable {
                 other.usePartitionedIndexFilters != null
                         ? other.usePartitionedIndexFilters
                         : config.get(RocksDBOptions.USE_PARTITIONED_INDEX_FILTERS);
+
+        newConfig.quickMrcEnabled =
+                other.quickMrcEnabled != null
+                        ? other.quickMrcEnabled
+                        : config.get(RocksDBOptions.A4S_QUICK_MRC_ENABLED);
+
+        newConfig.quickMrcMaxBucketSize =
+                other.quickMrcMaxBucketSize != null
+                        ? other.quickMrcMaxBucketSize
+                        : config.get(RocksDBOptions.A4S_QUICK_MRC_MAX_BUCKET_SIZE);
+
+        newConfig.quickMrcGhostCacheMultiplier =
+                other.quickMrcGhostCacheMultiplier != null
+                        ? other.quickMrcGhostCacheMultiplier
+                        : config.get(RocksDBOptions.A4S_QUICK_MRC_GHOST_CACHE_MULTIPLIER);
+
+        newConfig.quickMrcSamplingRate =
+                other.quickMrcSamplingRate != null
+                        ? other.quickMrcSamplingRate
+                        : config.get(RocksDBOptions.A4S_QUICK_MRC_SAMPLING_RATE);
+
+        newConfig.quickMrcHistogramBinSize =
+                other.quickMrcHistogramBinSize != null
+                        ? other.quickMrcHistogramBinSize
+                        : config.get(RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE);
 
         return newConfig;
     }

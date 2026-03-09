@@ -179,9 +179,23 @@ public class TaskManagerWideRocksDbMemorySharingITCase extends TestLogger {
         }
 
         @Override
-        public Cache createCache(long cacheCapacity, double highPriorityPoolRatio) {
+        public Cache createCache(
+                long cacheCapacity,
+                double highPriorityPoolRatio,
+                boolean quickMrcEnabled,
+                int quickMrcMaxBucketSize,
+                int quickMrcGhostCacheMultiplier,
+                double quickMrcSamplingRate,
+                int quickMrcHistogramBinSize) {
             Cache cache =
-                    RocksDBMemoryFactory.DEFAULT.createCache(cacheCapacity, highPriorityPoolRatio);
+                    RocksDBMemoryFactory.DEFAULT.createCache(
+                            cacheCapacity,
+                            highPriorityPoolRatio,
+                            quickMrcEnabled,
+                            quickMrcMaxBucketSize,
+                            quickMrcGhostCacheMultiplier,
+                            quickMrcSamplingRate,
+                            quickMrcHistogramBinSize);
             createdCaches.get().add(cache);
             return cache;
         }

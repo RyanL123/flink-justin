@@ -20,6 +20,8 @@
 - For classes persisted through autoscaler state YAML, add explicit shaded Jackson `@JsonCreator` and `@JsonProperty` constructors when fields are immutable/final.
 - In dirty modules, if targeted Maven tests are blocked by unrelated Spotless violations, rerun with `-Dspotless.check.skip=true` (and `-Dcheckstyle.skip=true` when needed) to validate behavior changes first.
 - If new RocksDB JNI methods are present in `custom-libs/rocksdbjni-6.20.3-linux64.jar` but Java compile cannot find them, reinstall that jar into local Maven as `org.rocksdb:frocksdbjni:6.20.3-custom` before retesting.
+- After adding or renaming `ConfigOption` fields in shared modules like `flink-core`, avoid module-only test runs against dependents; use `-am clean test` at least once to prevent stale-classpath `NoSuchFieldError` failures.
+- If a verification build fails at `maven-clean-plugin` due inability to delete a module `target` directory in a dirty workspace, rerun the same verification without `clean`.
 - When running reactor builds with `-am` and a targeted `-Dtest=...`, add `-DfailIfNoTests=false` to avoid parent/pom modules failing before the target module tests run.
 
 # Flink Justin Agent Guide

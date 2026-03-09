@@ -171,4 +171,39 @@ public class RocksDBOptions {
                                             + "the partitions that are required to perform the index/filter query. "
                                             + "This option only has an effect when '%s' or '%s' are configured.",
                                     USE_MANAGED_MEMORY.key(), FIX_PER_SLOT_MEMORY_SIZE.key()));
+
+    public static final ConfigOption<Boolean> A4S_QUICK_MRC_ENABLED =
+            ConfigOptions.key("state.backend.rocksdb.a4s.quick-mrc.enabled")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDeprecatedKeys("a4s.quick-mrc.enabled")
+                    .withDescription("Enable QuickMRC inside RocksDB block cache.");
+
+    public static final ConfigOption<Integer> A4S_QUICK_MRC_MAX_BUCKET_SIZE =
+            ConfigOptions.key("state.backend.rocksdb.a4s.quick-mrc.max-bucket-size")
+                    .intType()
+                    .defaultValue(60)
+                    .withDeprecatedKeys("a4s.quick-mrc.max-bucket-size")
+                    .withDescription("Maximum QuickMRC bucket size.");
+
+    public static final ConfigOption<Integer> A4S_QUICK_MRC_GHOST_CACHE_MULTIPLIER =
+            ConfigOptions.key("state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier")
+                    .intType()
+                    .defaultValue(1)
+                    .withDeprecatedKeys("a4s.quick-mrc.ghost-cache-multiplier")
+                    .withDescription("QuickMRC ghost cache multiplier.");
+
+    public static final ConfigOption<Double> A4S_QUICK_MRC_SAMPLING_RATE =
+            ConfigOptions.key("state.backend.rocksdb.a4s.quick-mrc.sampling-rate")
+                    .doubleType()
+                    .defaultValue(0.01)
+                    .withDeprecatedKeys("a4s.quick-mrc.sampling-rate")
+                    .withDescription("QuickMRC sampling rate.");
+
+    public static final ConfigOption<Integer> A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE =
+            ConfigOptions.key("state.backend.rocksdb.a4s.quick-mrc.histogram-bin-size")
+                    .intType()
+                    .defaultValue(1)
+                    .withDeprecatedKeys("a4s.quick-mrc.histogram-bin-size")
+                    .withDescription("QuickMRC histogram bin size.");
 }

@@ -52,7 +52,16 @@ public class RocksDBMemoryControllerUtilsTest {
         TestingRocksDBMemoryFactory factory = new TestingRocksDBMemoryFactory();
         RocksDBSharedResources rocksDBSharedResources =
                 RocksDBMemoryControllerUtils.allocateRocksDBSharedResources(
-                        totalMemorySize, writeBufferRatio, highPriPoolRatio, false, factory);
+                        totalMemorySize,
+                        writeBufferRatio,
+                        highPriPoolRatio,
+                        false,
+                        true,
+                        60,
+                        1,
+                        0.01,
+                        1,
+                        factory);
         long expectedCacheCapacity =
                 RocksDBMemoryControllerUtils.calculateActualCacheCapacity(
                         totalMemorySize, writeBufferRatio);
@@ -115,10 +124,23 @@ public class RocksDBMemoryControllerUtilsTest {
         private Long actualWbmCapacity = null;
 
         @Override
-        public Cache createCache(long cacheCapacity, double highPriorityPoolRatio) {
+        public Cache createCache(
+                long cacheCapacity,
+                double highPriorityPoolRatio,
+                boolean quickMrcEnabled,
+                int quickMrcMaxBucketSize,
+                int quickMrcGhostCacheMultiplier,
+                double quickMrcSamplingRate,
+                int quickMrcHistogramBinSize) {
             actualCacheCapacity = cacheCapacity;
             return RocksDBMemoryControllerUtils.RocksDBMemoryFactory.DEFAULT.createCache(
-                    cacheCapacity, highPriorityPoolRatio);
+                    cacheCapacity,
+                    highPriorityPoolRatio,
+                    quickMrcEnabled,
+                    quickMrcMaxBucketSize,
+                    quickMrcGhostCacheMultiplier,
+                    quickMrcSamplingRate,
+                    quickMrcHistogramBinSize);
         }
 
         @Override

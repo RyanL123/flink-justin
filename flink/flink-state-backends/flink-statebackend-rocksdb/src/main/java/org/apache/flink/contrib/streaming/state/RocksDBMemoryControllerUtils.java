@@ -49,12 +49,25 @@ public class RocksDBMemoryControllerUtils {
             double writeBufferRatio,
             double highPriorityPoolRatio,
             boolean usingPartitionedIndexFilters,
+            boolean quickMrcEnabled,
+            int quickMrcMaxBucketSize,
+            int quickMrcGhostCacheMultiplier,
+            double quickMrcSamplingRate,
+            int quickMrcHistogramBinSize,
             RocksDBMemoryFactory factory) {
 
         long calculatedCacheCapacity =
                 RocksDBMemoryControllerUtils.calculateActualCacheCapacity(
                         totalMemorySize, writeBufferRatio);
-        final Cache cache = factory.createCache(calculatedCacheCapacity, highPriorityPoolRatio);
+        final Cache cache =
+                factory.createCache(
+                        calculatedCacheCapacity,
+                        highPriorityPoolRatio,
+                        quickMrcEnabled,
+                        quickMrcMaxBucketSize,
+                        quickMrcGhostCacheMultiplier,
+                        quickMrcSamplingRate,
+                        quickMrcHistogramBinSize);
 
         long writeBufferManagerCapacity =
                 RocksDBMemoryControllerUtils.calculateWriteBufferManagerCapacity(
@@ -113,19 +126,25 @@ public class RocksDBMemoryControllerUtils {
     }
 
     @VisibleForTesting
-    static Cache createCache(long cacheCapacity, double highPriorityPoolRatio) {
+    static Cache createCache(
+            long cacheCapacity,
+            double highPriorityPoolRatio,
+            boolean quickMrcEnabled,
+            int quickMrcMaxBucketSize,
+            int quickMrcGhostCacheMultiplier,
+            double quickMrcSamplingRate,
+            int quickMrcHistogramBinSize) {
         // TODO use strict capacity limit until FLINK-15532 resolved
         return new LRUCache(
-            cacheCapacity, 
-            -1, 
-            false,          
-            highPriorityPoolRatio,
-            true,                   // quickMrcEnabled
-            60,                     // quickMrcMaxBucketSize (B)
-            1,                      // quickMrcGhostCacheMultiplier (G)
-            0.01,                   // quickMrcSamplingRate (~1%)
-            1                    // quickMrcHistogramBinSize
-        );
+                cacheCapacity,
+                -1,
+                false,
+                highPriorityPoolRatio,
+                quickMrcEnabled,
+                quickMrcMaxBucketSize,
+                quickMrcGhostCacheMultiplier,
+                quickMrcSamplingRate,
+                quickMrcHistogramBinSize);
     }
 
     @VisibleForTesting
@@ -183,16 +202,36 @@ public class RocksDBMemoryControllerUtils {
 
     /** Factory for Write Buffer Manager and Bock Cache. */
     public interface RocksDBMemoryFactory extends Serializable {
-        Cache createCache(long cacheCapacity, double highPriorityPoolRatio);
+        Cache createCache(
+                long cacheCapacity,
+                double highPriorityPoolRatio,
+                boolean quickMrcEnabled,
+                int quickMrcMaxBucketSize,
+                int quickMrcGhostCacheMultiplier,
+                double quickMrcSamplingRate,
+                int quickMrcHistogramBinSize);
 
         WriteBufferManager createWriteBufferManager(long writeBufferManagerCapacity, Cache cache);
 
         RocksDBMemoryFactory DEFAULT =
                 new RocksDBMemoryFactory() {
                     @Override
-                    public Cache createCache(long cacheCapacity, double highPriorityPoolRatio) {
+                    public Cache createCache(
+                            long cacheCapacity,
+                            double highPriorityPoolRatio,
+                            boolean quickMrcEnabled,
+                            int quickMrcMaxBucketSize,
+                            int quickMrcGhostCacheMultiplier,
+                            double quickMrcSamplingRate,
+                            int quickMrcHistogramBinSize) {
                         return RocksDBMemoryControllerUtils.createCache(
-                                cacheCapacity, highPriorityPoolRatio);
+                                cacheCapacity,
+                                highPriorityPoolRatio,
+                                quickMrcEnabled,
+                                quickMrcMaxBucketSize,
+                                quickMrcGhostCacheMultiplier,
+                                quickMrcSamplingRate,
+                                quickMrcHistogramBinSize);
                     }
 
                     @Override
