@@ -66,7 +66,7 @@ public class MissRateCurve {
 
         @Override
         public String toString() {
-            return String.format("(size=%.2f, mr=%.4f)", cacheSizeMb, missRate);
+            return String.format("(size=%.2fmb, mr=%.4f)", cacheSizeMb, missRate);
         }
     }
 

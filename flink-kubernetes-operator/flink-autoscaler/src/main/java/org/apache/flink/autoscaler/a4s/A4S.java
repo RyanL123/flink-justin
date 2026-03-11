@@ -19,7 +19,9 @@ package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
 import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.autoscaler.metrics.ScalingMetric;
 import org.apache.flink.autoscaler.ScalingConfigurations;
+import org.apache.flink.autoscaler.ScalingSummary;
 import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
 import org.apache.flink.autoscaler.topology.JobTopology;
 import org.apache.flink.configuration.Configuration;
@@ -32,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.apache.flink.autoscaler.config.AutoScalerOptions.*;
 
 /**
  * A4S Scaling Policy implementation.
@@ -49,9 +49,15 @@ public class A4S {
 
     private final List<JobVertexID> operators;
 
-    public A4S(JobTopology jobTopology, EvaluatedMetrics evaluatedMetrics) {
+    private final Map<JobVertexID, ScalingSummary> scalingSummaries;
+
+    public A4S(
+        JobTopology jobTopology, 
+        EvaluatedMetrics evaluatedMetrics, 
+        Map<JobVertexID, ScalingSummary> scalingSummaries) {
         this.evaluatedMetrics = evaluatedMetrics;
         this.operators = jobTopology.getVerticesInTopologicalOrder();
+        this.scalingSummaries = scalingSummaries;
     }
 
     public static class Decision {
@@ -78,13 +84,19 @@ public class A4S {
      * Make a scaling decision using the A4S algorithm.
      */
     public Map<JobVertexID, Decision> makeDecision(Configuration conf) {
-        int minParallelism = conf.get(VERTEX_MIN_PARALLELISM);
-
         Map<JobVertexID, MemoryParallelismCurve> mpcs = this.evaluatedMetrics.getMemoryParallelismCurves();
-        Map<JobVertexID, Integer> parallelismForVertex = this.operators.
+        Map<JobVertexID, Integer> parallelismForVertex = operators.
             stream().collect(Collectors.toMap(
                 operator -> operator,
-                operator -> Optional.ofNullable(mpcs.get(operator)).map(MemoryParallelismCurve::getMinParallelism).orElse(minParallelism)
+                operator -> 
+                    Optional.ofNullable(scalingSummaries.get(operator)).
+                        map(ScalingSummary::getNewParallelism).orElseGet(() -> {
+                        return (int) evaluatedMetrics.
+                            getVertexMetrics().
+                            get(operator).
+                            get(ScalingMetric.PARALLELISM).
+                            getCurrent();
+                    })
         ));
         
         int maxAttempts = 10;
@@ -122,18 +134,13 @@ public class A4S {
             MemoryParallelismCurve mpc = memoryParallelismCurves.get(operator);
             int parallelism = parallelismForVertex.get(operator);
 
-            if (mpc == null) {
-                LOG.warn("A4S: No memory parallelism curve found for operator {}", operator);
-                continue;
+            double memory = 0.0;
+            if (mpc != null) {
+                memory = mpc.getMemoryMbForParallelism(parallelism).orElse(0.0);
             }
-
-            Optional<Double> memoryOpt = mpc.getMemoryMbForParallelism(parallelism);
-            if (memoryOpt.isEmpty()) {
-                LOG.warn("A4S: No memory point found for operator {} with parallelism {}, vertex cannot be scaled", operator, parallelism);
-                return Optional.empty();
-            }
-
-            Decision decision = new Decision(parallelism, memoryOpt.get());
+            
+            LOG.info("A4S: Operator {} placed with parallelism {} and memory {.2f}MB", operator, parallelism, memory);
+            Decision decision = new Decision(parallelism, memory);
             decisions.put(operator, decision);
         }
 

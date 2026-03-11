@@ -69,6 +69,8 @@ public class ScalingMetricEvaluator {
                 latestCollectedMetrics.getMissRateCurves() == null
                         ? Map.of()
                         : latestCollectedMetrics.getMissRateCurves();
+        double hitLatencySec = 5e-6;
+        double missLatencySec = hitLatencySec * 100;
 
         boolean processingBacklog = isProcessingBacklog(topology, metricsHistory, conf);
 
@@ -83,58 +85,32 @@ public class ScalingMetricEvaluator {
                             vertex,
                             processingBacklog,
                             restartTime));
-        }
 
-        var globalMetrics = evaluateGlobalMetrics(metricsHistory);
-
-        double hitLatencySec = 5e-6;
-        double missLatencySec = hitLatencySec * 100;
-
-        for (var vertex : topology.getVerticesInTopologicalOrder()) {
-            LOG.info("A4S: Evaluating metrics for vertex {}", vertex);
-            var vertexMetrics = scalingOutput.get(vertex);
-            double targetThroughput = vertexMetrics.get(TARGET_DATA_RATE).getAverage();
-
+            // This relies on target data rate first being calculated       
+            LOG.debug("A4S: Evaluating metrics for vertex {}", vertex);
             MissRateCurve missRateCurve = collectedMissRateCurves.get(vertex);
             if (missRateCurve == null) {
                 LOG.warn("A4S: No miss rate curve found for vertex {}, skipping", vertex);
                 continue;
             }
-
-            LOG.info("A4S: Miss rate curve for vertex {}: {}", vertex, missRateCurve);
-
             MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                targetThroughput, missLatencySec, hitLatencySec, missRateCurve, conf);
-            memoryParallelismCurves.put(vertex, mpc);
-
-            LOG.info(
-                    "A4S: MPC for vertex {}: numPoints={} pointsJson={}",
-                    vertex,
-                    mpc.getPoints().size(),
-                    toMpcPointsJson(mpc));
+                scalingOutput.get(vertex).get(TARGET_DATA_RATE).getAverage(),
+                missLatencySec, 
+                hitLatencySec, 
+                collectedMissRateCurves.get(vertex), 
+                conf);
+            if (mpc != null) {
+                memoryParallelismCurves.put(vertex, mpc);
+            }
         }
+
+        var globalMetrics = evaluateGlobalMetrics(metricsHistory);
 
         return new EvaluatedMetrics(
-                scalingOutput, globalMetrics, memoryParallelismCurves, collectedMissRateCurves);
-    }
-
-    private static String toMpcPointsJson(MemoryParallelismCurve mpc) {
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
-        for (int i = 0; i < points.size(); i++) {
-            MemoryParallelismCurve.CurvePoint point = points.get(i);
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append("{\"parallelism\":")
-                    .append(point.getParallelism())
-                    .append(",\"memoryMb\":")
-                    .append(point.getMemoryMB())
-                    .append('}');
-        }
-        sb.append(']');
-        return sb.toString();
+                scalingOutput, 
+                globalMetrics, 
+                memoryParallelismCurves, 
+                collectedMissRateCurves);
     }
 
     @VisibleForTesting

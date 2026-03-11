@@ -6,6 +6,7 @@
 
 # Package Files
 **/*.jar
+!nexmark-flink-0.3-SNAPSHOT.jar
 **/*.war
 **/*.nar
 **/*.ear

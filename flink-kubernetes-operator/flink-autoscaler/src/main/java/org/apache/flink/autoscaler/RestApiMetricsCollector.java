@@ -130,7 +130,6 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
     }
 
     protected MissRateCurve queryVertexMissRateCurve(Context ctx, JobID jobId, JobVertexID jobVertexID) {
-        LOG.info("Querying miss rate curve for job {}, vertex {}", jobId, jobVertexID);
         var parameters = new AggregatedSubtaskMetricsParameters();
         var pathIt = parameters.getPathParameters().iterator();
         ((JobIDPathParameter) pathIt.next()).resolve(jobId);
@@ -155,13 +154,6 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
                 builder.addPoint(cacheSizeMb, point.getMissRate());
             }
             MissRateCurve missRateCurve = builder.build();
-            LOG.info(
-                    "A4S_CURVE stage=operator_received_mrc jobId={} vertexId={} timestampEpochMs={} curveType=scaled_mrc numPoints={} pointsJson={}",
-                    jobId,
-                    jobVertexID,
-                    System.currentTimeMillis(),
-                    missRateCurve.getPoints().size(),
-                    toMissRateCurvePointsJson(missRateCurve));
             return missRateCurve;
         } catch (Exception e) {
             LOG.debug(
@@ -295,24 +287,5 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
                                                 m1.getSkew() != null
                                                         ? Math.max(m1.getSkew(), m2.getSkew())
                                                         : null)));
-    }
-
-    private static String toMissRateCurvePointsJson(MissRateCurve curve) {
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        List<MissRateCurve.MRCPoint> points = curve.getPoints();
-        for (int i = 0; i < points.size(); i++) {
-            MissRateCurve.MRCPoint point = points.get(i);
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append("{\"cacheSizeMb\":")
-                    .append(point.getCacheSizeMb())
-                    .append(",\"missRate\":")
-                    .append(point.getMissRate())
-                    .append('}');
-        }
-        sb.append(']');
-        return sb.toString();
     }
 }

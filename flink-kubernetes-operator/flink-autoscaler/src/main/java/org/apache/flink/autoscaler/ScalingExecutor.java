@@ -172,7 +172,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                             periods.getOrDefault(context.getJobID(), 0));
             
             if (conf.get(A4S_ENABLED)) {
-                A4S a4s = new A4S(jobTopology, evaluatedMetrics);
+                A4S a4s = new A4S(jobTopology, evaluatedMetrics, scalingSummaries);
                 Map<JobVertexID, Decision> decisions = a4s.makeDecision(conf);
 
                 // piggy-back off of justin's scaling algorithm for now

@@ -1,6 +1,7 @@
 package org.apache.flink.runtime.standalone_stackhistogram;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** Stack histogram with fixed-order bucket counts. */
@@ -92,22 +93,16 @@ public class StackHistogram {
             return histograms.get(0);
         }
 
-        int numBuckets = histograms.get(0).getNumBuckets();
+        int numBuckets = 0;
         for (StackHistogram histogram : histograms) {
-            if (histogram.getNumBuckets() != numBuckets) {
-                throw new IllegalArgumentException(
-                        "Cannot merge histograms with different bucket counts");
-            }
+            numBuckets = Math.max(numBuckets, histogram.getNumBuckets());
         }
 
-        List<Long> mergedCounts = new ArrayList<>(numBuckets);
-        for (int i = 0; i < numBuckets; i++) {
-            mergedCounts.add(histograms.get(0).getFrequency(i));
-        }
+        List<Long> mergedCounts = new ArrayList<>(Collections.nCopies(numBuckets, 0L));
+
         int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
-
-        for (StackHistogram histogram : histograms.subList(1, histograms.size())) {
-            for (int i = 0; i < numBuckets; i++) {
+        for (StackHistogram histogram : histograms) {
+            for (int i = 0; i < histogram.getNumBuckets(); i++) {
                 mergedCounts.set(i, mergedCounts.get(i) + histogram.getFrequency(i));
             }
         }
