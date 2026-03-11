@@ -55,6 +55,32 @@ public class RocksDBMemoryControllerUtils {
             double quickMrcSamplingRate,
             int quickMrcHistogramBinSize,
             RocksDBMemoryFactory factory) {
+        return allocateRocksDBSharedResources(
+                totalMemorySize,
+                writeBufferRatio,
+                highPriorityPoolRatio,
+                -1,
+                usingPartitionedIndexFilters,
+                quickMrcEnabled,
+                quickMrcMaxBucketSize,
+                quickMrcGhostCacheMultiplier,
+                quickMrcSamplingRate,
+                quickMrcHistogramBinSize,
+                factory);
+    }
+
+    public static RocksDBSharedResources allocateRocksDBSharedResources(
+            long totalMemorySize,
+            double writeBufferRatio,
+            double highPriorityPoolRatio,
+            int lruCacheNumShardBits,
+            boolean usingPartitionedIndexFilters,
+            boolean quickMrcEnabled,
+            int quickMrcMaxBucketSize,
+            int quickMrcGhostCacheMultiplier,
+            double quickMrcSamplingRate,
+            int quickMrcHistogramBinSize,
+            RocksDBMemoryFactory factory) {
 
         long calculatedCacheCapacity =
                 RocksDBMemoryControllerUtils.calculateActualCacheCapacity(
@@ -63,6 +89,7 @@ public class RocksDBMemoryControllerUtils {
                 factory.createCache(
                         calculatedCacheCapacity,
                         highPriorityPoolRatio,
+                        lruCacheNumShardBits,
                         quickMrcEnabled,
                         quickMrcMaxBucketSize,
                         quickMrcGhostCacheMultiplier,
@@ -134,10 +161,31 @@ public class RocksDBMemoryControllerUtils {
             int quickMrcGhostCacheMultiplier,
             double quickMrcSamplingRate,
             int quickMrcHistogramBinSize) {
+        return createCache(
+                cacheCapacity,
+                highPriorityPoolRatio,
+                -1,
+                quickMrcEnabled,
+                quickMrcMaxBucketSize,
+                quickMrcGhostCacheMultiplier,
+                quickMrcSamplingRate,
+                quickMrcHistogramBinSize);
+    }
+
+    @VisibleForTesting
+    static Cache createCache(
+            long cacheCapacity,
+            double highPriorityPoolRatio,
+            int lruCacheNumShardBits,
+            boolean quickMrcEnabled,
+            int quickMrcMaxBucketSize,
+            int quickMrcGhostCacheMultiplier,
+            double quickMrcSamplingRate,
+            int quickMrcHistogramBinSize) {
         // TODO use strict capacity limit until FLINK-15532 resolved
         return new LRUCache(
                 cacheCapacity,
-                -1,
+                lruCacheNumShardBits,
                 false,
                 highPriorityPoolRatio,
                 quickMrcEnabled,
@@ -205,6 +253,7 @@ public class RocksDBMemoryControllerUtils {
         Cache createCache(
                 long cacheCapacity,
                 double highPriorityPoolRatio,
+                int lruCacheNumShardBits,
                 boolean quickMrcEnabled,
                 int quickMrcMaxBucketSize,
                 int quickMrcGhostCacheMultiplier,
@@ -219,6 +268,7 @@ public class RocksDBMemoryControllerUtils {
                     public Cache createCache(
                             long cacheCapacity,
                             double highPriorityPoolRatio,
+                            int lruCacheNumShardBits,
                             boolean quickMrcEnabled,
                             int quickMrcMaxBucketSize,
                             int quickMrcGhostCacheMultiplier,
@@ -227,6 +277,7 @@ public class RocksDBMemoryControllerUtils {
                         return RocksDBMemoryControllerUtils.createCache(
                                 cacheCapacity,
                                 highPriorityPoolRatio,
+                                lruCacheNumShardBits,
                                 quickMrcEnabled,
                                 quickMrcMaxBucketSize,
                                 quickMrcGhostCacheMultiplier,

@@ -52,6 +52,9 @@ public final class RocksDBMemoryConfiguration implements Serializable {
      */
     @Nullable private Double highPriorityPoolRatio;
 
+    /** The number of shard bits for the shared RocksDB LRU cache. Null if not set. */
+    @Nullable private Integer lruCacheNumShardBits;
+
     /** Flag whether to use partition index/filters. Null if not set. */
     @Nullable private Boolean usePartitionedIndexFilters;
 
@@ -131,6 +134,19 @@ public final class RocksDBMemoryConfiguration implements Serializable {
     }
 
     /**
+     * Sets the number of shard bits for RocksDB's shared LRU cache.
+     *
+     * <p>See {@link RocksDBOptions#LRU_CACHE_NUM_SHARD_BITS} for details.
+     */
+    public void setLruCacheNumShardBits(int lruCacheNumShardBits) {
+        Preconditions.checkArgument(
+                lruCacheNumShardBits >= -1,
+                "LRU cache num shard bits %s must be >= -1",
+                lruCacheNumShardBits);
+        this.lruCacheNumShardBits = lruCacheNumShardBits;
+    }
+
+    /**
      * Gets whether the state backend is configured to use the managed memory of a slot for RocksDB.
      * See {@link RocksDBOptions#USE_MANAGED_MEMORY} for details.
      */
@@ -183,6 +199,17 @@ public final class RocksDBMemoryConfiguration implements Serializable {
         return highPriorityPoolRatio != null
                 ? highPriorityPoolRatio
                 : RocksDBOptions.HIGH_PRIORITY_POOL_RATIO.defaultValue();
+    }
+
+    /**
+     * Gets the number of shard bits for RocksDB's shared LRU cache.
+     *
+     * <p>See {@link RocksDBOptions#LRU_CACHE_NUM_SHARD_BITS} for details.
+     */
+    public int getLruCacheNumShardBits() {
+        return lruCacheNumShardBits != null
+                ? lruCacheNumShardBits
+                : RocksDBOptions.LRU_CACHE_NUM_SHARD_BITS.defaultValue();
     }
 
     /**
@@ -278,6 +305,11 @@ public final class RocksDBMemoryConfiguration implements Serializable {
                 other.highPriorityPoolRatio != null
                         ? other.highPriorityPoolRatio
                         : config.get(RocksDBOptions.HIGH_PRIORITY_POOL_RATIO);
+
+        newConfig.lruCacheNumShardBits =
+                other.lruCacheNumShardBits != null
+                        ? other.lruCacheNumShardBits
+                        : config.get(RocksDBOptions.LRU_CACHE_NUM_SHARD_BITS);
 
         newConfig.usePartitionedIndexFilters =
                 other.usePartitionedIndexFilters != null

@@ -55,6 +55,7 @@ public class RocksDBMemoryControllerUtilsTest {
                         totalMemorySize,
                         writeBufferRatio,
                         highPriPoolRatio,
+                        -1,
                         false,
                         true,
                         60,
@@ -127,6 +128,7 @@ public class RocksDBMemoryControllerUtilsTest {
         public Cache createCache(
                 long cacheCapacity,
                 double highPriorityPoolRatio,
+                int lruCacheNumShardBits,
                 boolean quickMrcEnabled,
                 int quickMrcMaxBucketSize,
                 int quickMrcGhostCacheMultiplier,
@@ -136,6 +138,7 @@ public class RocksDBMemoryControllerUtilsTest {
             return RocksDBMemoryControllerUtils.RocksDBMemoryFactory.DEFAULT.createCache(
                     cacheCapacity,
                     highPriorityPoolRatio,
+                    lruCacheNumShardBits,
                     quickMrcEnabled,
                     quickMrcMaxBucketSize,
                     quickMrcGhostCacheMultiplier,

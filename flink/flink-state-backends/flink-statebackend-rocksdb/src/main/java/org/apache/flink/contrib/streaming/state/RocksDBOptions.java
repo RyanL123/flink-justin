@@ -159,6 +159,18 @@ public class RocksDBOptions {
                                     USE_MANAGED_MEMORY.key(), FIX_PER_SLOT_MEMORY_SIZE.key()));
 
     @Documentation.Section(Documentation.Sections.STATE_BACKEND_ROCKSDB)
+    public static final ConfigOption<Integer> LRU_CACHE_NUM_SHARD_BITS =
+            ConfigOptions.key("state.backend.rocksdb.memory.lru-cache-num-shard-bits")
+                    .intType()
+                    .defaultValue(-1)
+                    .withDescription(
+                            String.format(
+                                    "The number of shard bits for RocksDB's shared LRU block cache. "
+                                            + "A value of -1 lets RocksDB choose automatically. "
+                                            + "This option only has an effect when '%s' or '%s' are configured.",
+                                    USE_MANAGED_MEMORY.key(), FIX_PER_SLOT_MEMORY_SIZE.key()));
+
+    @Documentation.Section(Documentation.Sections.STATE_BACKEND_ROCKSDB)
     public static final ConfigOption<Boolean> USE_PARTITIONED_INDEX_FILTERS =
             ConfigOptions.key("state.backend.rocksdb.memory.partitioned-index-filters")
                     .booleanType()
