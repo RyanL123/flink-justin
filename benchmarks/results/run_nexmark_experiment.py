@@ -34,7 +34,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--query", required=True, help="Query directory name, e.g. q1, q2, q11.")
     parser.add_argument(
         "--manifest",
-        help="Path to FlinkDeployment YAML (default: notebooks/nexmark/<query>/query<num>.yaml).",
+        help=(
+            "Path to FlinkDeployment YAML "
+            "(default: notebooks/nexmark/<query>/query<num>.<policy>.yaml)."
+        ),
     )
     parser.add_argument(
         "--duration-sec",
@@ -55,8 +58,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--policy",
-        default="a4s-justin",
-        help="Policy tag used in run_id (default: a4s-justin).",
+        choices=["ds2", "justin", "a4s"],
+        default="ds2",
+        help="Autoscaling policy and manifest suffix (default: ds2).",
     )
     parser.add_argument(
         "--results-root",
@@ -102,12 +106,12 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-zA-Z0-9._-]+", "-", value.strip()).strip("-").lower() or "run"
 
 
-def default_manifest_for_query(repo_root: Path, query: str) -> Path:
+def default_manifest_for_query(repo_root: Path, query: str, policy: str) -> Path:
     match = re.fullmatch(r"q(\d+)", query)
     if not match:
         raise ValueError(f"Cannot infer manifest for query '{query}'. Provide --manifest.")
     qnum = match.group(1)
-    return repo_root / f"notebooks/nexmark/{query}/query{qnum}.yaml"
+    return repo_root / f"notebooks/nexmark/{query}/query{qnum}.{policy}.yaml"
 
 
 def get_json_via_kubectl_raw(repo_root: Path, base_path: str, path: str, retries: int = 4) -> dict:
@@ -301,7 +305,7 @@ def build_run_row(
         "run_id": run_id,
         "environment": args.environment,
         "run_commit": run_commit,
-        "autoscaler": slugify(args.policy).split("-", 1)[0],
+        "autoscaler": slugify(args.policy),
     }
 
 
@@ -315,12 +319,17 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     results_root = Path(args.results_root).resolve()
     query = slugify(args.query)
-    manifest = Path(args.manifest).resolve() if args.manifest else default_manifest_for_query(repo_root, query)
+    policy = slugify(args.policy)
+    manifest = (
+        Path(args.manifest).resolve()
+        if args.manifest
+        else default_manifest_for_query(repo_root, query, policy)
+    )
     if not manifest.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest}")
 
     run_id = str(int(time.time() * 1000))
-    autoscaler = slugify(args.policy).split("-", 1)[0]
+    autoscaler = policy
     run_name = f"{run_id}_{slugify(args.environment)}_{slugify(autoscaler)}"
     query_dir = results_root / "nexmark" / query
     query_dir.mkdir(parents=True, exist_ok=True)

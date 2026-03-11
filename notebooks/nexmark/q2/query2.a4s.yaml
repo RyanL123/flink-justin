@@ -71,6 +71,9 @@ spec:
     state.backend.rocksdb.metrics.size-all-mem-tables: "true"
     state.backend.rocksdb.metrics.total-sst-files-size: "true"
     state.backend.rocksdb.metrics.stack-distance-histogram: "true"
+    state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier: "1"
+    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.01"
+
     state.backend.latency-track.keyed-state-enabled: "true"
     state.backend.rocksdb.use-direct-writes: "true"
     state.backend.rocksdb.use-direct-reads: "true"
@@ -103,14 +106,14 @@ spec:
       metadata:
         name: task-manager-pod-template
   job:
-    jarURI: local:///opt/flink/examples/justin/Query5.jar
+    jarURI: local:///opt/flink/examples/justin/Query2.jar
     parallelism: 1
     upgradeMode: stateless
     args:
       - "--srcRate"
-      - "60000"
-      - "--p-bid-source"
-      - "2"
+      - "105000"
+      - "--p-source"
+      - "15"
       - "--disableOperatorChaining"
       - "true"
 

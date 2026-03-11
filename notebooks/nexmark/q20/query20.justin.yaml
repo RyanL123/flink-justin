@@ -8,8 +8,8 @@ spec:
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: 'true'
-    job.autoscaler.justin.enabled: 'true'
-    job.autoscaler.a4s.enabled: 'true'
+    job.autoscaler.justin.enabled: "true"
+    job.autoscaler.a4s.enabled: "false"
     job.autoscaler.stabilization.interval: 10m
     job.autoscaler.cache-hit-rate.min.threshold: '0.8'
     job.autoscaler.state-latency.threshold: '1000000.0'
