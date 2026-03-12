@@ -50,7 +50,10 @@ spec:
     state.backend.rocksdb.use-direct-reads: 'true'
     state.backend.rocksdb.metrics.stack-distance-histogram: "true"
     state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier: "1"
-    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.01"
+    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.03"
+    state.backend.rocksdb.a4s.quick-mrc.histogram-bin-size: "64"
+    a4s.bucket-size-scaling: "64"
+    state.backend.rocksdb.memory.lru-cache-num-shard-bits: "0"
 
   serviceAccount: flink
   podTemplate:

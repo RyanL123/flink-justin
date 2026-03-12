@@ -72,7 +72,8 @@ spec:
     state.backend.rocksdb.metrics.total-sst-files-size: "true"
     state.backend.rocksdb.metrics.stack-distance-histogram: "true"
     state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier: "1"
-    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.01"
+    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.02"
+    state.backend.rocksdb.memory.lru-cache-num-shard-bits: "0"
 
     state.backend.latency-track.keyed-state-enabled: "true"
     state.backend.rocksdb.use-direct-writes: "true"

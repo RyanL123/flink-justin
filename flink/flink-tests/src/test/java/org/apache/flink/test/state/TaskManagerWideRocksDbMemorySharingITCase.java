@@ -182,6 +182,7 @@ public class TaskManagerWideRocksDbMemorySharingITCase extends TestLogger {
         public Cache createCache(
                 long cacheCapacity,
                 double highPriorityPoolRatio,
+                int lruCacheNumShardBits,
                 boolean quickMrcEnabled,
                 int quickMrcMaxBucketSize,
                 int quickMrcGhostCacheMultiplier,
@@ -191,6 +192,7 @@ public class TaskManagerWideRocksDbMemorySharingITCase extends TestLogger {
                     RocksDBMemoryFactory.DEFAULT.createCache(
                             cacheCapacity,
                             highPriorityPoolRatio,
+                            lruCacheNumShardBits,
                             quickMrcEnabled,
                             quickMrcMaxBucketSize,
                             quickMrcGhostCacheMultiplier,

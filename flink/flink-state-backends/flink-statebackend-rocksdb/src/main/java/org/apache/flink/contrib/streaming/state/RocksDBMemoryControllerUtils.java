@@ -156,26 +156,6 @@ public class RocksDBMemoryControllerUtils {
     static Cache createCache(
             long cacheCapacity,
             double highPriorityPoolRatio,
-            boolean quickMrcEnabled,
-            int quickMrcMaxBucketSize,
-            int quickMrcGhostCacheMultiplier,
-            double quickMrcSamplingRate,
-            int quickMrcHistogramBinSize) {
-        return createCache(
-                cacheCapacity,
-                highPriorityPoolRatio,
-                -1,
-                quickMrcEnabled,
-                quickMrcMaxBucketSize,
-                quickMrcGhostCacheMultiplier,
-                quickMrcSamplingRate,
-                quickMrcHistogramBinSize);
-    }
-
-    @VisibleForTesting
-    static Cache createCache(
-            long cacheCapacity,
-            double highPriorityPoolRatio,
             int lruCacheNumShardBits,
             boolean quickMrcEnabled,
             int quickMrcMaxBucketSize,
@@ -250,6 +230,25 @@ public class RocksDBMemoryControllerUtils {
 
     /** Factory for Write Buffer Manager and Bock Cache. */
     public interface RocksDBMemoryFactory extends Serializable {
+        default Cache createCache(
+                long cacheCapacity,
+                double highPriorityPoolRatio,
+                boolean quickMrcEnabled,
+                int quickMrcMaxBucketSize,
+                int quickMrcGhostCacheMultiplier,
+                double quickMrcSamplingRate,
+                int quickMrcHistogramBinSize) {
+                return createCache(
+                        cacheCapacity,
+                        highPriorityPoolRatio,
+                        -1,
+                        quickMrcEnabled,
+                        quickMrcMaxBucketSize,
+                        quickMrcGhostCacheMultiplier,
+                        quickMrcSamplingRate,
+                        quickMrcHistogramBinSize);
+        }
+
         Cache createCache(
                 long cacheCapacity,
                 double highPriorityPoolRatio,
