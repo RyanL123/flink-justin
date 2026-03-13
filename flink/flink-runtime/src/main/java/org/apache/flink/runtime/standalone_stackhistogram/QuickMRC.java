@@ -104,7 +104,8 @@ public class QuickMRC {
             return new ArrayList<>();
         }
 
-        int numBuckets = mergedHistogram.getNumBuckets();
+        // last bucket is used for tracking complete misses
+        int numBuckets = mergedHistogram.getNumBuckets() - 1;
 
         List<MRCPoint> mrc = new ArrayList<>();
         long cumulativeFreqAtSize = 0L;
