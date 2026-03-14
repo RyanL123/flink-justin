@@ -1,8 +1,0 @@
-FROM flink-justin:dais
-
-USER root
-
-COPY nexmark-flink-0.3-SNAPSHOT.jar /opt/flink/lib/
-RUN chown flink:flink /opt/flink/lib/nexmark-flink-0.3-SNAPSHOT.jar
-
-USER flink
