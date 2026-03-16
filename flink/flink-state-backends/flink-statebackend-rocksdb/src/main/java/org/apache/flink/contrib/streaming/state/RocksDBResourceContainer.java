@@ -227,12 +227,12 @@ public final class RocksDBResourceContainer implements AutoCloseable {
                     && overwriteFilterIfExist(blockBasedTableConfig)) {
                 blockBasedTableConfig.setIndexType(IndexType.kTwoLevelIndexSearch);
                 blockBasedTableConfig.setPartitionFilters(true);
-                blockBasedTableConfig.setPinTopLevelIndexAndFilter(true);
+                blockBasedTableConfig.setPinTopLevelIndexAndFilter(false);
             }
             blockBasedTableConfig.setBlockCache(blockCache);
-            blockBasedTableConfig.setCacheIndexAndFilterBlocks(true);
-            blockBasedTableConfig.setCacheIndexAndFilterBlocksWithHighPriority(true);
-            blockBasedTableConfig.setPinL0FilterAndIndexBlocksInCache(true);
+            blockBasedTableConfig.setCacheIndexAndFilterBlocks(false);
+            blockBasedTableConfig.setCacheIndexAndFilterBlocksWithHighPriority(false);
+            blockBasedTableConfig.setPinL0FilterAndIndexBlocksInCache(false);
             opt.setTableFormatConfig(blockBasedTableConfig);
         }
 
