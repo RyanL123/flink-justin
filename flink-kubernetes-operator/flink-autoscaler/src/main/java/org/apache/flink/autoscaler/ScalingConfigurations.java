@@ -69,6 +69,8 @@ public class ScalingConfigurations {
         @Getter @Setter
         private int memoryLevel = 0;
         @Getter @Setter
+        private double managedMemoryMB = -1.0;
+        @Getter @Setter
         private boolean verticalScaling = false;
         @Getter @Setter
         private boolean horizontalScaling = false;
@@ -94,6 +96,7 @@ public class ScalingConfigurations {
                     "avgThroughput=" + avgThroughput +
                     ", parallelism=" + parallelism +
                     ", memoryLevel=" + memoryLevel +
+                    ", managedMemoryMB=" + managedMemoryMB +
                     ", verticalScaling=" + verticalScaling +
                     ", horizontalScaling=" + horizontalScaling +
                     ", avgCacheHitRate=" + avgCacheHitRate +

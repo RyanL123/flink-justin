@@ -415,14 +415,6 @@ public class AutoScalerOptions {
                                     + "When enabled, the autoscaler will use memory-parallelism curves "
                                     + "to find optimal (memory, parallelism) configurations for stateful operators.");
 
-    public static final ConfigOption<Integer> A4S_MAX_MEMORY_LEVEL =
-            autoScalerConfig("a4s.memory.max-level")
-                    .intType()
-                    .defaultValue(3)
-                    .withDescription(
-                            "Maximum memory level for A4S scaling. Memory levels are exponential: "
-                                    + "level 0 = base memory, level 1 = 2x base, level 2 = 4x base, etc.");
-
     public static final ConfigOption<Double> A4S_MEMORY_PARALLELISM_TRADEOFF_FACTOR =
             autoScalerConfig("a4s.memory-parallelism.tradeoff-factor")
                     .doubleType()

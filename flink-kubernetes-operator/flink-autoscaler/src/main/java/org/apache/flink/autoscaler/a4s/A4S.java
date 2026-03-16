@@ -20,7 +20,6 @@ package org.apache.flink.autoscaler.a4s;
 import lombok.Getter;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.autoscaler.metrics.ScalingMetric;
-import org.apache.flink.autoscaler.ScalingConfigurations;
 import org.apache.flink.autoscaler.ScalingSummary;
 import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
 import org.apache.flink.autoscaler.topology.JobTopology;
@@ -41,9 +40,6 @@ import java.util.stream.Collectors;
 public class A4S {
 
     private static final Logger LOG = LoggerFactory.getLogger(A4S.class);
-
-    /** Base memory size in MB for level 0. */
-    private static final double BASE_MEMORY_MB = 158.0;
 
     private final EvaluatedMetrics evaluatedMetrics;
 
@@ -176,24 +172,4 @@ public class A4S {
         return Optional.ofNullable(minMemoryDiffOperator);
     }
 
-    /**
-     * Convert memory in MB to the nearest discrete memory level, always rounding up.
-     *
-     * <p>The level is capped by {@link ScalingConfigurations#MAX_MEMORY_LEVEL}.
-     * Memory values above MAX_MEMORY_LEVEL are rounded down to MAX_MEMORY_LEVEL.
-     *
-     * @param memoryMB the memory in MB to convert
-     * @return the memory level (0 to MAX_MEMORY_LEVEL)
-     */
-    public static int memoryMBToLevel(double memoryMB) {
-        if (memoryMB <= 0) {
-            return 0;
-        }
-        double ratio = memoryMB / BASE_MEMORY_MB;
-
-        // Calculate log base 2 and round up to nearest level
-        int level = (int) Math.ceil(Math.log(ratio) / Math.log(2));
-        level = Math.max(0, level);
-        return Math.min(level, ScalingConfigurations.MAX_MEMORY_LEVEL);
-    }
 }

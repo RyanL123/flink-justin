@@ -179,8 +179,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                 currentScalingConf.getScaling().forEach((id, information) -> {
                     information.setParallelism(Optional.ofNullable(decisions.get(id)).map(Decision::getParallelism).orElse(information.getParallelism()));
                     double memoryMb = Optional.ofNullable(decisions.get(id)).map(Decision::getMemoryMB).orElse(0.0);
-                    int memoryLevel = A4S.memoryMBToLevel(memoryMb);
-                    information.setMemoryLevel(memoryLevel);
+                    information.setManagedMemoryMB(memoryMb);
                 });
             } else {
                 policy(context, currentScalingConf, conf);
@@ -522,9 +521,12 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
     public static Map<String, String> getVertexResourceProfileOverrides(JobID jobID, ScalingConfigurations scalingConfigurations, Configuration conf) {
         var overrides = new HashMap<String, String>();
         scalingConfigurations.getCurrentConfiguration(jobID, periods.getOrDefault(jobID, 0)).getScaling().forEach((id, information) -> {
+            var managedMemoryMB = information.getManagedMemoryMB();
             overrides.put(
                     id.toString(),
-                    String.valueOf(getResourceProfile(conf, information.getMemoryLevel()))
+                    managedMemoryMB >= 0
+                            ? String.valueOf(getResourceProfile(conf, managedMemoryMB))
+                            : String.valueOf(getResourceProfile(conf, information.getMemoryLevel()))
             );
         } );
         return overrides;
@@ -578,6 +580,28 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                     .setTaskHeapMemoryMB(134)
                     .setTaskOffHeapMemoryMB(0)
                     .setManagedMemoryMB(memoryLevel == -1 ? 0 : (int) (158 * Math.pow(2, memoryLevel)))
+                    .setNetworkMemoryMB(39)
+                    .build();
+        }
+    }
+
+    private static ResourceProfile getResourceProfile(Configuration conf, double managedMemoryMB) {
+        var memory = conf.get(TaskManagerOptions.TOTAL_PROCESS_MEMORY);
+        int roundedManagedMemoryMB = (int) Math.ceil(Math.max(0.0, managedMemoryMB));
+        if (memory.getGibiBytes() > 3) { // 4 GB
+            return ResourceProfile.newBuilder()
+                    .setCpuCores(1.0)
+                    .setTaskHeapMemoryMB(363)
+                    .setTaskOffHeapMemoryMB(0)
+                    .setManagedMemoryMB(roundedManagedMemoryMB)
+                    .setNetworkMemoryMB(84)
+                    .build();
+        } else {
+            return  ResourceProfile.newBuilder()
+                    .setCpuCores(1.0)
+                    .setTaskHeapMemoryMB(134)
+                    .setTaskOffHeapMemoryMB(0)
+                    .setManagedMemoryMB(roundedManagedMemoryMB)
                     .setNetworkMemoryMB(39)
                     .build();
         }
