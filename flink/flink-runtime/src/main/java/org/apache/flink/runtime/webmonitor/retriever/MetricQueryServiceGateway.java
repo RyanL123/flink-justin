@@ -21,7 +21,7 @@ package org.apache.flink.runtime.webmonitor.retriever;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.metrics.dump.MetricDumpSerialization;
 import org.apache.flink.runtime.metrics.dump.MetricQueryService;
-import org.apache.flink.runtime.metrics.dump.StackDistanceHistogramResult;
+import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
 import org.apache.flink.runtime.rpc.RpcGateway;
 
 import java.util.List;
@@ -39,6 +39,5 @@ public interface MetricQueryServiceGateway extends RpcGateway {
      * @param timeout the timeout for the RPC call
      * @return a list of stack distance histogram results
      */
-    CompletableFuture<List<StackDistanceHistogramResult>> queryStackDistanceHistograms(
-            Time timeout);
+    CompletableFuture<List<StackHistogram>> queryStackDistanceHistograms(Time timeout);
 }

@@ -285,6 +285,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 }
                 try {
                     long[] histogramCounts = viewLruCache.getStackDistanceHistogram();
+                    viewLruCache.resetQuickMRCStats();
                     if (histogramCounts == null) {
                         LOG.warn(
                                 "RocksDB returned null stack distance histogram, returning empty counts.");

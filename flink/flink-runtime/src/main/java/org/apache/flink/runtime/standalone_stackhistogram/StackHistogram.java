@@ -1,18 +1,36 @@
 package org.apache.flink.runtime.standalone_stackhistogram;
 
+import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** Stack histogram with fixed-order bucket counts. */
-public class StackHistogram {
+/** Stack distance histogram with fixed-order bucket counts. */
+public class StackHistogram implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private final List<Long> bucketCounts;
     private final int numPartitions;
+    private final QueryScopeInfo scopeInfo;
+    private final String name;
 
     public StackHistogram(List<Long> bucketCounts, int numPartitions) {
+        this(bucketCounts, numPartitions, null, null);
+    }
+
+    public StackHistogram(QueryScopeInfo scopeInfo, String name, long[] bucketCounts) {
+        this(toList(bucketCounts), 1, scopeInfo, name);
+    }
+
+    private StackHistogram(
+            List<Long> bucketCounts, int numPartitions, QueryScopeInfo scopeInfo, String name) {
         validateCounts(bucketCounts);
         this.bucketCounts = List.copyOf(bucketCounts);
         this.numPartitions = numPartitions;
+        this.scopeInfo = scopeInfo;
+        this.name = name;
     }
 
     public static StackHistogram fromSerializedValue(String serializedHistogram) {
@@ -76,6 +94,22 @@ public class StackHistogram {
         return bucketCounts;
     }
 
+    public long[] toBucketCountsArray() {
+        long[] values = new long[bucketCounts.size()];
+        for (int i = 0; i < bucketCounts.size(); i++) {
+            values[i] = bucketCounts.get(i);
+        }
+        return values;
+    }
+
+    public QueryScopeInfo getScopeInfo() {
+        return scopeInfo;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public int getNumBuckets() {
         return bucketCounts.size();
     }
@@ -101,11 +135,16 @@ public class StackHistogram {
         List<Long> mergedCounts = new ArrayList<>(Collections.nCopies(numBuckets, 0L));
 
         int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
+        long completeMisses = 0;
         for (StackHistogram histogram : histograms) {
-            for (int i = 0; i < histogram.getNumBuckets(); i++) {
+            for (int i = 0; i < histogram.getNumBuckets() - 1; i++) {
                 mergedCounts.set(i, mergedCounts.get(i) + histogram.getFrequency(i));
             }
+            // last bucket always stores complete misses (infinite stack distance)
+            completeMisses += histogram.getFrequency(histogram.getNumBuckets() - 1);
         }
+        mergedCounts.add(completeMisses);
+        
         return new StackHistogram(mergedCounts, totalPartitions);
     }
 
@@ -129,5 +168,16 @@ public class StackHistogram {
         return String.format(
                 "StackHistogram{numBuckets=%d, numPartitions=%d, totalFrequency=%d}",
                 getNumBuckets(), numPartitions, getTotalFrequency());
+    }
+
+    private static List<Long> toList(long[] bucketCounts) {
+        if (bucketCounts == null) {
+            throw new IllegalArgumentException("Bucket counts must not be null");
+        }
+        List<Long> values = new ArrayList<>(bucketCounts.length);
+        for (long bucketCount : bucketCounts) {
+            values.add(bucketCount);
+        }
+        return values;
     }
 }

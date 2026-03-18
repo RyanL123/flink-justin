@@ -29,7 +29,7 @@ import org.apache.flink.runtime.messages.webmonitor.MultipleJobsDetails;
 import org.apache.flink.runtime.metrics.dump.MetricDump;
 import org.apache.flink.runtime.metrics.dump.MetricDumpSerialization;
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
-import org.apache.flink.runtime.metrics.dump.StackDistanceHistogramResult;
+import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceGateway;
@@ -45,9 +45,7 @@ import javax.annotation.concurrent.GuardedBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -273,12 +271,27 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
                 queryServiceGateway
                         .queryStackDistanceHistograms(timeout)
                         .thenComposeAsync(
-                                (List<StackDistanceHistogramResult> results) -> {
+                                (List<StackHistogram> results) -> {
                                     LOG.debug(
                                             "Received {} stack distance histogram results from {}.",
                                             results.size(),
                                             queryServiceGateway.getAddress());
-                                    aggregateAndStoreStackDistanceHistograms(results);
+                                    List<MetricDump> dumps = new ArrayList<>(results.size());
+                                    for (StackHistogram histogram : results) {
+                                        LOG.info(
+                                                "Retrieved raw stack histogram from tmAddress={} vertexId={} metricName={} numBuckets={} bucketCounts={}.",
+                                                queryServiceGateway.getAddress(),
+                                                extractVertexId(histogram.getScopeInfo()),
+                                                histogram.getName(),
+                                                histogram.getNumBuckets(),
+                                                histogram.getBucketCounts());
+                                        dumps.add(
+                                                new MetricDump.StackDistanceHistogramDump(
+                                                        histogram.getScopeInfo(),
+                                                        histogram.getName(),
+                                                        histogram.toBucketCountsArray()));
+                                    }
+                                    metrics.addAll(dumps);
                                     return FutureUtils.completedVoidFuture();
                                 },
                                 executor)
@@ -294,53 +307,20 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
         return FutureUtils.waitForAll(java.util.Arrays.asList(regularMetrics, sdHistograms));
     }
 
-    /**
-     * Aggregates stack distance histogram results by summing bucket counts element-wise for
-     * histograms sharing the same metric name, then stores them in the MetricStore.
-     */
-    private void aggregateAndStoreStackDistanceHistograms(
-            List<StackDistanceHistogramResult> results) {
-        if (results.isEmpty()) {
-            LOG.debug("No stack distance histogram results to aggregate.");
-            return;
+    private String extractVertexId(QueryScopeInfo scopeInfo) {
+        if (scopeInfo == null) {
+            return "unknown";
         }
-
-        // Group by metric name and aggregate bucket counts element-wise
-        Map<String, long[]> aggregatedCounts = new HashMap<>();
-        Map<String, QueryScopeInfo> scopeByName = new HashMap<>();
-
-        for (StackDistanceHistogramResult result : results) {
-            String name = result.getName();
-            long[] counts = result.getBucketCounts();
-
-            if (!aggregatedCounts.containsKey(name)) {
-                aggregatedCounts.put(name, counts.clone());
-                scopeByName.put(name, result.getScopeInfo());
-            } else {
-                long[] existing = aggregatedCounts.get(name);
-                for (int i = 0; i < Math.min(existing.length, counts.length); i++) {
-                    existing[i] += counts[i];
-                }
-            }
+        if (scopeInfo instanceof QueryScopeInfo.TaskQueryScopeInfo) {
+            return ((QueryScopeInfo.TaskQueryScopeInfo) scopeInfo).vertexID;
         }
-
-        // Store aggregated results in MetricStore
-        List<MetricDump> dumps = new ArrayList<>();
-        for (Map.Entry<String, long[]> entry : aggregatedCounts.entrySet()) {
-            String name = entry.getKey();
-            MetricDump.StackDistanceHistogramDump dump = new MetricDump.StackDistanceHistogramDump(
-                    scopeByName.get(name),
-                    name,
-                    entry.getValue());
-            LOG.debug("Histogram counts: {}", dump.bucketCounts);
-            dumps.add(dump);
+        if (scopeInfo instanceof QueryScopeInfo.OperatorQueryScopeInfo) {
+            return ((QueryScopeInfo.OperatorQueryScopeInfo) scopeInfo).vertexID;
         }
-        LOG.debug(
-                "Aggregated {} stack distance histograms from {} results into {} distinct metrics.",
-                results.size(),
-                results.size(),
-                dumps.size());
-        metrics.addAll(dumps);
+        if (scopeInfo instanceof QueryScopeInfo.JobManagerOperatorQueryScopeInfo) {
+            return ((QueryScopeInfo.JobManagerOperatorQueryScopeInfo) scopeInfo).vertexID;
+        }
+        return "unknown";
     }
 
     @Nonnull

@@ -287,12 +287,13 @@ public class A4SAggregatingVertexMetricsHandler
 
         StackHistogram mergedHistogram = StackHistogram.merge(subtaskHistograms);
         log.info(
-                "{} stage=jm_histogram_merged jobId={} vertexId={} numBuckets={} totalFrequency={}",
+                "{} stage=jm_histogram_merged jobId={} vertexId={} numBuckets={} totalFrequency={} mergedBucketCounts={}",
                 TRACE_LOG_PREFIX,
                 jobId,
                 vertexID,
                 mergedHistogram.getNumBuckets(),
-                mergedHistogram.getTotalFrequency());
+                mergedHistogram.getTotalFrequency(),
+                mergedHistogram.getBucketCounts());
         List<QuickMRC.MRCPoint> mrc = QuickMRC.computeScaledMRC(mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
         log.info(
                 "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints={} pointsJson={}",
