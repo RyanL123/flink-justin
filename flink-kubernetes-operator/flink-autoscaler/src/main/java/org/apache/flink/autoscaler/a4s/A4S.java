@@ -19,6 +19,7 @@ package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
 import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.autoscaler.config.AutoScalerOptions;
 import org.apache.flink.autoscaler.metrics.ScalingMetric;
 import org.apache.flink.autoscaler.ScalingSummary;
 import org.apache.flink.autoscaler.metrics.EvaluatedMetrics;
@@ -95,10 +96,13 @@ public class A4S {
                     })
         ));
         
-        int maxAttempts = 10;
+        
+        double maxManagedMemoryMB = 600 - conf.get(AutoScalerOptions.A4S_MEMORY_BASE_MB);
+        int maxAttempts = conf.get(AutoScalerOptions.A4S_MAX_ATTEMPTS);
+
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             LOG.info("A4S: Attempt {} - Making decisions", attempt);
-            Optional<Map<JobVertexID, Decision>> decisions = place(parallelismForVertex, mpcs);
+            Optional<Map<JobVertexID, Decision>> decisions = place(parallelismForVertex, mpcs, maxManagedMemoryMB);
             if (decisions.isPresent()) {
                 LOG.info("A4S: Decisions: {}", decisions.get());
                 return decisions.get();
@@ -123,20 +127,26 @@ public class A4S {
     @VisibleForTesting
     Optional<Map<JobVertexID, Decision>> place(
         Map<JobVertexID, Integer> parallelismForVertex,
-        Map<JobVertexID, MemoryParallelismCurve> memoryParallelismCurves) {
+        Map<JobVertexID, MemoryParallelismCurve> memoryParallelismCurves,
+        double maxManagedMemoryMB) {
         Map<JobVertexID, Decision> decisions = new HashMap<>();
 
         for (JobVertexID operator : operators) {
             MemoryParallelismCurve mpc = memoryParallelismCurves.get(operator);
-            int parallelism = parallelismForVertex.get(operator);
+            if (mpc == null) {
+                LOG.warn("A4S: No memory parallelism curve found for operator {}", operator);
+                continue;
+            }
 
-            double memory = 0.0;
-            if (mpc != null) {
-                memory = mpc.getMemoryMbForParallelism(parallelism).orElse(0.0);
+            int parallelism = Math.max(parallelismForVertex.get(operator), mpc.getMinParallelism());
+            double memoryMB = mpc.getMemoryMbForParallelism(parallelism).orElseThrow(() -> new IllegalStateException("No memory for parallelism " + parallelism + " found for operator " + operator));
+
+            if (memoryMB > maxManagedMemoryMB) {
+                return Optional.empty();
             }
             
-            LOG.info("A4S: Operator {} placed with parallelism {} and memory {.2f}MB", operator, parallelism, memory);
-            Decision decision = new Decision(parallelism, memory);
+            LOG.info("A4S: Operator {} placed with parallelism {} and memory {}MB", operator, parallelism, memoryMB);
+            Decision decision = new Decision(parallelism, memoryMB);
             decisions.put(operator, decision);
         }
 

@@ -96,7 +96,7 @@ public class A4STest {
         Map<JobVertexID, Integer> parallelismForVertex = Map.of(operator1, parallelism);
         Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(operator1, mpc);
 
-        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs, 1000.0);
 
         assertThat(result).isPresent();
         assertThat(result.get().get(operator1).getParallelism()).isEqualTo(parallelism);
@@ -127,7 +127,7 @@ public class A4STest {
                 operator1, mpc1,
                 operator2, mpc2);
 
-        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs, 600.0);
 
         assertThat(result).isPresent();
         assertThat(result.get()).hasSize(2);
@@ -156,7 +156,7 @@ public class A4STest {
                 operator2, 3);
         Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(operator2, mpc2);
 
-        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs, 1000.0);
 
         // Result should be present, but operator1 is skipped
         assertThat(result).isPresent();
@@ -177,7 +177,7 @@ public class A4STest {
         Map<JobVertexID, Integer> parallelismForVertex = Map.of();
         Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of();
 
-        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs);
+        Optional<Map<JobVertexID, A4S.Decision>> result = a4s.place(parallelismForVertex, mpcs, 600.0);
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEmpty();

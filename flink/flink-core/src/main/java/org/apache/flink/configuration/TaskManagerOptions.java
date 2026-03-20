@@ -707,12 +707,12 @@ public class TaskManagerOptions {
                     .defaultValue(4096L)
                     .withDescription("Size of each cache item in bytes.");
 
-
+    // Duplicated on purpose since we only send a simple array for the histograms to make parsing easier
     public static final ConfigOption<Long> A4S_BUCKET_SIZE_SCALING =
-            ConfigOptions.key("a4s.bucket-size-scaling")
+            ConfigOptions.key("state.backend.rocksdb.a4s.quick-mrc.histogram-bin-size")
                     .longType()
                     .defaultValue(1L)
-                    .withDescription("Scaling factor for the bucket size.");
+                    .withDescription("QuickMRC histogram bin size.");
     // ------------------------------------------------------------------------
 
     /** Not intended to be instantiated. */

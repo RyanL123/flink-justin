@@ -17,10 +17,6 @@
 
 package org.apache.flink.autoscaler.a4s;
 
-import org.apache.flink.autoscaler.config.AutoScalerOptions;
-import org.apache.flink.configuration.Configuration;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -30,16 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Tests for {@link MemoryParallelismCurve#fromMissRateCurve}. */
 public class MemoryParallelismCurveTest {
-
-    private Configuration conf;
-
-    @BeforeEach
-    void setUp() {
-        conf = new Configuration();
-        conf.set(AutoScalerOptions.VERTEX_MIN_PARALLELISM, 1);
-        conf.set(AutoScalerOptions.VERTEX_MAX_PARALLELISM, 24);
-    }
-
     @Test
     void testFromMissRateCurve_invalidLatencies_throwsException() {
         MissRateCurve mrc = new MissRateCurve.Builder()
@@ -48,10 +34,10 @@ public class MemoryParallelismCurveTest {
 
         // missLatencyMs <= hitLatencyMs should throw
         assertThrows(IllegalArgumentException.class, () ->
-                MemoryParallelismCurve.fromMissRateCurve(1000.0, 10.0, 10.0, mrc, conf));
+                MemoryParallelismCurve.fromMissRateCurve(1000.0, 10.0, 10.0, 1, 24, mrc));
 
         assertThrows(IllegalArgumentException.class, () ->
-                MemoryParallelismCurve.fromMissRateCurve(1000.0, 5.0, 10.0, mrc, conf));
+                MemoryParallelismCurve.fromMissRateCurve(1000.0, 5.0, 10.0, 1, 24, mrc));
     }
 
     @Test
@@ -73,8 +59,7 @@ public class MemoryParallelismCurveTest {
                 100.0,  // targetThroughputPerSec
                 0.02,   // missLatencySec
                 0.005,    // hitLatencySec
-                mrc,
-                conf);
+                1, 24, mrc);
 
         assertThat(mpc.getTargetThroughput()).isEqualTo(100.0);
         assertThat(mpc.getPoints()).isNotEmpty();
@@ -82,15 +67,12 @@ public class MemoryParallelismCurveTest {
 
     @Test
     void testFromMissRateCurve_respectsParallelismBounds() {
-        conf.set(AutoScalerOptions.VERTEX_MIN_PARALLELISM, 5);
-        conf.set(AutoScalerOptions.VERTEX_MAX_PARALLELISM, 10);
-
         MissRateCurve mrc = new MissRateCurve.Builder()
                 .addPoint(100.0, 0.1)  // Low miss rate, all parallelisms should find this
                 .build();
 
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                1000.0, 0.02, 0.005, mrc, conf);
+                1000.0, 0.02, 0.005, 5, 10, mrc);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -118,8 +100,7 @@ public class MemoryParallelismCurveTest {
                 1000.0,  // targetThroughput
                 0.02,    // missLatencySec
                 0.005,    // hitLatencySec
-                mrc,
-                conf);
+                1, 24, mrc);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -143,8 +124,7 @@ public class MemoryParallelismCurveTest {
                 10.0,    // Low throughput
                 0.02,    // missLatencySec
                 0.005,     // hitLatencySec
-                mrc,
-                conf);
+                1, 24, mrc);
 
         // Should still produce valid points (miss rate clamped to 1.0)
         assertThat(mpc.getPoints()).isNotEmpty();
@@ -158,9 +138,6 @@ public class MemoryParallelismCurveTest {
                 .addPoint(200.0, 0.8)
                 .build();
 
-        conf.set(AutoScalerOptions.VERTEX_MIN_PARALLELISM, 1);
-        conf.set(AutoScalerOptions.VERTEX_MAX_PARALLELISM, 5);
-
         // With very high throughput, required miss rate will be very low
         // maxMissRate for parallelism 1: ((1/10000) - 0.001) / 0.009 = -0.0011 / 0.009 < 0 => skipped
         // Even if not skipped, MRC can't satisfy miss rates below 0.8
@@ -168,8 +145,7 @@ public class MemoryParallelismCurveTest {
                 10000.0,  // Very high throughput
                 0.01,     // missLatencySec
                 0.001,      // hitLatencySec
-                mrc,
-                conf);
+                1, 5, mrc);
 
         // Most or all parallelisms should be skipped due to negative miss rate
         // or unable to find memory in MRC
@@ -187,16 +163,12 @@ public class MemoryParallelismCurveTest {
                 .addPoint(1600.0, 0.1)
                 .build();
 
-        conf.set(AutoScalerOptions.VERTEX_MIN_PARALLELISM, 1);
-        conf.set(AutoScalerOptions.VERTEX_MAX_PARALLELISM, 10);
-
         // With reasonable params, higher parallelism should map to lower memory
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 100.0,
                 100.0,
                 0.01,
-                mrc,
-                conf);
+                1, 10, mrc);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -214,15 +186,12 @@ public class MemoryParallelismCurveTest {
 
     @Test
     void testFromMissRateCurve_singleParallelism() {
-        conf.set(AutoScalerOptions.VERTEX_MIN_PARALLELISM, 5);
-        conf.set(AutoScalerOptions.VERTEX_MAX_PARALLELISM, 5);
-
         MissRateCurve mrc = new MissRateCurve.Builder()
                 .addPoint(100.0, 0.5)
                 .build();
 
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                100.0, 0.02, 0.005, mrc, conf);
+                100.0, 0.02, 0.005, 5, 5, mrc);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -244,9 +213,6 @@ public class MemoryParallelismCurveTest {
                 .addPoint(200.0, 0.25)  // 200MB gives 0.25 miss rate
                 .build();
 
-        conf.set(AutoScalerOptions.VERTEX_MIN_PARALLELISM, 1);
-        conf.set(AutoScalerOptions.VERTEX_MAX_PARALLELISM, 3);
-
         // throughput = 100, missLatency = 0.02s (20ms), hitLatency = 0.01s (10ms)
         // For parallelism 2:
         //   maxMissRate = ((2/100) - 0.01) / (0.02 - 0.01) = (0.02 - 0.01) / 0.01 = 1.0
@@ -256,8 +222,7 @@ public class MemoryParallelismCurveTest {
                 100.0,   // throughput (records/sec)
                 0.02,    // missLatencySec
                 0.005,    // hitLatencySec
-                mrc,
-                conf);
+                1, 3, mrc);
 
         // With maxMissRate = 0 for parallelism 1, no MRC point satisfies (both have > 0 miss rate)
         // With maxMissRate = 1.0 for parallelism 2, MRC returns 100.0 (smallest that satisfies <= 1.0)

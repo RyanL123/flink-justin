@@ -415,57 +415,45 @@ public class AutoScalerOptions {
                                     + "When enabled, the autoscaler will use memory-parallelism curves "
                                     + "to find optimal (memory, parallelism) configurations for stateful operators.");
 
-    public static final ConfigOption<Double> A4S_MEMORY_PARALLELISM_TRADEOFF_FACTOR =
-            autoScalerConfig("a4s.memory-parallelism.tradeoff-factor")
-                    .doubleType()
-                    .defaultValue(0.5)
-                    .withDescription(
-                            "Factor controlling the trade-off between memory and parallelism. "
-                                    + "Higher values favor memory scaling over parallelism scaling. "
-                                    + "Range: 0.0 (always prefer parallelism) to 1.0 (always prefer memory).");
-
-    public static final ConfigOption<Double> A4S_MEMORY_PARALLELISM_SCALE_FACTOR =
-            autoScalerConfig("a4s.memory-parallelism.scale-factor")
-                    .doubleType()
-                    .defaultValue(0.7)
-                    .withDescription(
-                            "Scale factor for the memory-parallelism relationship. "
-                                    + "Each memory level increase multiplies required parallelism by this factor "
-                                    + "(less parallelism needed with more memory). Each memory level decrease "
-                                    + "multiplies required parallelism by 1/factor (more parallelism needed with "
-                                    + "less memory). Default 0.7 means each memory level up reduces parallelism "
-                                    + "by ~30%.");
-
-    public static final ConfigOption<Double> A4S_MIN_THROUGHPUT_IMPROVEMENT =
-            autoScalerConfig("a4s.min-throughput-improvement")
-                    .doubleType()
-                    .defaultValue(0.1)
-                    .withDescription(
-                            "Minimum throughput improvement (as fraction) required to continue "
-                                    + "vertical scaling. For example, 0.1 means at least 10% improvement.");
-
-    public static final ConfigOption<Double> A4S_IO_LATENCY_THRESHOLD_MS =
-            autoScalerConfig("a4s.io-latency.threshold-ms")
-                    .doubleType()
-                    .defaultValue(10.0)
-                    .withDescription(
-                            "IO latency threshold in milliseconds. When state access latency exceeds "
-                                    + "this threshold, vertical scaling (more memory) may be beneficial.");
-
-    public static final ConfigOption<Boolean> A4S_PREFER_VERTICAL_SCALING =
-            autoScalerConfig("a4s.prefer-vertical-scaling")
-                    .booleanType()
-                    .defaultValue(true)
-                    .withDescription(
-                            "When true, A4S will try vertical scaling (increasing memory) before "
-                                    + "horizontal scaling (increasing parallelism) for stateful operators "
-                                    + "with low cache hit rates.");
-
-    public static final ConfigOption<Integer> A4S_MIN_OBSERVATIONS_FOR_CURVE =
-            autoScalerConfig("a4s.curve.min-observations")
+    public static final ConfigOption<Integer> A4S_MAX_ATTEMPTS =
+            autoScalerConfig("a4s.max-attempts")
                     .intType()
-                    .defaultValue(3)
+                    .defaultValue(20)
                     .withDescription(
-                            "Minimum number of observations required before generating a reliable "
-                                    + "memory-parallelism curve. Before this threshold, simplified estimates are used.");
+                            "Maximum number of attempts to find a valid (memory, parallelism) configuration for a stateful operator.");
+
+    public static final ConfigOption<Double> A4S_HIT_LATENCY_SEC =
+            autoScalerConfig("a4s.hit-latency-sec")
+                    .doubleType()
+                    .defaultValue(5e-6)
+                    .withDescription(
+                            "Latency (in sec) for a cache hit operation.");
+                   
+    public static final ConfigOption<Double> A4S_MISS_LATENCY_SEC =
+            autoScalerConfig("a4s.miss-latency-sec")
+                    .doubleType()
+                    .defaultValue(5e-6 * 100)
+                    .withDescription(
+                            "Latency (in sec) for a cache miss operation.");
+
+    public static final ConfigOption<Boolean> A4S_MANAGED_MEMORY_OVERRIDE_ENABLED =
+            autoScalerConfig("a4s.managed-memory-override.enabled")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription(
+                            "Whether to override A4S-managed memory decisions with a constant value.");
+
+    public static final ConfigOption<Integer> A4S_MANAGED_MEMORY_OVERRIDE_MB =
+            autoScalerConfig("a4s.managed-memory-override.mb")
+                    .intType()
+                    .defaultValue(0)
+                    .withDescription(
+                            "Constant managed memory in MB used when a4s.managed-memory-override.enabled is true.");
+
+    public static final ConfigOption<Double> A4S_MEMORY_BASE_MB =
+            autoScalerConfig("a4s.memory-base.mb")
+                    .doubleType()
+                    .defaultValue(0.0)
+                    .withDescription(
+                            "Base memory in MB used per operator for a4s.");
 }

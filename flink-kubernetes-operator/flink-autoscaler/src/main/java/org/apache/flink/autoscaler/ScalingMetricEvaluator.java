@@ -69,8 +69,10 @@ public class ScalingMetricEvaluator {
                 latestCollectedMetrics.getMissRateCurves() == null
                         ? Map.of()
                         : latestCollectedMetrics.getMissRateCurves();
-        double hitLatencySec = 5e-6;
-        double missLatencySec = hitLatencySec * 100;
+        double hitLatencySec = conf.getDouble(AutoScalerOptions.A4S_HIT_LATENCY_SEC);
+        double missLatencySec = conf.getDouble(AutoScalerOptions.A4S_MISS_LATENCY_SEC);
+        int vertexMinParallelism = conf.get(AutoScalerOptions.VERTEX_MIN_PARALLELISM);
+        int vertexMaxParallelism = conf.get(AutoScalerOptions.VERTEX_MAX_PARALLELISM);
 
         boolean processingBacklog = isProcessingBacklog(topology, metricsHistory, conf);
 
@@ -97,8 +99,9 @@ public class ScalingMetricEvaluator {
                 scalingOutput.get(vertex).get(TARGET_DATA_RATE).getAverage(),
                 missLatencySec, 
                 hitLatencySec, 
-                collectedMissRateCurves.get(vertex), 
-                conf);
+                vertexMinParallelism,
+                vertexMaxParallelism,
+                missRateCurve);
             if (mpc != null) {
                 memoryParallelismCurves.put(vertex, mpc);
             }

@@ -28,7 +28,6 @@ import org.apache.flink.autoscaler.resources.NoopResourceCheck;
 import org.apache.flink.autoscaler.resources.ResourceCheck;
 import org.apache.flink.autoscaler.state.AutoScalerStateStore;
 import org.apache.flink.autoscaler.a4s.A4S;
-import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
 import org.apache.flink.autoscaler.a4s.A4S.Decision;
 import org.apache.flink.autoscaler.topology.JobTopology;
 import org.apache.flink.autoscaler.tuning.MemoryTuning;
@@ -175,11 +174,19 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                 A4S a4s = new A4S(jobTopology, evaluatedMetrics, scalingSummaries);
                 Map<JobVertexID, Decision> decisions = a4s.makeDecision(conf);
 
+                boolean a4sManagedMemoryOverrideEnabled =
+                conf.get(A4S_ENABLED) && conf.get(A4S_MANAGED_MEMORY_OVERRIDE_ENABLED);
+                double a4sManagedMemoryOverrideMb = conf.get(A4S_MANAGED_MEMORY_OVERRIDE_MB);
+                double a4sMemoryBaseMb = conf.get(A4S_MEMORY_BASE_MB);
+                
                 // piggy-back off of justin's scaling algorithm for now
                 currentScalingConf.getScaling().forEach((id, information) -> {
                     information.setParallelism(Optional.ofNullable(decisions.get(id)).map(Decision::getParallelism).orElse(information.getParallelism()));
                     double memoryMb = Optional.ofNullable(decisions.get(id)).map(Decision::getMemoryMB).orElse(0.0);
-                    information.setManagedMemoryMB(memoryMb);
+                    information.setManagedMemoryMB(memoryMb + a4sMemoryBaseMb);
+                    if (a4sManagedMemoryOverrideEnabled) {
+                        information.setManagedMemoryMB(a4sManagedMemoryOverrideMb);
+                    }
                 });
             } else {
                 policy(context, currentScalingConf, conf);
@@ -690,21 +697,6 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                 }
             }
         });
-    }
-
-    /**
-     * Estimate target throughput for A4S scaling decisions.
-     *
-     * <p>Uses target utilization and current metrics to estimate the required throughput.
-     */
-    private double estimateTargetThroughput(
-        ScalingConfigurations.ScalingInformation info, Configuration conf
-    ) {
-        double targetUtilization = conf.get(TARGET_UTILIZATION);
-        double currentThroughput = info.getAvgThroughput();
-        
-        
-        return currentThroughput / targetUtilization;
     }
 
     public static void scalingTriggered(JobID jobID) {

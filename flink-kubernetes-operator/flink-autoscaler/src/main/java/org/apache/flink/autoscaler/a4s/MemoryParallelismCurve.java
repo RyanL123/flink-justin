@@ -120,7 +120,7 @@ public class MemoryParallelismCurve {
 
     @Override
     public String toString() {
-        return String.format("MPC[target=%.2f rec/s, points=%s]", targetThroughput, points);
+        return String.format("MPC[target=%.2f, minParallelism=%d, maxParallelism=%d, points=%s]", targetThroughput, minParallelism, maxParallelism, points);
     }
 
     /**
@@ -172,17 +172,15 @@ public class MemoryParallelismCurve {
             double targetThroughputPerSec,
             double missLatencySec,
             double hitLatencySec,
-            MissRateCurve mrc,
-            Configuration conf) {
+            int minParallelism,
+            int maxParallelism,
+            MissRateCurve mrc) {
         Builder builder = builder().targetThroughput(targetThroughputPerSec);
         double latencyDiff = missLatencySec - hitLatencySec;
 
         if (latencyDiff <= 0) {
             throw new IllegalArgumentException("missLatencySec (" + missLatencySec + ") should be greater than hitLatencySec (" + hitLatencySec + ")");
         }
-
-        int minParallelism = conf.get(AutoScalerOptions.VERTEX_MIN_PARALLELISM);
-        int maxParallelism = conf.get(AutoScalerOptions.VERTEX_MAX_PARALLELISM);
 
         for (int parallelism = minParallelism; parallelism <= maxParallelism; parallelism++) {
             // This is the maximum acceptable miss rate. We need a cache size
