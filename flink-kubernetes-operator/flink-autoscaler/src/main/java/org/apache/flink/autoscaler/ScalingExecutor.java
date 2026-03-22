@@ -171,6 +171,8 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                             periods.getOrDefault(context.getJobID(), 0));
             
             if (conf.get(A4S_ENABLED)) {
+                LOG.debug("A4S: Evaluated Metrics: {}", evaluatedMetrics);
+
                 A4S a4s = new A4S(jobTopology, evaluatedMetrics, scalingSummaries);
                 Map<JobVertexID, Decision> decisions = a4s.makeDecision(conf);
 
@@ -187,6 +189,7 @@ public class ScalingExecutor<KEY, Context extends JobAutoScalerContext<KEY>> {
                     if (a4sManagedMemoryOverrideEnabled) {
                         information.setManagedMemoryMB(a4sManagedMemoryOverrideMb);
                     }
+                    LOG.debug("A4S: Vertex {} has parallelism {} and memory {}MB", id, information.getParallelism(), information.getManagedMemoryMB());
                 });
             } else {
                 policy(context, currentScalingConf, conf);
