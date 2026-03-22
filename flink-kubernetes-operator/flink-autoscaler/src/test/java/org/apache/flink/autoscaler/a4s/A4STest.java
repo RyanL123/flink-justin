@@ -160,9 +160,7 @@ public class A4STest {
 
         // Result should be present, but operator1 is skipped
         assertThat(result).isPresent();
-        assertThat(result.get()).hasSize(2);
-        assertThat(result.get().get(operator1).getParallelism()).isEqualTo(2);
-        assertThat(result.get().get(operator1).getMemoryMB()).isEqualTo(0.0);
+        assertThat(result.get()).hasSize(1);
         assertThat(result.get().get(operator2).getParallelism()).isEqualTo(3);
         assertThat(result.get().get(operator2).getMemoryMB()).isEqualTo(600.0);
     }

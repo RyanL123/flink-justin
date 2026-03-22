@@ -168,6 +168,10 @@ public class A4S {
             int parallelism = parallelismForVertex.get(operator);
             MemoryParallelismCurve mpc = mpcs.get(operator);
 
+            if (mpc == null) {
+                continue;
+            }
+
             if (parallelism + 1 > mpc.getMaxParallelism()) {
                 continue;
             }
