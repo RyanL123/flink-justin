@@ -132,7 +132,7 @@ public class StackHistogram implements Serializable {
             numBuckets = Math.max(numBuckets, histogram.getNumBuckets());
         }
 
-        List<Long> mergedCounts = new ArrayList<>(Collections.nCopies(numBuckets, 0L));
+        List<Long> mergedCounts = new ArrayList<>(Collections.nCopies(numBuckets - 1, 0L));
 
         int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
         long completeMisses = 0;

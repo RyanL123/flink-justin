@@ -26,6 +26,34 @@ class QuickMRCTest {
         assertEquals(2L, merged.getFrequency(2));
     }
 
+    @Test
+    void testMerge_twoHistograms_differentNumBuckets() {
+        StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
+        StackHistogram h2 = new StackHistogram(List.of(2L, 2L), 1);
+
+        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));
+
+        assertEquals(2, merged.getNumPartitions());
+        assertEquals(9L, merged.getTotalFrequency());
+        assertEquals(5L, merged.getFrequency(0));
+        assertEquals(1L, merged.getFrequency(1));
+        // Tracks complete misses
+        assertEquals(3L, merged.getFrequency(2));
+    }
+
+    @Test
+    void testMerge_twoHistograms_oneEmpty() {
+        StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
+        StackHistogram h2 = new StackHistogram(new ArrayList<>(), 1);
+        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));        
+
+        assertEquals(2, merged.getNumPartitions());
+        assertEquals(5L, merged.getTotalFrequency());
+        assertEquals(3L, merged.getFrequency(0)); // From h1
+        assertEquals(1L, merged.getFrequency(1)); // From h1
+        assertEquals(1L, merged.getFrequency(2)); // From h1
+    }
+
     /**
      * Test 3: Verify Horizontal Scaling Logic
      * Explicitly checks that Cache Size is multiplied by the factor.
@@ -36,6 +64,7 @@ class QuickMRCTest {
         buckets.add(5L); // 5 hits in first bucket
         buckets.add(3L); // 3 hits in second bucket
         buckets.add(2L); // 2 hits in third bucket
+        buckets.add(0L); // 0 hits in complete misses
         int partitions = 2;
         StackHistogram histogram = new StackHistogram(buckets, partitions);
 
