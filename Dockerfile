@@ -29,9 +29,6 @@ RUN --mount=type=cache,target=/root/.m2 \
 FROM ghcr.io/apache/flink-docker:1.18-SNAPSHOT-scala_2.12-java11-debian
 
 RUN rm -rf /opt/flink
-USER root
-COPY nexmark-flink-0.3-SNAPSHOT.jar /opt/flink/lib/
-RUN chown flink:flink /opt/flink/lib/nexmark-flink-0.3-SNAPSHOT.jar
 USER flink
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 COPY --from=build --chown=flink:flink /app/flink-dist/target/flink-1.18-SNAPSHOT-bin/flink-1.18-SNAPSHOT/ /opt/flink
