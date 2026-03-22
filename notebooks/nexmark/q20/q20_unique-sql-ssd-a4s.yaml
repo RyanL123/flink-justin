@@ -4,11 +4,14 @@ metadata:
   name: flink
 spec:
   image: 142.150.234.165:5000/flink-justin-sql:dais
-  imagePullPolicy: IfNotPresent
+  imagePullPolicy: Always
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: 'true'
-    job.autoscaler.justin.enabled: "false"
+    job.autoscaler.justin.enabled: "true"
+    job.autoscaler.a4s.enabled: "true"
+    job.autoscaler.a4s.hit-latency-sec: "0.000005"
+    job.autoscaler.a4s.miss-latency-sec: "0.0005"
     job.autoscaler.stabilization.interval: 10m
     job.autoscaler.cache-hit-rate.min.threshold: '0.8'
     job.autoscaler.state-latency.threshold: '1000000.0'
@@ -47,6 +50,13 @@ spec:
     state.backend.latency-track.keyed-state-enabled: 'true'
     state.backend.rocksdb.use-direct-writes: 'true'
     state.backend.rocksdb.use-direct-reads: 'true'
+
+    state.backend.rocksdb.metrics.stack-distance-histogram: "true"
+    state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier: "20"
+    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.75"
+    state.backend.rocksdb.memory.lru-cache-num-shard-bits: "0"
+    state.backend.rocksdb.a4s.quick-mrc.histogram-bin-size: "1024"
+    a4s.bucket-size-scaling: "1024"
 
   serviceAccount: flink
   podTemplate:

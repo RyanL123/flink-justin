@@ -4,18 +4,24 @@ metadata:
   name: flink
 spec:
   image: 142.150.234.165:5000/flink-justin-sql:dais
-  imagePullPolicy: IfNotPresent
+  imagePullPolicy: Always
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: 'true'
-    job.autoscaler.justin.enabled: "false"
-    job.autoscaler.stabilization.interval: 10m
+    job.autoscaler.justin.enabled: 'false'
+    job.autoscaler.stabilization.interval: 1m
     job.autoscaler.cache-hit-rate.min.threshold: '0.8'
     job.autoscaler.state-latency.threshold: '1000000.0'
     job.autoscaler.metrics.window: 2m
     pipeline.max-parallelism: '24'
     taskmanager.numberOfTaskSlots: '4'
     execution.checkpointing.interval: 300m
+    state.checkpoints.dir: file:///mnt/experiments/autoscaling-experiments/flink-state/checkpoints
+    execution.checkpointing.savepoint-dir: file:///mnt/experiments/autoscaling-experiments/flink-state/savepoints
+    execution.checkpointing.incremental: 'true'
+    execution.checkpointing.mode: EXACTLY_ONCE
+    execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
+    state.backend.local-recovery: 'true'
     jobmanager.scheduler: adaptive
     job.autoscaler.target.utilization: '0.5'
     job.autoscaler.target.utilization.boundary: '0.3'
@@ -47,7 +53,7 @@ spec:
     state.backend.latency-track.keyed-state-enabled: 'true'
     state.backend.rocksdb.use-direct-writes: 'true'
     state.backend.rocksdb.use-direct-reads: 'true'
-
+    state.backend.rocksdb.localdir: /data/flink/rocksdb
   serviceAccount: flink
   podTemplate:
     apiVersion: v1
@@ -60,6 +66,14 @@ spec:
         ports:
         - containerPort: 9249
           name: prom
+        volumeMounts:
+        - name: checkpoint-storage
+          mountPath: /mnt/experiments/autoscaling-experiments/flink-state
+      volumes:
+      - name: checkpoint-storage
+        hostPath:
+          path: /mnt/experiments/autoscaling-experiments/flink-state
+          type: DirectoryOrCreate
   jobManager:
     resource:
       memory: 2048m
@@ -87,9 +101,15 @@ spec:
         containers:
         - name: flink-main-container
           volumeMounts:
+          - name: checkpoint-storage
+            mountPath: /mnt/experiments/autoscaling-experiments/flink-state
           - name: rocksdb-ssd
             mountPath: /data/flink/rocksdb
         volumes:
+        - name: checkpoint-storage
+          hostPath:
+            path: /mnt/experiments/autoscaling-experiments/flink-state
+            type: DirectoryOrCreate
         - name: rocksdb-ssd
           hostPath:
             path: /data/flink/rocksdb
@@ -105,11 +125,19 @@ spec:
     - --tps
     - '50000'
     - --events
-    - '7000000'
+    - '12500000'
     - --max-emit-speed
     - 'false'
+    - --prob-delayed-event
+    - '0'
+    - --occasional-delay-min-sec
+    - '60'
+    - --occasional-delay-sec
+    - '240'
+    - --out-of-order-group-size
+    - '1'
     - --job-name
-    - q20_unique-sql-ssd
+    - q20_unique-sql-ssd-ds2
   logConfiguration:
     log4j-console.properties: 'rootLogger.level = DEBUG
 
