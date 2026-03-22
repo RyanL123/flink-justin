@@ -151,8 +151,8 @@ For more details on the autoscaling internals (A4S, MRC/MPC, stack histograms, a
     - `benchmarks/results/nexmark/runs.template.csv` – per-run metadata.
     - `benchmarks/results/nexmark/samples.template.csv` – per-sample time series.
   - Python scripts:
-    - `benchmarks/results/plot_run.py` – generate plots from `samples.csv`.
-    - `benchmarks/results/run_nexmark_experiment.py` – run experiments and populate `runs.csv` and samples/plots.
+    - `scripts/experiments/plot_run.py` – generate plots from `samples.csv`.
+    - `scripts/experiments/run_nexmark_experiment.py` – run experiments and populate `runs.csv` and samples/plots.
 
 - **Per-query configurations**
   - For each Nexmark query \(q1, q2, q3, q5, q8, q11, q20\):

@@ -27,7 +27,7 @@ Recorded run results for long-term comparison are stored under:
 You can run one query end-to-end (deploy, sample, cleanup, save, plot) with:
 
 ```bash
-venv/bin/python benchmarks/results/run_nexmark_experiment.py \
+venv/bin/python scripts/experiments/run_nexmark_experiment.py \
   --query q1 \
   --sampling-interval-sec 5 \
   --duration-sec 600 \
@@ -38,7 +38,7 @@ venv/bin/python benchmarks/results/run_nexmark_experiment.py \
 Run it asynchronously (example):
 
 ```bash
-nohup venv/bin/python benchmarks/results/run_nexmark_experiment.py \
+nohup venv/bin/python scripts/experiments/run_nexmark_experiment.py \
   --query q2 \
   --sampling-interval-sec 5 \
   --duration-sec 600 \
