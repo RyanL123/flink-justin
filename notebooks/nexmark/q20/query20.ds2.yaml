@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: flink
 spec:
-  image: flink-justin:nexmark
+  image: flink-justin:dais
   imagePullPolicy: IfNotPresent
   flinkVersion: v1_18
   flinkConfiguration:

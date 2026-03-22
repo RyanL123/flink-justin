@@ -21,7 +21,7 @@ kind: FlinkDeployment
 metadata:
   name: flink
 spec:
-  image: flink-justin:dais
+  image: ryanl123/flink-justin
   imagePullPolicy: IfNotPresent
   flinkVersion: v1_18
   flinkConfiguration:
@@ -74,6 +74,7 @@ spec:
     state.backend.latency-track.keyed-state-enabled: "true"
     state.backend.rocksdb.use-direct-writes: "true"
     state.backend.rocksdb.use-direct-reads: "true"
+    state.backend.rocksdb.localdir: /data/flink/rocksdb
 
   serviceAccount: flink
   podTemplate:
@@ -83,25 +84,44 @@ spec:
       name: pod-template
     spec:
       containers:
-        # Do not change the main container name
-        - name: flink-main-container
-          ports:
-            - containerPort: 9249
-              name: prom
+      - name: flink-main-container
+        ports:
+        - containerPort: 9249
+          name: prom
   jobManager:
     resource:
-      memory: "2048m"
+      memory: 2048m
       cpu: 1
-
+    podTemplate:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: job-manager-pod-template
+      spec:
+        nodeSelector:
+          tier: jobmanager
   taskManager:
     resource:
-      memory: "2048m"
+      memory: 2048m
       cpu: 4
     podTemplate:
       apiVersion: v1
       kind: Pod
       metadata:
         name: task-manager-pod-template
+      spec:
+        nodeSelector:
+          tier: taskmanager
+        containers:
+        - name: flink-main-container
+          volumeMounts:
+          - name: rocksdb-ssd
+            mountPath: /data/flink/rocksdb
+        volumes:
+        - name: rocksdb-ssd
+          hostPath:
+            path: /data/flink/rocksdb
+            type: DirectoryOrCreate
   job:
     jarURI: local:///opt/flink/examples/justin/Query5.jar
     parallelism: 1

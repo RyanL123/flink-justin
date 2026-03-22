@@ -21,13 +21,13 @@ kind: FlinkDeployment
 metadata:
   name: flink
 spec:
-  image: ryanl123/flink-justin
-  imagePullPolicy: IfNotPresent
+  image: 142.150.234.153:5000/flink-justin
+  imagePullPolicy: Always
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: "true"
     job.autoscaler.justin.enabled: "true"
-    job.autoscaler.a4s.enabled: "false"
+    job.autoscaler.a4s.enabled: "true"
     job.autoscaler.stabilization.interval: "1m"
     job.autoscaler.cache-hit-rate.min.threshold: "0.8"
     job.autoscaler.state-latency.threshold: "1000000.0"
@@ -70,12 +70,22 @@ spec:
     state.backend.rocksdb.metrics.live-sst-files-size: "true"
     state.backend.rocksdb.metrics.size-all-mem-tables: "true"
     state.backend.rocksdb.metrics.total-sst-files-size: "true"
-    state.backend.rocksdb.localdir: /data/flink/rocksdb
+    
+    job.autoscaler.a4s.hit-latency-sec: "0.000005"
+    job.autoscaler.a4s.miss-latency-sec: "0.0005"
+    # job.autoscaler.a4s.managed-memory-override.enabled: "true"
+    # job.autoscaler.a4s.managed-memory-override.mb: "158"
+    job.autoscaler.a4s.memory-base.mb: "30"
+    state.backend.rocksdb.metrics.stack-distance-histogram: "true"
+    state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier: "20"
+    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.75"
+    state.backend.rocksdb.memory.lru-cache-num-shard-bits: "0"
+    state.backend.rocksdb.a4s.quick-mrc.histogram-bin-size: "1024"
+    a4s.bucket-size-scaling: "1024"
 
     state.backend.latency-track.keyed-state-enabled: "true"
     state.backend.rocksdb.use-direct-writes: "true"
     state.backend.rocksdb.use-direct-reads: "true"
-    state.backend.rocksdb.metrics.stack-distance-histogram: "true"
 
   serviceAccount: flink
   podTemplate:
@@ -85,13 +95,14 @@ spec:
       name: pod-template
     spec:
       containers:
-      - name: flink-main-container
-        ports:
-        - containerPort: 9249
-          name: prom
+        # Do not change the main container name
+        - name: flink-main-container
+          ports:
+            - containerPort: 9249
+              name: prom
   jobManager:
     resource:
-      memory: 2048m
+      memory: "2048m"
       cpu: 1
     podTemplate:
       apiVersion: v1
@@ -101,9 +112,10 @@ spec:
       spec:
         nodeSelector:
           tier: jobmanager
+
   taskManager:
     resource:
-      memory: 2048m
+      memory: "2048m"
       cpu: 4
     podTemplate:
       apiVersion: v1
@@ -113,29 +125,19 @@ spec:
       spec:
         nodeSelector:
           tier: taskmanager
-        containers:
-        - name: flink-main-container
-          volumeMounts:
-          - name: rocksdb-ssd
-            mountPath: /data/flink/rocksdb
-        volumes:
-        - name: rocksdb-ssd
-          hostPath:
-            path: /data/flink/rocksdb
-            type: DirectoryOrCreate
   job:
-    jarURI: local:///opt/flink/examples/justin/Query11.jar
+    jarURI: local:///opt/flink/examples/justin/Query8.jar
     parallelism: 1
     upgradeMode: stateless
     args:
-      - "--srcRate"
-      - "50000"
-      - "--p-bid-source"
-      - "1"
-      - "--window"
-      - "100"
-      - "--maxEvents"
-      - "10000000"
+      - "--auction-srcRate"
+      - "42000"
+      - "--person-srcRate"
+      - "12000"
+      - "--p-auction-source"
+      - "2"
+      - "--p-person-source"
+      - "2"
       - "--disableOperatorChaining"
       - "true"
 

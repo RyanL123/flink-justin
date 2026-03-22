@@ -21,8 +21,8 @@ kind: FlinkDeployment
 metadata:
   name: flink
 spec:
-  image: flink-justin:dais
-  imagePullPolicy: IfNotPresent
+  image: 142.150.234.165:5000/flink-justin-sql:dais
+  imagePullPolicy: Always
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: "true"
@@ -69,10 +69,23 @@ spec:
     state.backend.rocksdb.metrics.live-sst-files-size: "true"
     state.backend.rocksdb.metrics.size-all-mem-tables: "true"
     state.backend.rocksdb.metrics.total-sst-files-size: "true"
-
     state.backend.latency-track.keyed-state-enabled: "true"
     state.backend.rocksdb.use-direct-writes: "true"
     state.backend.rocksdb.use-direct-reads: "true"
+    state.backend.rocksdb.localdir: /data/flink/rocksdb
+    
+    job.autoscaler.a4s.enabled: "false"
+    job.autoscaler.a4s.hit-latency-sec: "0.000005"
+    job.autoscaler.a4s.miss-latency-sec: "0.0005"
+    job.autoscaler.a4s.memory-base.mb: "30"
+    # job.autoscaler.a4s.managed-memory-override.enabled: "true"
+    # job.autoscaler.a4s.managed-memory-override.mb: "160"
+    state.backend.rocksdb.metrics.stack-distance-histogram: "false"
+    state.backend.rocksdb.a4s.quick-mrc.ghost-cache-multiplier: "20"
+    state.backend.rocksdb.a4s.quick-mrc.sampling-rate: "0.75"
+    state.backend.rocksdb.memory.lru-cache-num-shard-bits: "0"
+    state.backend.rocksdb.a4s.quick-mrc.histogram-bin-size: "1024"
+    a4s.bucket-size-scaling: "1024"
 
   serviceAccount: flink
   podTemplate:
@@ -82,25 +95,44 @@ spec:
       name: pod-template
     spec:
       containers:
-        # Do not change the main container name
-        - name: flink-main-container
-          ports:
-            - containerPort: 9249
-              name: prom
+      - name: flink-main-container
+        ports:
+        - containerPort: 9249
+          name: prom
   jobManager:
     resource:
-      memory: "2048m"
+      memory: 2048m
       cpu: 1
-
+    podTemplate:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: job-manager-pod-template
+      spec:
+        nodeSelector:
+          tier: jobmanager
   taskManager:
     resource:
-      memory: "2048m"
+      memory: 2048m
       cpu: 4
     podTemplate:
       apiVersion: v1
       kind: Pod
       metadata:
         name: task-manager-pod-template
+      spec:
+        nodeSelector:
+          tier: taskmanager
+        containers:
+        - name: flink-main-container
+          volumeMounts:
+          - name: rocksdb-ssd
+            mountPath: /data/flink/rocksdb
+        volumes:
+        - name: rocksdb-ssd
+          hostPath:
+            path: /data/flink/rocksdb
+            type: DirectoryOrCreate
   job:
     jarURI: local:///opt/flink/examples/justin/Query8.jar
     parallelism: 1

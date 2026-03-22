@@ -3,8 +3,8 @@ kind: FlinkDeployment
 metadata:
   name: flink
 spec:
-  image: flink-justin:nexmark
-  imagePullPolicy: IfNotPresent
+  image: 142.150.234.165:5000/flink-justin-sql:dais
+  imagePullPolicy: Always
   flinkVersion: v1_18
   flinkConfiguration:
     job.autoscaler.enabled: 'true'
