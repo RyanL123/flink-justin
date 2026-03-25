@@ -61,39 +61,27 @@ class MissRateCurveTest {
         int partitions = 2;
         StackDistanceHistogram histogram = new StackDistanceHistogram(buckets, partitions);
 
-        List<MissRateCurve.Point> scaled = MissRateCurve.computeScaledMRC(histogram, 4096L, 1L);
-        List<MissRateCurve.Point> unscaled =
-                MissRateCurve.computeUnscaledMRC(histogram, 4096L, 1L);
+        MissRateCurve scaled = MissRateCurve.fromStackDistanceHistogram(histogram, 4096L, 1L);
 
-        assertEquals(unscaled.size(), scaled.size());
-
-        List<MissRateCurve.Point> expectedUnscaled =
-                List.of(
-                        new MissRateCurve.Point(4096L, 0.5),
-                        new MissRateCurve.Point(8192L, 0.2),
-                        new MissRateCurve.Point(12288L, 0.0));
         List<MissRateCurve.Point> expectedScaled =
                 List.of(
                         new MissRateCurve.Point(8192L, 0.5),
                         new MissRateCurve.Point(16384L, 0.2),
                         new MissRateCurve.Point(24576L, 0.0));
 
-        for (int i = 0; i < expectedUnscaled.size(); i++) {
-            assertEquals(
-                    expectedUnscaled.get(i).getCacheSizeBytes(), unscaled.get(i).getCacheSizeBytes());
-            assertEquals(expectedUnscaled.get(i).getMissRate(), unscaled.get(i).getMissRate(), 0.0001);
-        }
         for (int i = 0; i < expectedScaled.size(); i++) {
-            assertEquals(expectedScaled.get(i).getCacheSizeBytes(), scaled.get(i).getCacheSizeBytes());
-            assertEquals(expectedScaled.get(i).getMissRate(), scaled.get(i).getMissRate(), 0.0001);
+            assertEquals(
+                    expectedScaled.get(i).getCacheSizeBytes(),
+                    scaled.getPoints().get(i).getCacheSizeBytes());
+            assertEquals(
+                    expectedScaled.get(i).getMissRate(), scaled.getPoints().get(i).getMissRate(), 0.0001);
         }
     }
 
     @Test
     void testMRC_emptyHistogram() {
         StackDistanceHistogram empty = new StackDistanceHistogram(new ArrayList<>(), 1);
-        assertTrue(MissRateCurve.computeUnscaledMRC(empty, 4096L, 1L).isEmpty());
-        assertTrue(MissRateCurve.computeScaledMRC(empty, 4096L, 1L).isEmpty());
+        assertTrue(MissRateCurve.fromStackDistanceHistogram(empty, 4096L, 1L).getPoints().isEmpty());
     }
 
     @Test

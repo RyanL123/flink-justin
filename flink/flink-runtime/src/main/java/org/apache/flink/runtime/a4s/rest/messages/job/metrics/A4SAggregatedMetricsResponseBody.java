@@ -25,7 +25,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCre
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
-import java.util.List;
 
 /** A4S response body containing aggregated scalar metrics and scaled MRC points. */
 public class A4SAggregatedMetricsResponseBody implements ResponseBody {
@@ -33,15 +32,15 @@ public class A4SAggregatedMetricsResponseBody implements ResponseBody {
     public static final String FIELD_NAME_SCALED_MRC = "scaledMrc";
 
     @JsonProperty(FIELD_NAME_SCALED_MRC)
-    private final List<MissRateCurve.Point> scaledMrc;
+    private final MissRateCurve scaledMrc;
 
     @JsonCreator
     public A4SAggregatedMetricsResponseBody(
-            @JsonProperty(FIELD_NAME_SCALED_MRC) List<MissRateCurve.Point> scaledMrc) {
-        this.scaledMrc = scaledMrc == null ? Collections.emptyList() : scaledMrc;
+            @JsonProperty(FIELD_NAME_SCALED_MRC) MissRateCurve scaledMrc) {
+        this.scaledMrc = scaledMrc == null ? new MissRateCurve(Collections.emptyList()) : scaledMrc;
     }
 
-    public List<MissRateCurve.Point> getScaledMrc() {
+    public MissRateCurve getScaledMrc() {
         return scaledMrc;
     }
 }

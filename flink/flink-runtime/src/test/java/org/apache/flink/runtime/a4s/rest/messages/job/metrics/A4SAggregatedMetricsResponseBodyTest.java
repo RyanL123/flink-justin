@@ -43,17 +43,18 @@ public class A4SAggregatedMetricsResponseBodyTest
     @Override
     protected A4SAggregatedMetricsResponseBody getTestResponseInstance() {
         return new A4SAggregatedMetricsResponseBody(
-                List.of(
-                        new MissRateCurve.Point(0L, 1.0),
-                        new MissRateCurve.Point(1048576L, 0.2)));
+                new MissRateCurve(
+                        List.of(
+                                new MissRateCurve.Point(0L, 1.0),
+                                new MissRateCurve.Point(1048576L, 0.2))));
     }
 
     @Override
     protected void assertOriginalEqualsToUnmarshalled(
             A4SAggregatedMetricsResponseBody expected, A4SAggregatedMetricsResponseBody actual) {
-        assertThat(actual.getScaledMrc(), hasSize(2));
-        assertThat(actual.getScaledMrc().get(1).getCacheSizeBytes(), equalTo(1048576L));
-        assertThat(actual.getScaledMrc().get(1).getMissRate(), equalTo(0.2));
+        assertThat(actual.getScaledMrc().getPoints(), hasSize(2));
+        assertThat(actual.getScaledMrc().getPoints().get(1).getCacheSizeBytes(), equalTo(1048576L));
+        assertThat(actual.getScaledMrc().getPoints().get(1).getMissRate(), equalTo(0.2));
     }
 
     @Test

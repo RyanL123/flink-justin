@@ -246,16 +246,16 @@ public class A4SAggregatingVertexMetricsHandler
                 subtaskHistograms.size());
 
         // === Stage 3: Build scaled MRC points ===
-        List<MissRateCurve.Point> scaledMrcPoints =
+        MissRateCurve scaledMrc =
                 buildScaledMrcPoints(jobId, vertexID, subtaskHistograms);
         log.info(
                 "{} stage=response_ready jobId={} vertexId={} scaledMrcPointCount={} elapsedMs={}",
                 TRACE_LOG_PREFIX,
                 jobId,
                 vertexID,
-                scaledMrcPoints.size(),
+                scaledMrc.getPoints().size(),
                 (System.currentTimeMillis() - requestStartEpochMs));
-        return new A4SAggregatedMetricsResponseBody(scaledMrcPoints);
+        return new A4SAggregatedMetricsResponseBody(scaledMrc);
     }
 
     @Nullable
@@ -273,7 +273,7 @@ public class A4SAggregatingVertexMetricsHandler
         return null;
     }
 
-    private List<MissRateCurve.Point> buildScaledMrcPoints(
+    private MissRateCurve buildScaledMrcPoints(
             JobID jobId, JobVertexID vertexID, List<StackDistanceHistogram> subtaskHistograms) {
         log.info(
                 "{} stage=jm_scaled_mrc_begin jobId={} vertexId={} histogramCount={}",
@@ -287,7 +287,7 @@ public class A4SAggregatingVertexMetricsHandler
                     CURVE_LOG_PREFIX,
                     jobId,
                     vertexID);
-            return Collections.emptyList();
+            return new MissRateCurve(Collections.emptyList());
         }
 
         StackDistanceHistogram mergedHistogram = StackDistanceHistogram.merge(subtaskHistograms);
@@ -299,15 +299,15 @@ public class A4SAggregatingVertexMetricsHandler
                 mergedHistogram.getNumBuckets(),
                 mergedHistogram.getTotalFrequency(),
                 mergedHistogram.getBucketCounts());
-        List<MissRateCurve.Point> mrc =
-                MissRateCurve.computeScaledMRC(
+        MissRateCurve mrc =
+                MissRateCurve.fromStackDistanceHistogram(
                         mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
         log.info(
                 "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints={} pointsJson={}",
                 CURVE_LOG_PREFIX,
                 jobId,
                 vertexID,
-                mrc.size(),
+                mrc.getPoints().size(),
                 mrc);
         return mrc;
     }
