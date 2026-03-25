@@ -128,14 +128,14 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId.toString(), 0, 0, ""),
                         "stack-distance-histogram",
-                        new StackDistanceHistogram(new long[] {5L, 3L, 2L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1)
                                 .toMetricString()));
         metricStore.add(
                 new MetricDump.GaugeDump(
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId.toString(), 1, 0, ""),
                         "foo.stack-distance-histogram",
-                        new StackDistanceHistogram(new long[] {1L, 1L, 0L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {1L, 1L, 1L, 0L}, 1)
                                 .toMetricString()));
 
         A4SAggregatedMetricsResponseBody response =
@@ -146,7 +146,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
         assertThat(curve.getPoints().get(0).getCacheSizeBytes(), equalTo(8192L));
         assertThat(curve.getPoints().get(0).getMissRate(), closeTo(0.5, 1.0e-9));
         assertThat(curve.getPoints().get(1).getCacheSizeBytes(), equalTo(16384L));
-        assertThat(curve.getPoints().get(1).getMissRate(), closeTo(1.0 / 6.0, 1.0e-9));
+        assertThat(curve.getPoints().get(1).getMissRate(), closeTo(0.2, 1.0e-9));
         assertThat(curve.getPoints().get(2).getCacheSizeBytes(), equalTo(24576L));
         assertThat(curve.getPoints().get(2).getMissRate(), closeTo(0.0, 1.0e-9));
     }
