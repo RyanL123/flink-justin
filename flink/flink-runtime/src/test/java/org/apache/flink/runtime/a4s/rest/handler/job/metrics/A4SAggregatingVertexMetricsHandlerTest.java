@@ -152,6 +152,21 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
     }
 
     @Test
+    public void testHandleRequest_incorrectNameIgnored() throws Exception {
+        metricStore.add(
+                new MetricDump.GaugeDump(
+                        new QueryScopeInfo.TaskQueryScopeInfo(
+                                jobId.toString(), jobVertexId.toString(), 0, 0, ""),
+                        "foo",
+                        new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1)
+                                .toMetricString()));
+        A4SAggregatedMetricsResponseBody response =
+                handler.handleRequest(createRequest(), restfulGateway).get();
+
+        assertTrue(response.getScaledMrc().getPoints().isEmpty());
+    }
+
+    @Test
     public void testHandleRequestReturnsEmptyCurveWhenTaskMetricStoreMissing() throws Exception {
         A4SAggregatedMetricsResponseBody response =
                 handler.handleRequest(createRequest(), restfulGateway).get();
