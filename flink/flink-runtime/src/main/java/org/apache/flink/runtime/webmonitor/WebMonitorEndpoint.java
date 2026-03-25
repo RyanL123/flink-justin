@@ -539,7 +539,6 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
                         responseHeaders,
                         executor,
                         metricFetcher,
-                        executionGraphCache,
                         cacheItemSizeBytes,
                         bucketSizeScaling);
 

@@ -24,13 +24,10 @@ import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetri
 import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
-import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
-import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.rest.handler.AbstractRestHandler;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;
-import org.apache.flink.runtime.rest.handler.legacy.ExecutionGraphCache;
 import org.apache.flink.runtime.rest.handler.legacy.metrics.MetricFetcher;
 import org.apache.flink.runtime.rest.handler.legacy.metrics.MetricStore;
 import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
@@ -40,7 +37,6 @@ import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetri
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 
-import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
 
 import javax.annotation.Nonnull;
@@ -86,7 +82,6 @@ public class A4SAggregatingVertexMetricsHandler
 
     private final Executor executor;
     private final MetricFetcher fetcher;
-    private final ExecutionGraphCache executionGraphCache;
 
     private final long cacheItemSizeBytes;
     private final long bucketSizeScaling;
@@ -97,7 +92,6 @@ public class A4SAggregatingVertexMetricsHandler
             Map<String, String> responseHeaders,
             Executor executor,
             MetricFetcher fetcher,
-            ExecutionGraphCache executionGraphCache,
             long cacheItemSizeBytes,
             long bucketSizeScaling) {
         super(
@@ -107,7 +101,6 @@ public class A4SAggregatingVertexMetricsHandler
                 A4SAggregatedVertexMetricsHeaders.getInstance());
         this.executor = executor;
         this.fetcher = fetcher;
-        this.executionGraphCache = executionGraphCache;
         this.cacheItemSizeBytes = cacheItemSizeBytes;
         this.bucketSizeScaling = bucketSizeScaling;
     }
@@ -128,31 +121,26 @@ public class A4SAggregatingVertexMetricsHandler
                 vertexID,
                 requestStartEpochMs);
 
-        return executionGraphCache.getExecutionGraphInfo(jobId, gateway)
-                .thenCompose(
-                        executionGraphInfo ->
-                                CompletableFuture.supplyAsync(
-                                        () -> {
-                                            try {
-                                                return processRequest(jobId, vertexID, executionGraphInfo);
-                                            } catch (Exception e) {
-                                                log.warn(
-                                                        "{} stage=handler_failed jobId={} vertexId={} elapsedMs={} message={}",
-                                                        TRACE_LOG_PREFIX,
-                                                        jobId,
-                                                        vertexID,
-                                                        (System.currentTimeMillis()
-                                                                - requestStartEpochMs),
-                                                        e.getMessage(),
-                                                        e);
-                                                throw new CompletionException(
-                                                        new RestHandlerException(
-                                                                "Could not retrieve A4S metrics.",
-                                                                HttpResponseStatus
-                                                                        .INTERNAL_SERVER_ERROR));
-                                            }
-                                        },
-                                        this.executor));
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    try {
+                        return processRequest(jobId, vertexID);
+                    } catch (Exception e) {
+                        log.warn(
+                                "{} stage=handler_failed jobId={} vertexId={} elapsedMs={} message={}",
+                                TRACE_LOG_PREFIX,
+                                jobId,
+                                vertexID,
+                                (System.currentTimeMillis() - requestStartEpochMs),
+                                e.getMessage(),
+                                e);
+                        throw new CompletionException(
+                                new RestHandlerException(
+                                        "Could not retrieve A4S metrics.",
+                                        HttpResponseStatus.INTERNAL_SERVER_ERROR));
+                    }
+                },
+                this.executor);
     }
 
     @Nonnull
@@ -177,8 +165,7 @@ public class A4SAggregatingVertexMetricsHandler
         return taskMetricStore.getAllSubtaskMetricStores().values();
     }
 
-    private A4SAggregatedMetricsResponseBody processRequest(
-            JobID jobId, JobVertexID vertexID, ExecutionGraphInfo executionGraphInfo)
+    private A4SAggregatedMetricsResponseBody processRequest(JobID jobId, JobVertexID vertexID)
             throws Exception {
         // === Stage 1: Query and update metrics from TMs ===
         long requestStartEpochMs = System.currentTimeMillis();
@@ -196,22 +183,6 @@ public class A4SAggregatingVertexMetricsHandler
                 jobId,
                 vertexID,
                 System.currentTimeMillis());
-
-        // Get vertex information from ExecutionGraph
-        AccessExecutionGraph executionGraph = executionGraphInfo.getArchivedExecutionGraph();
-        AccessExecutionJobVertex jobVertex = executionGraph.getJobVertex(vertexID);
-
-        if (jobVertex == null) {
-            log.warn(
-                    "{} stage=vertex_not_found jobId={} vertexId={} reason=missing_in_execution_graph",
-                    TRACE_LOG_PREFIX,
-                    jobId,
-                    vertexID);
-            throw new CompletionException(
-                    new RestHandlerException(
-                            String.format("JobVertex %s not found", vertexID),
-                            HttpResponseStatus.NOT_FOUND));
-        }
 
         // === Stage 2: Fetch and deserialize histograms ===
         Collection<MetricStore.SubtaskMetricStore> stores = getStores(store, jobId, vertexID);
