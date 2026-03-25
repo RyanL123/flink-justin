@@ -139,7 +139,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                                 .toMetricString()));
 
         A4SAggregatedMetricsResponseBody response =
-                handler.handleRequest(createRequest(), restfulGateway).get();
+                handler.handleRequest(createRequest(jobId.toString(), jobVertexId.toString()), restfulGateway).get();
 
         MissRateCurve curve = response.getScaledMrc();
         assertThat(curve.getPoints(), hasSize(3));
@@ -152,6 +152,49 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
     }
 
     @Test
+    public void testHandleRequest_taskIdIsolation() throws Exception {
+        metricStore.add(
+                new MetricDump.GaugeDump(
+                        new QueryScopeInfo.TaskQueryScopeInfo(
+                                jobId.toString(), jobVertexId.toString(), 0, 0, ""),
+                        "stack-distance-histogram",
+                        new StackDistanceHistogram(new long[] {4L, 2L, 2L, 0L}, 1)
+                                .toMetricString()));
+
+        JobVertexID jobVertexId2 = new JobVertexID();
+        metricStore.add(
+                new MetricDump.GaugeDump(
+                        new QueryScopeInfo.TaskQueryScopeInfo(
+                                jobId.toString(), jobVertexId2.toString(), 0, 0, ""),
+                        "stack-distance-histogram",
+                        new StackDistanceHistogram(new long[] {1L, 1L, 1L, 0L}, 1)
+                                .toMetricString()));
+
+        A4SAggregatedMetricsResponseBody response1 =
+                handler.handleRequest(createRequest(jobId.toString(), jobVertexId.toString()), restfulGateway).get();
+
+        MissRateCurve curve1 = response1.getScaledMrc();
+        assertThat(curve1.getPoints(), hasSize(3));
+        assertThat(curve1.getPoints().get(0).getCacheSizeBytes(), equalTo(4096L));
+        assertThat(curve1.getPoints().get(0).getMissRate(), closeTo(0.5, 1.0e-9));
+        assertThat(curve1.getPoints().get(1).getCacheSizeBytes(), equalTo(4096L * 2));
+        assertThat(curve1.getPoints().get(1).getMissRate(), closeTo(0.25, 1.0e-9));
+        assertThat(curve1.getPoints().get(2).getCacheSizeBytes(), equalTo(4096L * 3));
+        assertThat(curve1.getPoints().get(2).getMissRate(), closeTo(0.0, 1.0e-9));
+
+        A4SAggregatedMetricsResponseBody response2 =
+                handler.handleRequest(createRequest(jobId.toString(), jobVertexId2.toString()), restfulGateway).get();
+        MissRateCurve curve2 = response2.getScaledMrc();
+        assertThat(curve2.getPoints(), hasSize(3));
+        assertThat(curve2.getPoints().get(0).getCacheSizeBytes(), equalTo(4096L));
+        assertThat(curve2.getPoints().get(0).getMissRate(), closeTo(2.0 / 3.0, 1.0e-9));
+        assertThat(curve2.getPoints().get(1).getCacheSizeBytes(), equalTo(4096L * 2));
+        assertThat(curve2.getPoints().get(1).getMissRate(), closeTo(1.0 / 3.0, 1.0e-9));
+        assertThat(curve2.getPoints().get(2).getCacheSizeBytes(), equalTo(4096L * 3));
+        assertThat(curve2.getPoints().get(2).getMissRate(), closeTo(0, 1.0e-9));
+    }
+
+    @Test
     public void testHandleRequest_incorrectNameIgnored() throws Exception {
         metricStore.add(
                 new MetricDump.GaugeDump(
@@ -161,7 +204,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1)
                                 .toMetricString()));
         A4SAggregatedMetricsResponseBody response =
-                handler.handleRequest(createRequest(), restfulGateway).get();
+                handler.handleRequest(createRequest(jobId.toString(), jobVertexId.toString()), restfulGateway).get();
 
         assertTrue(response.getScaledMrc().getPoints().isEmpty());
     }
@@ -169,7 +212,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
     @Test
     public void testHandleRequestReturnsEmptyCurveWhenTaskMetricStoreMissing() throws Exception {
         A4SAggregatedMetricsResponseBody response =
-                handler.handleRequest(createRequest(), restfulGateway).get();
+                handler.handleRequest(createRequest(jobId.toString(), jobVertexId.toString()), restfulGateway).get();
 
         assertTrue(response.getScaledMrc().getPoints().isEmpty());
     }
@@ -184,7 +227,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         "{\"bucketCounts\": [1, \"bad\", 3]}"));
 
         try {
-            handler.handleRequest(createRequest(), restfulGateway).get();
+            handler.handleRequest(createRequest(jobId.toString(), jobVertexId.toString()), restfulGateway).get();
             fail("Expected an exception.");
         } catch (ExecutionException e) {
             Throwable completionCause = e.getCause();
@@ -195,10 +238,12 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
         }
     }
 
-    private HandlerRequest<EmptyRequestBody> createRequest() throws Exception {
+    private HandlerRequest<EmptyRequestBody> createRequest(
+        String jobId,
+        String jobVertexId) throws Exception {
         Map<String, String> pathParameters = new HashMap<>();
-        pathParameters.put(JobIDPathParameter.KEY, jobId.toString());
-        pathParameters.put(JobVertexIdPathParameter.KEY, jobVertexId.toString());
+        pathParameters.put(JobIDPathParameter.KEY, jobId);
+        pathParameters.put(JobVertexIdPathParameter.KEY, jobVertexId);
 
         return HandlerRequest.resolveParametersAndCreate(
                 EmptyRequestBody.getInstance(),
