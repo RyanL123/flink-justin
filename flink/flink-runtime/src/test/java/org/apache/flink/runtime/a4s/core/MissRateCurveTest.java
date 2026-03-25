@@ -2,7 +2,7 @@ package org.apache.flink.runtime.a4s.core;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MissRateCurveTest {
     @Test
     void testMerge_preservesSumsAndPartitions() {
-        StackDistanceHistogram h1 = new StackDistanceHistogram(List.of(3L, 1L, 1L), 1);
-        StackDistanceHistogram h2 = new StackDistanceHistogram(List.of(2L, 2L, 1L), 2);
+        StackDistanceHistogram h1 = new StackDistanceHistogram(new long[] {3L, 1L, 1L}, 1);
+        StackDistanceHistogram h2 = new StackDistanceHistogram(new long[] {2L, 2L, 1L}, 2);
 
         StackDistanceHistogram merged = StackDistanceHistogram.merge(List.of(h1, h2));
 
@@ -26,8 +26,8 @@ class MissRateCurveTest {
 
     @Test
     void testMerge_twoHistograms_differentNumBuckets() {
-        StackDistanceHistogram h1 = new StackDistanceHistogram(List.of(3L, 1L, 1L), 1);
-        StackDistanceHistogram h2 = new StackDistanceHistogram(List.of(2L, 2L), 1);
+        StackDistanceHistogram h1 = new StackDistanceHistogram(new long[] {3L, 1L, 1L}, 1);
+        StackDistanceHistogram h2 = new StackDistanceHistogram(new long[] {2L, 2L}, 1);
 
         StackDistanceHistogram merged = StackDistanceHistogram.merge(List.of(h1, h2));
 
@@ -40,8 +40,8 @@ class MissRateCurveTest {
 
     @Test
     void testMerge_twoHistograms_oneEmpty() {
-        StackDistanceHistogram h1 = new StackDistanceHistogram(List.of(3L, 1L, 1L), 1);
-        StackDistanceHistogram h2 = new StackDistanceHistogram(new ArrayList<>(), 1);
+        StackDistanceHistogram h1 = new StackDistanceHistogram(new long[] {3L, 1L, 1L}, 1);
+        StackDistanceHistogram h2 = new StackDistanceHistogram(new long[0], 1);
         StackDistanceHistogram merged = StackDistanceHistogram.merge(List.of(h1, h2));
 
         assertEquals(2, merged.getNumPartitions());
@@ -53,11 +53,7 @@ class MissRateCurveTest {
 
     @Test
     void testScaledMRC_horizontalScalingLogic() {
-        List<Long> buckets = new ArrayList<>();
-        buckets.add(5L);
-        buckets.add(3L);
-        buckets.add(2L);
-        buckets.add(0L);
+        long[] buckets = new long[] {5L, 3L, 2L, 0L};
         int partitions = 2;
         StackDistanceHistogram histogram = new StackDistanceHistogram(buckets, partitions);
 
@@ -80,15 +76,15 @@ class MissRateCurveTest {
 
     @Test
     void testMRC_emptyHistogram() {
-        StackDistanceHistogram empty = new StackDistanceHistogram(new ArrayList<>(), 1);
+        StackDistanceHistogram empty = new StackDistanceHistogram(new long[0], 1);
         assertTrue(MissRateCurve.fromStackDistanceHistogram(empty, 4096L, 1L).getPoints().isEmpty());
     }
 
     @Test
     void testFromSerializedValue_parsesRocksDBPayload() {
-        String payload = "[5,7,11]";
+        String payload = "{\"bucketCounts\":[5,7,11],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
 
-        StackDistanceHistogram histogram = StackDistanceHistogram.fromSerializedValue(payload);
+        StackDistanceHistogram histogram = StackDistanceHistogram.fromMetricString(payload);
 
         assertEquals(3, histogram.getNumBuckets());
         assertEquals(1, histogram.getNumPartitions());
@@ -100,24 +96,35 @@ class MissRateCurveTest {
 
     @Test
     void testFromSerializedValue_keepsSparseMapForZeroCountBuckets() {
-        String payload = "[0,10,0]";
+        String payload = "{\"bucketCounts\":[0,10,0],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
 
-        StackDistanceHistogram histogram = StackDistanceHistogram.fromSerializedValue(payload);
-        List<Long> buckets = histogram.getBucketCounts();
+        StackDistanceHistogram histogram = StackDistanceHistogram.fromMetricString(payload);
+        long[] buckets = histogram.getBucketCounts();
 
         assertEquals(3, histogram.getNumBuckets());
-        assertEquals(3, buckets.size());
-        assertEquals(10L, buckets.get(1));
-        assertEquals(0L, buckets.get(0));
-        assertEquals(0L, buckets.get(2));
+        assertEquals(3, buckets.length);
+        assertEquals(10L, buckets[1]);
+        assertEquals(0L, buckets[0]);
+        assertEquals(0L, buckets[2]);
     }
 
     @Test
     void testFromSerializedValue_throwsWhenCountsLengthIsInvalid() {
-        String payload = "[5,-1,11]";
+        String payload = "{\"bucketCounts\":[5,-1,11],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> StackDistanceHistogram.fromSerializedValue(payload));
+                () -> StackDistanceHistogram.fromMetricString(payload));
+    }
+
+    @Test
+    void testMetricRoundTrip_serializesEntireHistogramObject() {
+        StackDistanceHistogram histogram = new StackDistanceHistogram(new long[] {1L, 2L, 3L}, 4);
+
+        StackDistanceHistogram parsed =
+                StackDistanceHistogram.fromMetricString(histogram.toMetricString());
+
+        assertTrue(Arrays.equals(new long[] {1L, 2L, 3L}, parsed.getBucketCounts()));
+        assertEquals(4, parsed.getNumPartitions());
     }
 }

@@ -90,7 +90,7 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
         return CompletableFuture.completedFuture(null);
     }
 
-    public void addMetric(String metricName, Metric metric, AbstractMetricGroup group) {
+    public void addMetric(String metricName, Metric metric, AbstractMetricGroup<?> group) {
         runAsync(
                 () -> {
                     QueryScopeInfo info = group.getQueryServiceMetricInfo(FILTER);
@@ -163,8 +163,14 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
                             StackDistanceHistogramProvider provider = entry.getKey();
                             QueryScopeInfo info = entry.getValue().f0;
                             String name = entry.getValue().f1;
-                            long[] counts = provider.fetchBucketCounts();
-                            results.add(new StackDistanceHistogram(info, name, counts));
+                            StackDistanceHistogram providerHistogram =
+                                    provider.fetchStackDistanceHistograms();
+                            results.add(
+                                    new StackDistanceHistogram(
+                                            providerHistogram.getBucketCounts(),
+                                            providerHistogram.getNumPartitions(),
+                                            info,
+                                            name));
                         } catch (Exception e) {
                             LOG.warn(
                                     "Failed to fetch stack distance histogram for '{}'.",

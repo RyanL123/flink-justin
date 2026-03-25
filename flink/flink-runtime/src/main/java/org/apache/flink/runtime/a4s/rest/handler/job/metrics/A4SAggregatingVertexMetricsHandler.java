@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -234,7 +235,7 @@ public class A4SAggregatingVertexMetricsHandler
                 continue;
             }
             StackDistanceHistogram histogram =
-                    StackDistanceHistogram.fromSerializedValue(histogramRaw);
+                    StackDistanceHistogram.fromMetricString(histogramRaw);
             subtaskHistograms.add(histogram);
         }
         log.info(
@@ -298,7 +299,7 @@ public class A4SAggregatingVertexMetricsHandler
                 vertexID,
                 mergedHistogram.getNumBuckets(),
                 mergedHistogram.getTotalFrequency(),
-                mergedHistogram.getBucketCounts());
+                Arrays.toString(mergedHistogram.getBucketCounts()));
         MissRateCurve mrc =
                 MissRateCurve.fromStackDistanceHistogram(
                         mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);

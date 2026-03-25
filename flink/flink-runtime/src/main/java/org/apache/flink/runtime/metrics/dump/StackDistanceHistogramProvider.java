@@ -19,9 +19,10 @@
 package org.apache.flink.runtime.metrics.dump;
 
 import org.apache.flink.metrics.Metric;
+import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 
 /**
- * A metric provider for stack distance histograms. Implementations supply on-demand bucket counts
+ * A metric provider for stack distance histograms. Implementations supply on-demand histograms
  * fetched from a backing store (e.g. RocksDB).
  *
  * <p>Unlike regular Flink metrics that are periodically pushed, stack distance histograms are
@@ -30,9 +31,9 @@ import org.apache.flink.metrics.Metric;
 public interface StackDistanceHistogramProvider extends Metric {
 
     /**
-     * Fetches the current bucket counts on demand from the backing store.
+     * Fetches the current stack distance histogram on demand from the backing store.
      *
-     * @return the current bucket counts
+     * @return the current stack distance histogram
      */
-    long[] fetchBucketCounts();
+    StackDistanceHistogram fetchStackDistanceHistograms();
 }

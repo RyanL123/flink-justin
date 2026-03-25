@@ -1,105 +1,93 @@
 package org.apache.flink.runtime.a4s.core;
 
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
+import org.apache.flink.util.jackson.JacksonMapperFactory;
+
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 /** Stack distance histogram with fixed-order bucket counts. */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StackDistanceHistogram implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final ObjectMapper OBJECT_MAPPER = JacksonMapperFactory.createObjectMapper();
 
-    private final List<Long> bucketCounts;
+    private final long[] bucketCounts;
     private final int numPartitions;
     private final QueryScopeInfo scopeInfo;
     private final String name;
 
-    public StackDistanceHistogram(List<Long> bucketCounts, int numPartitions) {
+    public StackDistanceHistogram(long[] bucketCounts, int numPartitions) {
         this(bucketCounts, numPartitions, null, null);
     }
 
     public StackDistanceHistogram(QueryScopeInfo scopeInfo, String name, long[] bucketCounts) {
-        this(toList(bucketCounts), 1, scopeInfo, name);
+        this(bucketCounts, 1, scopeInfo, name);
     }
 
-    private StackDistanceHistogram(
-            List<Long> bucketCounts, int numPartitions, QueryScopeInfo scopeInfo, String name) {
+    @JsonCreator
+    public StackDistanceHistogram(
+            @JsonProperty("bucketCounts") long[] bucketCounts,
+            @JsonProperty("numPartitions") int numPartitions,
+            @JsonProperty("scopeInfo") QueryScopeInfo scopeInfo,
+            @JsonProperty("name") String name) {
         validateCounts(bucketCounts);
-        this.bucketCounts = List.copyOf(bucketCounts);
+        this.bucketCounts = Arrays.copyOf(bucketCounts, bucketCounts.length);
         this.numPartitions = numPartitions;
         this.scopeInfo = scopeInfo;
         this.name = name;
     }
 
-    public static StackDistanceHistogram fromSerializedValue(String serializedHistogram) {
+    public String toMetricString() {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to serialize stack distance histogram", e);
+        }
+    }
+
+    public static StackDistanceHistogram fromMetricString(String serializedHistogram) {
         if (serializedHistogram == null || serializedHistogram.trim().isEmpty()) {
             throw new IllegalArgumentException("Serialized histogram must not be null or empty");
         }
 
-        long[] counts = parseLongArray(serializedHistogram);
-
-        List<Long> parsedCounts = new ArrayList<>(counts.length);
-        for (int i = 0; i < counts.length; i++) {
-            if (counts[i] < 0L) {
-                throw new IllegalArgumentException(
-                        "Invalid histogram payload: counts must be non-negative");
+        try {
+            StackDistanceHistogram histogram =
+                    OBJECT_MAPPER.readValue(serializedHistogram, StackDistanceHistogram.class);
+            if (histogram == null) {
+                throw new IllegalArgumentException("Invalid histogram payload: empty object");
             }
-            parsedCounts.add(counts[i]);
-        }
-        return new StackDistanceHistogram(parsedCounts, 1);
-    }
-
-    private static long[] parseLongArray(String serializedArray) {
-        String trimmed = serializedArray.trim();
-        if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+            return histogram;
+        } catch (Exception e) {
             throw new IllegalArgumentException(
-                    "Invalid histogram payload: expected JSON array of counts");
+                    "Invalid histogram payload: expected JSON StackDistanceHistogram object", e);
         }
-
-        String body = trimmed.substring(1, trimmed.length() - 1).trim();
-        if (body.isEmpty()) {
-            return new long[0];
-        }
-
-        String[] tokens = body.split(",");
-        long[] values = new long[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-            String token = tokens[i].trim();
-            try {
-                values[i] = Long.parseLong(token);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException(
-                        "Invalid histogram payload: non-numeric value '" + token + "'",
-                        e);
-            }
-        }
-        return values;
     }
 
-    private static void validateCounts(List<Long> counts) {
+    private static void validateCounts(long[] counts) {
         if (counts == null) {
             throw new IllegalArgumentException("Bucket counts must not be null");
         }
-        for (Long count : counts) {
-            if (count == null || count < 0L) {
+        for (long count : counts) {
+            if (count < 0L) {
                 throw new IllegalArgumentException(
-                        "Bucket counts must be non-null and non-negative");
+                        "Bucket counts must be non-negative");
             }
         }
     }
 
-    public List<Long> getBucketCounts() {
-        return bucketCounts;
+    public long[] getBucketCounts() {
+        return Arrays.copyOf(bucketCounts, bucketCounts.length);
     }
 
     public long[] toBucketCountsArray() {
-        long[] values = new long[bucketCounts.size()];
-        for (int i = 0; i < bucketCounts.size(); i++) {
-            values[i] = bucketCounts.get(i);
-        }
-        return values;
+        return getBucketCounts();
     }
 
     public QueryScopeInfo getScopeInfo() {
@@ -111,7 +99,7 @@ public class StackDistanceHistogram implements Serializable {
     }
 
     public int getNumBuckets() {
-        return bucketCounts.size();
+        return bucketCounts.length;
     }
 
     public int getNumPartitions() {
@@ -132,35 +120,33 @@ public class StackDistanceHistogram implements Serializable {
             numBuckets = Math.max(numBuckets, histogram.getNumBuckets());
         }
 
-        List<Long> mergedCounts = new ArrayList<>(Collections.nCopies(numBuckets - 1, 0L));
+        long[] mergedCounts = new long[numBuckets];
 
         int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
-        long completeMisses = 0;
         for (StackDistanceHistogram histogram : histograms) {
             for (int i = 0; i < histogram.getNumBuckets() - 1; i++) {
-                mergedCounts.set(i, mergedCounts.get(i) + histogram.getFrequency(i));
+                mergedCounts[i] += histogram.getFrequency(i);
             }
             // last bucket always stores complete misses (infinite stack distance)
-            completeMisses += histogram.getFrequency(histogram.getNumBuckets() - 1);
+            mergedCounts[numBuckets - 1] += histogram.getFrequency(histogram.getNumBuckets() - 1);
         }
-        mergedCounts.add(completeMisses);
 
         return new StackDistanceHistogram(mergedCounts, totalPartitions);
     }
 
     public long getTotalFrequency() {
         long total = 0L;
-        for (long count : bucketCounts) {
+        for (long count : this.bucketCounts) {
             total += count;
         }
         return total;
     }
 
     public long getFrequency(int bucketIndex) {
-        if (bucketIndex < 0 || bucketIndex >= bucketCounts.size()) {
+        if (bucketIndex < 0 || bucketIndex >= bucketCounts.length) {
             return 0L;
         }
-        return bucketCounts.get(bucketIndex);
+        return bucketCounts[bucketIndex];
     }
 
     @Override
@@ -168,16 +154,5 @@ public class StackDistanceHistogram implements Serializable {
         return String.format(
                 "StackDistanceHistogram{numBuckets=%d, numPartitions=%d, totalFrequency=%d}",
                 getNumBuckets(), numPartitions, getTotalFrequency());
-    }
-
-    private static List<Long> toList(long[] bucketCounts) {
-        if (bucketCounts == null) {
-            throw new IllegalArgumentException("Bucket counts must not be null");
-        }
-        List<Long> values = new ArrayList<>(bucketCounts.length);
-        for (long bucketCount : bucketCounts) {
-            values.add(bucketCount);
-        }
-        return values;
     }
 }

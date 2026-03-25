@@ -19,6 +19,7 @@
 package org.apache.flink.runtime.rest.handler.legacy.metrics;
 
 import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails.CurrentAttempts;
 import org.apache.flink.runtime.metrics.MetricNames;
@@ -458,7 +459,7 @@ public class MetricStore {
             case METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM:
                 MetricDump.StackDistanceHistogramDump sdHistogram =
                         (MetricDump.StackDistanceHistogramDump) metric;
-                target.put(name, Arrays.toString(sdHistogram.bucketCounts));
+                target.put(name, new StackDistanceHistogram(sdHistogram.bucketCounts, 1).toMetricString());
                 break;
         }
     }

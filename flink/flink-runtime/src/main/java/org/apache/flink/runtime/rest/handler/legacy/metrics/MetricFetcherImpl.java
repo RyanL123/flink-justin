@@ -44,6 +44,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -284,7 +285,7 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
                                                 extractVertexId(histogram.getScopeInfo()),
                                                 histogram.getName(),
                                                 histogram.getNumBuckets(),
-                                                histogram.getBucketCounts());
+                                                Arrays.toString(histogram.getBucketCounts()));
                                         dumps.add(
                                                 new MetricDump.StackDistanceHistogramDump(
                                                         histogram.getScopeInfo(),
