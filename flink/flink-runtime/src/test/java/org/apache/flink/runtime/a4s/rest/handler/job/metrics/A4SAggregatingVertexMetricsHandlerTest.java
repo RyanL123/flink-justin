@@ -121,6 +121,21 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
         }
     }
 
+    private HandlerRequest<EmptyRequestBody> createRequest(
+        String jobId,
+        String jobVertexId) throws Exception {
+        Map<String, String> pathParameters = new HashMap<>();
+        pathParameters.put(JobIDPathParameter.KEY, jobId);
+        pathParameters.put(JobVertexIdPathParameter.KEY, jobVertexId);
+
+        return HandlerRequest.resolveParametersAndCreate(
+                EmptyRequestBody.getInstance(),
+                handler.getMessageHeaders().getUnresolvedMessageParameters(),
+                pathParameters,
+                Collections.emptyMap(),
+                Collections.emptyList());
+    }
+
     @Test
     public void testHandleRequestComputesScaledMrcFromSubtaskHistograms() throws Exception {
         metricStore.add(
@@ -236,20 +251,5 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
             assertThat(rhe.getHttpResponseStatus(), equalTo(HttpResponseStatus.INTERNAL_SERVER_ERROR));
             assertThat(rhe.getMessage(), equalTo("Could not retrieve A4S metrics."));
         }
-    }
-
-    private HandlerRequest<EmptyRequestBody> createRequest(
-        String jobId,
-        String jobVertexId) throws Exception {
-        Map<String, String> pathParameters = new HashMap<>();
-        pathParameters.put(JobIDPathParameter.KEY, jobId);
-        pathParameters.put(JobVertexIdPathParameter.KEY, jobVertexId);
-
-        return HandlerRequest.resolveParametersAndCreate(
-                EmptyRequestBody.getInstance(),
-                handler.getMessageHeaders().getUnresolvedMessageParameters(),
-                pathParameters,
-                Collections.emptyMap(),
-                Collections.emptyList());
     }
 }
