@@ -1,6 +1,4 @@
 package org.apache.flink.runtime.a4s.core;
-
-import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
 import org.apache.flink.util.jackson.JacksonMapperFactory;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,28 +18,14 @@ public class StackDistanceHistogram implements Serializable {
 
     private final long[] bucketCounts;
     private final int numPartitions;
-    private final QueryScopeInfo scopeInfo;
-    private final String name;
-
-    public StackDistanceHistogram(long[] bucketCounts, int numPartitions) {
-        this(bucketCounts, numPartitions, null, null);
-    }
-
-    public StackDistanceHistogram(QueryScopeInfo scopeInfo, String name, long[] bucketCounts) {
-        this(bucketCounts, 1, scopeInfo, name);
-    }
 
     @JsonCreator
     public StackDistanceHistogram(
             @JsonProperty("bucketCounts") long[] bucketCounts,
-            @JsonProperty("numPartitions") int numPartitions,
-            @JsonProperty("scopeInfo") QueryScopeInfo scopeInfo,
-            @JsonProperty("name") String name) {
+            @JsonProperty("numPartitions") int numPartitions) {
         validateCounts(bucketCounts);
         this.bucketCounts = Arrays.copyOf(bucketCounts, bucketCounts.length);
         this.numPartitions = numPartitions;
-        this.scopeInfo = scopeInfo;
-        this.name = name;
     }
 
     public String toMetricString() {
@@ -88,14 +72,6 @@ public class StackDistanceHistogram implements Serializable {
 
     public long[] toBucketCountsArray() {
         return getBucketCounts();
-    }
-
-    public QueryScopeInfo getScopeInfo() {
-        return scopeInfo;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public int getNumBuckets() {
