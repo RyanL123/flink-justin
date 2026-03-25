@@ -1,4 +1,4 @@
-package org.apache.flink.runtime.a4s.stackhistogram;
+package org.apache.flink.runtime.a4s.core;
 
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
 
@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 /** Stack distance histogram with fixed-order bucket counts. */
-public class StackHistogram implements Serializable {
+public class StackDistanceHistogram implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final List<Long> bucketCounts;
@@ -16,15 +16,15 @@ public class StackHistogram implements Serializable {
     private final QueryScopeInfo scopeInfo;
     private final String name;
 
-    public StackHistogram(List<Long> bucketCounts, int numPartitions) {
+    public StackDistanceHistogram(List<Long> bucketCounts, int numPartitions) {
         this(bucketCounts, numPartitions, null, null);
     }
 
-    public StackHistogram(QueryScopeInfo scopeInfo, String name, long[] bucketCounts) {
+    public StackDistanceHistogram(QueryScopeInfo scopeInfo, String name, long[] bucketCounts) {
         this(toList(bucketCounts), 1, scopeInfo, name);
     }
 
-    private StackHistogram(
+    private StackDistanceHistogram(
             List<Long> bucketCounts, int numPartitions, QueryScopeInfo scopeInfo, String name) {
         validateCounts(bucketCounts);
         this.bucketCounts = List.copyOf(bucketCounts);
@@ -33,7 +33,7 @@ public class StackHistogram implements Serializable {
         this.name = name;
     }
 
-    public static StackHistogram fromSerializedValue(String serializedHistogram) {
+    public static StackDistanceHistogram fromSerializedValue(String serializedHistogram) {
         if (serializedHistogram == null || serializedHistogram.trim().isEmpty()) {
             throw new IllegalArgumentException("Serialized histogram must not be null or empty");
         }
@@ -48,7 +48,7 @@ public class StackHistogram implements Serializable {
             }
             parsedCounts.add(counts[i]);
         }
-        return new StackHistogram(parsedCounts, 1);
+        return new StackDistanceHistogram(parsedCounts, 1);
     }
 
     private static long[] parseLongArray(String serializedArray) {
@@ -118,7 +118,7 @@ public class StackHistogram implements Serializable {
         return numPartitions;
     }
 
-    public static StackHistogram merge(List<StackHistogram> histograms) {
+    public static StackDistanceHistogram merge(List<StackDistanceHistogram> histograms) {
         if (histograms == null || histograms.isEmpty()) {
             throw new IllegalArgumentException("Cannot merge empty list of histograms");
         }
@@ -128,7 +128,7 @@ public class StackHistogram implements Serializable {
         }
 
         int numBuckets = 0;
-        for (StackHistogram histogram : histograms) {
+        for (StackDistanceHistogram histogram : histograms) {
             numBuckets = Math.max(numBuckets, histogram.getNumBuckets());
         }
 
@@ -136,7 +136,7 @@ public class StackHistogram implements Serializable {
 
         int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
         long completeMisses = 0;
-        for (StackHistogram histogram : histograms) {
+        for (StackDistanceHistogram histogram : histograms) {
             for (int i = 0; i < histogram.getNumBuckets() - 1; i++) {
                 mergedCounts.set(i, mergedCounts.get(i) + histogram.getFrequency(i));
             }
@@ -145,7 +145,7 @@ public class StackHistogram implements Serializable {
         }
         mergedCounts.add(completeMisses);
 
-        return new StackHistogram(mergedCounts, totalPartitions);
+        return new StackDistanceHistogram(mergedCounts, totalPartitions);
     }
 
     public long getTotalFrequency() {
@@ -166,7 +166,7 @@ public class StackHistogram implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "StackHistogram{numBuckets=%d, numPartitions=%d, totalFrequency=%d}",
+                "StackDistanceHistogram{numBuckets=%d, numPartitions=%d, totalFrequency=%d}",
                 getNumBuckets(), numPartitions, getTotalFrequency());
     }
 

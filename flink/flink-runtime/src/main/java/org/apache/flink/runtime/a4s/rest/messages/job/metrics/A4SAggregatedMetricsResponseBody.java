@@ -18,7 +18,7 @@
 
 package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
 
-import org.apache.flink.runtime.a4s.stackhistogram.GenerateMRC;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
@@ -33,15 +33,15 @@ public class A4SAggregatedMetricsResponseBody implements ResponseBody {
     public static final String FIELD_NAME_SCALED_MRC = "scaledMrc";
 
     @JsonProperty(FIELD_NAME_SCALED_MRC)
-    private final List<GenerateMRC.MRCPoint> scaledMrc;
+    private final List<MissRateCurve.Point> scaledMrc;
 
     @JsonCreator
     public A4SAggregatedMetricsResponseBody(
-            @JsonProperty(FIELD_NAME_SCALED_MRC) List<GenerateMRC.MRCPoint> scaledMrc) {
+            @JsonProperty(FIELD_NAME_SCALED_MRC) List<MissRateCurve.Point> scaledMrc) {
         this.scaledMrc = scaledMrc == null ? Collections.emptyList() : scaledMrc;
     }
 
-    public List<GenerateMRC.MRCPoint> getScaledMrc() {
+    public List<MissRateCurve.Point> getScaledMrc() {
         return scaledMrc;
     }
 }

@@ -26,11 +26,11 @@ import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.Histogram;
 import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.Metric;
+import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.rpc.RpcEndpoint;
 import org.apache.flink.runtime.rpc.RpcService;
-import org.apache.flink.runtime.a4s.stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceGateway;
 import org.apache.flink.util.TimeUtils;
 
@@ -150,13 +150,13 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
     }
 
     @Override
-    public CompletableFuture<List<StackHistogram>> queryStackDistanceHistograms(Time timeout) {
+    public CompletableFuture<List<StackDistanceHistogram>> queryStackDistanceHistograms(Time timeout) {
         return callAsync(
                 () -> {
                     LOG.debug(
                             "Querying {} registered stack distance histogram providers.",
                             stackDistanceHistograms.size());
-                    List<StackHistogram> results = new ArrayList<>();
+                    List<StackDistanceHistogram> results = new ArrayList<>();
                     for (Map.Entry<StackDistanceHistogramProvider, Tuple2<QueryScopeInfo, String>>
                             entry : stackDistanceHistograms.entrySet()) {
                         try {
@@ -164,7 +164,7 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
                             QueryScopeInfo info = entry.getValue().f0;
                             String name = entry.getValue().f1;
                             long[] counts = provider.fetchBucketCounts();
-                            results.add(new StackHistogram(info, name, counts));
+                            results.add(new StackDistanceHistogram(info, name, counts));
                         } catch (Exception e) {
                             LOG.warn(
                                     "Failed to fetch stack distance histogram for '{}'.",

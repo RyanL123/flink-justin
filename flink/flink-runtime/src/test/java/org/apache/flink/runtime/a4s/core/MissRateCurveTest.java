@@ -1,4 +1,4 @@
-package org.apache.flink.runtime.a4s.stackhistogram;
+package org.apache.flink.runtime.a4s.core;
 
 import org.junit.jupiter.api.Test;
 
@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class GenerateMRCTest {
+class MissRateCurveTest {
     @Test
     void testMerge_preservesSumsAndPartitions() {
-        StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
-        StackHistogram h2 = new StackHistogram(List.of(2L, 2L, 1L), 2);
+        StackDistanceHistogram h1 = new StackDistanceHistogram(List.of(3L, 1L, 1L), 1);
+        StackDistanceHistogram h2 = new StackDistanceHistogram(List.of(2L, 2L, 1L), 2);
 
-        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));
+        StackDistanceHistogram merged = StackDistanceHistogram.merge(List.of(h1, h2));
 
         assertEquals(3, merged.getNumPartitions());
         assertEquals(10L, merged.getTotalFrequency());
@@ -26,10 +26,10 @@ class GenerateMRCTest {
 
     @Test
     void testMerge_twoHistograms_differentNumBuckets() {
-        StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
-        StackHistogram h2 = new StackHistogram(List.of(2L, 2L), 1);
+        StackDistanceHistogram h1 = new StackDistanceHistogram(List.of(3L, 1L, 1L), 1);
+        StackDistanceHistogram h2 = new StackDistanceHistogram(List.of(2L, 2L), 1);
 
-        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));
+        StackDistanceHistogram merged = StackDistanceHistogram.merge(List.of(h1, h2));
 
         assertEquals(2, merged.getNumPartitions());
         assertEquals(9L, merged.getTotalFrequency());
@@ -40,9 +40,9 @@ class GenerateMRCTest {
 
     @Test
     void testMerge_twoHistograms_oneEmpty() {
-        StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
-        StackHistogram h2 = new StackHistogram(new ArrayList<>(), 1);
-        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));
+        StackDistanceHistogram h1 = new StackDistanceHistogram(List.of(3L, 1L, 1L), 1);
+        StackDistanceHistogram h2 = new StackDistanceHistogram(new ArrayList<>(), 1);
+        StackDistanceHistogram merged = StackDistanceHistogram.merge(List.of(h1, h2));
 
         assertEquals(2, merged.getNumPartitions());
         assertEquals(5L, merged.getTotalFrequency());
@@ -59,24 +59,24 @@ class GenerateMRCTest {
         buckets.add(2L);
         buckets.add(0L);
         int partitions = 2;
-        StackHistogram histogram = new StackHistogram(buckets, partitions);
+        StackDistanceHistogram histogram = new StackDistanceHistogram(buckets, partitions);
 
-        List<GenerateMRC.MRCPoint> scaled = GenerateMRC.computeScaledMRC(histogram, 4096L, 1L);
-        List<GenerateMRC.MRCPoint> unscaled =
-                GenerateMRC.computeUnscaledMRC(histogram, 4096L, 1L);
+        List<MissRateCurve.Point> scaled = MissRateCurve.computeScaledMRC(histogram, 4096L, 1L);
+        List<MissRateCurve.Point> unscaled =
+                MissRateCurve.computeUnscaledMRC(histogram, 4096L, 1L);
 
         assertEquals(unscaled.size(), scaled.size());
 
-        List<GenerateMRC.MRCPoint> expectedUnscaled =
+        List<MissRateCurve.Point> expectedUnscaled =
                 List.of(
-                        new GenerateMRC.MRCPoint(4096L, 0.5),
-                        new GenerateMRC.MRCPoint(8192L, 0.2),
-                        new GenerateMRC.MRCPoint(12288L, 0.0));
-        List<GenerateMRC.MRCPoint> expectedScaled =
+                        new MissRateCurve.Point(4096L, 0.5),
+                        new MissRateCurve.Point(8192L, 0.2),
+                        new MissRateCurve.Point(12288L, 0.0));
+        List<MissRateCurve.Point> expectedScaled =
                 List.of(
-                        new GenerateMRC.MRCPoint(8192L, 0.5),
-                        new GenerateMRC.MRCPoint(16384L, 0.2),
-                        new GenerateMRC.MRCPoint(24576L, 0.0));
+                        new MissRateCurve.Point(8192L, 0.5),
+                        new MissRateCurve.Point(16384L, 0.2),
+                        new MissRateCurve.Point(24576L, 0.0));
 
         for (int i = 0; i < expectedUnscaled.size(); i++) {
             assertEquals(
@@ -91,16 +91,16 @@ class GenerateMRCTest {
 
     @Test
     void testMRC_emptyHistogram() {
-        StackHistogram empty = new StackHistogram(new ArrayList<>(), 1);
-        assertTrue(GenerateMRC.computeUnscaledMRC(empty, 4096L, 1L).isEmpty());
-        assertTrue(GenerateMRC.computeScaledMRC(empty, 4096L, 1L).isEmpty());
+        StackDistanceHistogram empty = new StackDistanceHistogram(new ArrayList<>(), 1);
+        assertTrue(MissRateCurve.computeUnscaledMRC(empty, 4096L, 1L).isEmpty());
+        assertTrue(MissRateCurve.computeScaledMRC(empty, 4096L, 1L).isEmpty());
     }
 
     @Test
     void testFromSerializedValue_parsesRocksDBPayload() {
         String payload = "[5,7,11]";
 
-        StackHistogram histogram = StackHistogram.fromSerializedValue(payload);
+        StackDistanceHistogram histogram = StackDistanceHistogram.fromSerializedValue(payload);
 
         assertEquals(3, histogram.getNumBuckets());
         assertEquals(1, histogram.getNumPartitions());
@@ -114,7 +114,7 @@ class GenerateMRCTest {
     void testFromSerializedValue_keepsSparseMapForZeroCountBuckets() {
         String payload = "[0,10,0]";
 
-        StackHistogram histogram = StackHistogram.fromSerializedValue(payload);
+        StackDistanceHistogram histogram = StackDistanceHistogram.fromSerializedValue(payload);
         List<Long> buckets = histogram.getBucketCounts();
 
         assertEquals(3, histogram.getNumBuckets());
@@ -129,7 +129,7 @@ class GenerateMRCTest {
         String payload = "[5,-1,11]";
 
         assertThrows(
-                IllegalArgumentException.class, () -> StackHistogram.fromSerializedValue(payload));
+                IllegalArgumentException.class,
+                () -> StackDistanceHistogram.fromSerializedValue(payload));
     }
 }
-

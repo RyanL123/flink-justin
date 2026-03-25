@@ -1,6 +1,6 @@
-package org.apache.flink.runtime.a4s.stackhistogram;
+package org.apache.flink.runtime.a4s.core;
 /*
- * GenerateMRC - Miss Rate Curve computation from Stack Histograms
+ * MissRateCurve - Miss Rate Curve computation from Stack Histograms
  *
  * Based on Quickmrc design (Section 3.4.2) from the A4S paper.
  * Computes unscaled and scaled miss rate curves from merged stack distance histograms.
@@ -13,7 +13,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCre
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Computes Miss Rate Curves (MRC) from merged StackHistogram objects.
+ * Computes Miss Rate Curves (MRC) from merged StackDistanceHistogram objects.
  *
  * <p>The MRC shows the miss rate as a function of cache size. Given a merged stack distance
  * histogram, we can compute:
@@ -29,11 +29,11 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonPro
  *   <li>Or equivalently: miss rate = 1 - (cumulative frequency for stack distances <= S) / total accesses</li>
  * </ul>
  */
-public class GenerateMRC {
+public class MissRateCurve {
     private static final long CACHE_ITEM_SIZE_BYTES = 4096L;
 
     /** Represents a point on the Miss Rate Curve: cache size -> miss rate. */
-    public static class MRCPoint {
+    public static class Point {
         public static final String FIELD_NAME_CACHE_SIZE_BYTES = "cacheSizeBytes";
         public static final String FIELD_NAME_MISS_RATE = "missRate";
 
@@ -44,7 +44,7 @@ public class GenerateMRC {
         private final double missRate;
 
         @JsonCreator
-        public MRCPoint(
+        public Point(
                 @JsonProperty(FIELD_NAME_CACHE_SIZE_BYTES) long cacheSizeBytes,
                 @JsonProperty(FIELD_NAME_MISS_RATE) double missRate) {
             this.cacheSizeBytes = cacheSizeBytes;
@@ -61,8 +61,7 @@ public class GenerateMRC {
 
         @Override
         public String toString() {
-            return String.format(
-                    "MRCPoint{cacheSizeBytes=%d, missRate=%.6f}", cacheSizeBytes, missRate);
+            return String.format("Point{cacheSizeBytes=%d, missRate=%.6f}", cacheSizeBytes, missRate);
         }
     }
 
@@ -79,13 +78,13 @@ public class GenerateMRC {
      *   <li>Miss rate at size S = 1 - (cumulative frequency for positions <= S) / total frequency</li>
      * </ol>
      *
-     * @param mergedHistogram The merged stack histogram (result of StackHistogram.merge())
+     * @param mergedHistogram The merged stack histogram (result of StackDistanceHistogram.merge())
      * @param cacheItemSizeBytes cache item size in bytes
      * @param bucketSizeScaling bucket size scaling
-     * @return List of MRCPoint objects representing cache size -> miss rate pairs
+     * @return List of Point objects representing cache size -> miss rate pairs
      */
-    public static List<MRCPoint> computeUnscaledMRC(
-            StackHistogram mergedHistogram, long cacheItemSizeBytes, long bucketSizeScaling) {
+    public static List<Point> computeUnscaledMRC(
+            StackDistanceHistogram mergedHistogram, long cacheItemSizeBytes, long bucketSizeScaling) {
         if (mergedHistogram == null) {
             throw new IllegalArgumentException("Merged histogram cannot be null");
         }
@@ -102,14 +101,14 @@ public class GenerateMRC {
         // last bucket is used for tracking complete misses
         int numBuckets = mergedHistogram.getNumBuckets() - 1;
 
-        List<MRCPoint> mrc = new ArrayList<>();
+        List<Point> mrc = new ArrayList<>();
         long cumulativeFreqAtSize = 0L;
         for (int i = 0; i < numBuckets; i++) {
             cumulativeFreqAtSize += mergedHistogram.getFrequency(i);
             long currentCacheSize = (i + 1L) * bucketSizeScaling;
             double missRate = 1.0 - ((double) cumulativeFreqAtSize / totalFrequency);
             missRate = Math.max(0.0, Math.min(1.0, missRate));
-            mrc.add(new MRCPoint(currentCacheSize * cacheItemSizeBytes, missRate));
+            mrc.add(new Point(currentCacheSize * cacheItemSizeBytes, missRate));
         }
 
         return mrc;
@@ -128,21 +127,20 @@ public class GenerateMRC {
      * @param mergedHistogram The merged stack histogram
      * @param cacheItemSizeBytes cache item size in bytes
      * @param bucketSizeScaling bucket size scaling
-     * @return List of MRCPoint objects: (scaled cache size in bytes, miss rate) pairs
+     * @return List of Point objects: (scaled cache size in bytes, miss rate) pairs
      */
-    public static List<MRCPoint> computeScaledMRC(
-            StackHistogram mergedHistogram, long cacheItemSizeBytes, long bucketSizeScaling) {
-        List<MRCPoint> unscaledMRC =
+    public static List<Point> computeScaledMRC(
+            StackDistanceHistogram mergedHistogram, long cacheItemSizeBytes, long bucketSizeScaling) {
+        List<Point> unscaledMRC =
                 computeUnscaledMRC(mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
 
-        List<MRCPoint> scaledMRC = new ArrayList<>();
-        for (MRCPoint point : unscaledMRC) {
+        List<Point> scaledMRC = new ArrayList<>();
+        for (Point point : unscaledMRC) {
             long cacheSizeItems = point.getCacheSizeBytes();
             long scaledCacheSizeBytes = cacheSizeItems * mergedHistogram.getNumPartitions();
-            scaledMRC.add(new MRCPoint(scaledCacheSizeBytes, point.getMissRate()));
+            scaledMRC.add(new Point(scaledCacheSizeBytes, point.getMissRate()));
         }
 
         return scaledMRC;
     }
 }
-

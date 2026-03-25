@@ -23,13 +23,13 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.MetricOptions;
 import org.apache.flink.configuration.WebOptions;
+import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails;
 import org.apache.flink.runtime.messages.webmonitor.MultipleJobsDetails;
 import org.apache.flink.runtime.metrics.dump.MetricDump;
 import org.apache.flink.runtime.metrics.dump.MetricDumpSerialization;
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
-import org.apache.flink.runtime.a4s.stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceGateway;
@@ -271,13 +271,13 @@ public class MetricFetcherImpl<T extends RestfulGateway> implements MetricFetche
                 queryServiceGateway
                         .queryStackDistanceHistograms(timeout)
                         .thenComposeAsync(
-                                (List<StackHistogram> results) -> {
+                                (List<StackDistanceHistogram> results) -> {
                                     LOG.debug(
                                             "Received {} stack distance histogram results from {}.",
                                             results.size(),
                                             queryServiceGateway.getAddress());
                                     List<MetricDump> dumps = new ArrayList<>(results.size());
-                                    for (StackHistogram histogram : results) {
+                                    for (StackDistanceHistogram histogram : results) {
                                         LOG.info(
                                                 "Retrieved raw stack histogram from tmAddress={} vertexId={} metricName={} numBuckets={} bucketCounts={}.",
                                                 queryServiceGateway.getAddress(),

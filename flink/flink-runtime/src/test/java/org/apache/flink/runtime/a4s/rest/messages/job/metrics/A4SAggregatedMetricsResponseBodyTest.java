@@ -18,7 +18,7 @@
 
 package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
 
-import org.apache.flink.runtime.a4s.stackhistogram.GenerateMRC;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.rest.messages.RestResponseMarshallingTestBase;
 import org.apache.flink.runtime.rest.util.RestMapperUtils;
 
@@ -44,8 +44,8 @@ public class A4SAggregatedMetricsResponseBodyTest
     protected A4SAggregatedMetricsResponseBody getTestResponseInstance() {
         return new A4SAggregatedMetricsResponseBody(
                 List.of(
-                        new GenerateMRC.MRCPoint(0L, 1.0),
-                        new GenerateMRC.MRCPoint(1048576L, 0.2)));
+                        new MissRateCurve.Point(0L, 1.0),
+                        new MissRateCurve.Point(1048576L, 0.2)));
     }
 
     @Override

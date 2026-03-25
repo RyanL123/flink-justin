@@ -22,8 +22,8 @@ import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
-import org.apache.flink.runtime.a4s.stackhistogram.GenerateMRC;
-import org.apache.flink.runtime.a4s.stackhistogram.StackHistogram;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
+import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
 import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
@@ -221,7 +221,7 @@ public class A4SAggregatingVertexMetricsHandler
                 vertexID,
                 stores.size());
 
-        List<StackHistogram> subtaskHistograms = new ArrayList<>(stores.size());
+        List<StackDistanceHistogram> subtaskHistograms = new ArrayList<>(stores.size());
         for (MetricStore.SubtaskMetricStore storeItem : stores) {
             log.info(
                     "{} stage=store_item_begin jobId={} vertexId={} metricCount={}",
@@ -233,7 +233,8 @@ public class A4SAggregatingVertexMetricsHandler
             if (histogramRaw == null) {
                 continue;
             }
-            StackHistogram histogram = StackHistogram.fromSerializedValue(histogramRaw);
+            StackDistanceHistogram histogram =
+                    StackDistanceHistogram.fromSerializedValue(histogramRaw);
             subtaskHistograms.add(histogram);
         }
         log.info(
@@ -245,7 +246,7 @@ public class A4SAggregatingVertexMetricsHandler
                 subtaskHistograms.size());
 
         // === Stage 3: Build scaled MRC points ===
-        List<GenerateMRC.MRCPoint> scaledMrcPoints =
+        List<MissRateCurve.Point> scaledMrcPoints =
                 buildScaledMrcPoints(jobId, vertexID, subtaskHistograms);
         log.info(
                 "{} stage=response_ready jobId={} vertexId={} scaledMrcPointCount={} elapsedMs={}",
@@ -272,8 +273,8 @@ public class A4SAggregatingVertexMetricsHandler
         return null;
     }
 
-    private List<GenerateMRC.MRCPoint> buildScaledMrcPoints(
-            JobID jobId, JobVertexID vertexID, List<StackHistogram> subtaskHistograms) {
+    private List<MissRateCurve.Point> buildScaledMrcPoints(
+            JobID jobId, JobVertexID vertexID, List<StackDistanceHistogram> subtaskHistograms) {
         log.info(
                 "{} stage=jm_scaled_mrc_begin jobId={} vertexId={} histogramCount={}",
                 TRACE_LOG_PREFIX,
@@ -289,7 +290,7 @@ public class A4SAggregatingVertexMetricsHandler
             return Collections.emptyList();
         }
 
-        StackHistogram mergedHistogram = StackHistogram.merge(subtaskHistograms);
+        StackDistanceHistogram mergedHistogram = StackDistanceHistogram.merge(subtaskHistograms);
         log.info(
                 "{} stage=jm_histogram_merged jobId={} vertexId={} numBuckets={} totalFrequency={} mergedBucketCounts={}",
                 TRACE_LOG_PREFIX,
@@ -298,8 +299,8 @@ public class A4SAggregatingVertexMetricsHandler
                 mergedHistogram.getNumBuckets(),
                 mergedHistogram.getTotalFrequency(),
                 mergedHistogram.getBucketCounts());
-        List<GenerateMRC.MRCPoint> mrc =
-                GenerateMRC.computeScaledMRC(
+        List<MissRateCurve.Point> mrc =
+                MissRateCurve.computeScaledMRC(
                         mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
         log.info(
                 "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints={} pointsJson={}",
