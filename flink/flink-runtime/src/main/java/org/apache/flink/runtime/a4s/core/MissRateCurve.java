@@ -6,29 +6,32 @@ package org.apache.flink.runtime.a4s.core;
  * Computes unscaled and scaled miss rate curves from merged stack distance histograms.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonValue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Computes Miss Rate Curves (MRC) from merged StackDistanceHistogram objects.
  *
  * <p>The MRC shows the miss rate as a function of cache size. Given a merged stack distance
  * histogram, we can compute:
+ *
  * <ul>
- *   <li><b>Unscaled MRC</b>: Raw miss rate curve (cache size vs miss rate)</li>
- *   <li><b>Scaled MRC</b>: Horizontally scaled curve: cache size is scaled by number of tasks
- *       (per the paper); miss rate is unchanged.</li>
+ *   <li><b>Unscaled MRC</b>: Raw miss rate curve (cache size vs miss rate)
+ *   <li><b>Scaled MRC</b>: Horizontally scaled curve: cache size is scaled by number of tasks (per
+ *       the paper); miss rate is unchanged.
  * </ul>
  *
  * <p>For a given cache size S:
+ *
  * <ul>
- *   <li>Miss rate = (sum of frequencies for stack distances > S) / total accesses</li>
- *   <li>Or equivalently: miss rate = 1 - (cumulative frequency for stack distances <= S) / total accesses</li>
+ *   <li>Miss rate = (sum of frequencies for stack distances > S) / total accesses
+ *   <li>Or equivalently: miss rate = 1 - (cumulative frequency for stack distances <= S) / total
+ *       accesses
  * </ul>
  */
 public class MissRateCurve {
@@ -74,12 +77,15 @@ public class MissRateCurve {
 
         @Override
         public String toString() {
-            return String.format("Point{cacheSizeBytes=%d, missRate=%.6f}", cacheSizeBytes, missRate);
+            return String.format(
+                    "Point{cacheSizeBytes=%d, missRate=%.6f}", cacheSizeBytes, missRate);
         }
     }
 
     public static MissRateCurve fromStackDistanceHistogram(
-            StackDistanceHistogram mergedHistogram, long cacheItemSizeBytes, long bucketSizeScaling) {
+            StackDistanceHistogram mergedHistogram,
+            long cacheItemSizeBytes,
+            long bucketSizeScaling) {
         if (mergedHistogram == null) {
             throw new IllegalArgumentException("Merged histogram cannot be null");
         }
@@ -109,5 +115,24 @@ public class MissRateCurve {
         }
 
         return new MissRateCurve(scaledMrc);
+    }
+
+    @Override
+    public String toString() {
+        if (points.isEmpty()) {
+            return "MissRateCurve{points=[]}";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("MissRateCurve{points=[");
+        for (int i = 0; i < points.size(); i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            Point p = points.get(i);
+            double cacheMiB = p.getCacheSizeBytes() / (1024.0 * 1024.0);
+            sb.append(String.format("cacheSizeMiB=%.6f missRate=%.6f", cacheMiB, p.getMissRate()));
+        }
+        sb.append("]}");
+        return sb.toString();
     }
 }

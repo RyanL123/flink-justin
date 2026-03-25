@@ -23,6 +23,7 @@ import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.View;
 import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
+import org.apache.flink.runtime.a4s.logging.A4SMetricsFlowStep;
 
 import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyHandle;
@@ -97,7 +98,8 @@ public class RocksDBNativeMetricMonitor implements Closeable {
     private void registerStackDistanceHistogram() {
         if (options.isStackDistanceHistogramEnabled()) {
             LOG.info("Registering stack distance histogram metric for RocksDB.");
-            RocksDBStackDistanceHistogramView view = new RocksDBStackDistanceHistogramView(lruCache);
+            RocksDBStackDistanceHistogramView view =
+                    new RocksDBStackDistanceHistogramView(lruCache);
             metricGroup.gauge("rocksdb.stack-distance-histogram", view);
         }
     }
@@ -267,7 +269,11 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 }
                 if (viewLruCache == null) {
                     LOG.debug(
-                            "LRUCache reference is null, returning empty stack distance histogram.");
+                            "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=lru_cache_null",
+                            A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
+                            new StackDistanceHistogram(new long[0], 1).getHistogramFingerprint(),
+                            0,
+                            1);
                     latestHistogram = new StackDistanceHistogram(new long[0], 1);
                     return;
                 }
@@ -276,18 +282,39 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                     viewLruCache.resetQuickMRCStats();
                     if (histogramCounts == null) {
                         LOG.warn(
-                                "RocksDB returned null stack distance histogram, returning empty counts.");
+                                "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=histogram_null",
+                                A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
+                                new StackDistanceHistogram(new long[0], 1)
+                                        .getHistogramFingerprint(),
+                                0,
+                                1);
                         latestHistogram = new StackDistanceHistogram(new long[0], 1);
                         return;
                     }
 
                     latestHistogram = new StackDistanceHistogram(histogramCounts, 1);
+                    LOG.debug(
+                            "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} totalFrequency={}",
+                            A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATED.name(),
+                            latestHistogram.getHistogramFingerprint(),
+                            latestHistogram.getNumBuckets(),
+                            latestHistogram.getNumPartitions(),
+                            latestHistogram.getTotalFrequency());
                 } catch (RuntimeException e) {
-                    LOG.warn("Failed to fetch stack distance histogram from RocksDB.", e);
-                    latestHistogram = new StackDistanceHistogram(new long[0], 1);
+                    StackDistanceHistogram empty = new StackDistanceHistogram(new long[0], 1);
+                    LOG.warn(
+                            "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=exception message={}",
+                            A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
+                            empty.getHistogramFingerprint(),
+                            0,
+                            1,
+                            e.getMessage(),
+                            e);
+                    latestHistogram = empty;
                 }
             }
         }
+
         @Override
         public String getValue() {
             StackDistanceHistogram histogram;

@@ -20,10 +20,11 @@ package org.apache.flink.runtime.a4s.rest.handler.job.metrics;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
-import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
+import org.apache.flink.runtime.a4s.logging.A4SMetricsFlowStep;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.rest.handler.AbstractRestHandler;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
@@ -44,7 +45,6 @@ import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,28 +57,26 @@ import java.util.concurrent.Executor;
  * information, aggregated across subtasks of a job vertex.
  *
  * <p>This handler extends the standard aggregating metrics handler to include:
+ *
  * <ul>
- * <li>Current parallelism per vertex</li>
- * <li>Max parallelism per vertex</li>
- * <li>ResourceProfile values (taskHeapMemory, taskOffHeapMemory, managedMemory,
- * networkMemory, totalMemory, operatorsMemory)</li>
- * <li>Memory consumption metrics per subtask</li>
+ *   <li>Current parallelism per vertex
+ *   <li>Max parallelism per vertex
+ *   <li>ResourceProfile values (taskHeapMemory, taskOffHeapMemory, managedMemory, networkMemory,
+ *       totalMemory, operatorsMemory)
+ *   <li>Memory consumption metrics per subtask
  * </ul>
  *
- * <p>Usage:
- * {@code /jobs/:jobid/vertices/:vertexid/a4s-metrics?get=parallelism,resourceProfile.totalMemory}
+ * <p>Usage: {@code
+ * /jobs/:jobid/vertices/:vertexid/a4s-metrics?get=parallelism,resourceProfile.totalMemory}
  */
 public class A4SAggregatingVertexMetricsHandler
-        extends
-        AbstractRestHandler<
+        extends AbstractRestHandler<
                 RestfulGateway,
                 EmptyRequestBody,
                 A4SAggregatedMetricsResponseBody,
                 AggregatedSubtaskMetricsParameters> {
 
     private static final String STACK_DISTANCE_HISTOGRAM_METRIC_NAME = "stack-distance-histogram";
-    private static final String CURVE_LOG_PREFIX = "A4S_CURVE";
-    private static final String TRACE_LOG_PREFIX = "A4S_TRACE";
 
     private final Executor executor;
     private final MetricFetcher fetcher;
@@ -107,19 +105,16 @@ public class A4SAggregatingVertexMetricsHandler
 
     @Override
     protected CompletableFuture<A4SAggregatedMetricsResponseBody> handleRequest(
-            @Nonnull HandlerRequest<EmptyRequestBody> request,
-            @Nonnull RestfulGateway gateway)
+            @Nonnull HandlerRequest<EmptyRequestBody> request, @Nonnull RestfulGateway gateway)
             throws RestHandlerException {
         JobID jobId = request.getPathParameter(JobIDPathParameter.class);
         JobVertexID vertexID = request.getPathParameter(JobVertexIdPathParameter.class);
-        long requestStartEpochMs = System.currentTimeMillis();
 
         log.info(
-                "{} stage=request_received jobId={} vertexId={} timestampEpochMs={} requestedMetrics={} requestedAggregations={}",
-                TRACE_LOG_PREFIX,
+                "A4S [{}]: jobId={} vertexId={}",
+                A4SMetricsFlowStep.REST_REQUEST_RECEIVED.name(),
                 jobId,
-                vertexID,
-                requestStartEpochMs);
+                vertexID);
 
         return CompletableFuture.supplyAsync(
                 () -> {
@@ -127,11 +122,10 @@ public class A4SAggregatingVertexMetricsHandler
                         return processRequest(jobId, vertexID);
                     } catch (Exception e) {
                         log.warn(
-                                "{} stage=handler_failed jobId={} vertexId={} elapsedMs={} message={}",
-                                TRACE_LOG_PREFIX,
+                                "A4S [{}]: jobId={} vertexId={} message={}",
+                                A4SMetricsFlowStep.HANDLER_FAILED.name(),
                                 jobId,
                                 vertexID,
-                                (System.currentTimeMillis() - requestStartEpochMs),
                                 e.getMessage(),
                                 e);
                         throw new CompletionException(
@@ -143,90 +137,73 @@ public class A4SAggregatingVertexMetricsHandler
                 this.executor);
     }
 
-    @Nonnull
-    private Collection<MetricStore.SubtaskMetricStore> getStores(
-            MetricStore store, JobID jobID, JobVertexID taskID) {
-        MetricStore.TaskMetricStore taskMetricStore =
-                store.getTaskMetricStore(jobID.toString(), taskID.toString());
-        if (taskMetricStore == null) {
-            log.info(
-                    "{} stage=stores_missing jobId={} vertexId={} reason=task_metric_store_not_found",
-                    TRACE_LOG_PREFIX,
-                    jobID,
-                    taskID);
-            return Collections.emptyList();
-        }
-        log.debug(
-                "{} stage=stores_found jobId={} vertexId={} subtaskStoreCount={}",
-                TRACE_LOG_PREFIX,
-                jobID,
-                taskID,
-                taskMetricStore.getAllSubtaskMetricStores().size());
-        return taskMetricStore.getAllSubtaskMetricStores().values();
-    }
-
     private A4SAggregatedMetricsResponseBody processRequest(JobID jobId, JobVertexID vertexID)
             throws Exception {
-        // === Stage 1: Query and update metrics from TMs ===
-        long requestStartEpochMs = System.currentTimeMillis();
         log.info(
-                "{} stage=fetcher_update_begin jobId={} vertexId={} timestampEpochMs={}",
-                TRACE_LOG_PREFIX,
+                "A4S [{}]: jobId={} vertexId={}",
+                A4SMetricsFlowStep.FETCHER_UPDATE_BEGIN.name(),
                 jobId,
-                vertexID,
-                requestStartEpochMs);
+                vertexID);
         this.fetcher.update();
         MetricStore store = this.fetcher.getMetricStore();
         log.info(
-                "{} stage=fetcher_update_end jobId={} vertexId={} timestampEpochMs={}",
-                TRACE_LOG_PREFIX,
+                "A4S [{}]: jobId={} vertexId={}",
+                A4SMetricsFlowStep.FETCHER_UPDATE_END.name(),
                 jobId,
-                vertexID,
-                System.currentTimeMillis());
+                vertexID);
 
-        // === Stage 2: Fetch and deserialize histograms ===
-        Collection<MetricStore.SubtaskMetricStore> stores = getStores(store, jobId, vertexID);
+        MetricStore.TaskMetricStore taskMetricStore =
+                store.getTaskMetricStore(jobId.toString(), vertexID.toString());
+        if (taskMetricStore == null) {
+            MissRateCurve emptyMrc = buildScaledMrcPoints(jobId, vertexID, Collections.emptyList());
+            return new A4SAggregatedMetricsResponseBody(emptyMrc);
+        }
+
         log.info(
-                "{} stage=store_scan_begin jobId={} vertexId={} subtaskStoreCount={}",
-                TRACE_LOG_PREFIX,
+                "A4S [{}]: jobId={} vertexId={} subtaskStoreCount={}",
+                A4SMetricsFlowStep.HISTOGRAM_SCAN_BEGIN.name(),
                 jobId,
                 vertexID,
-                stores.size());
+                taskMetricStore.getAllSubtaskMetricStores().size());
 
-        List<StackDistanceHistogram> subtaskHistograms = new ArrayList<>(stores.size());
-        for (MetricStore.SubtaskMetricStore storeItem : stores) {
-            log.info(
-                    "{} stage=store_item_begin jobId={} vertexId={} metricCount={}",
-                    TRACE_LOG_PREFIX,
-                    jobId,
-                    vertexID,
-                    storeItem.metrics.size());
+        List<StackDistanceHistogram> subtaskHistograms = new ArrayList<>();
+        for (Map.Entry<Integer, MetricStore.SubtaskMetricStore> entry :
+                taskMetricStore.getAllSubtaskMetricStores().entrySet()) {
+            int subtaskIndex = entry.getKey();
+            MetricStore.SubtaskMetricStore storeItem = entry.getValue();
             String histogramRaw = getStackDistanceHistogramRaw(storeItem.metrics);
             if (histogramRaw == null) {
                 continue;
             }
             StackDistanceHistogram histogram =
                     StackDistanceHistogram.fromMetricString(histogramRaw);
+            log.info(
+                    "A4S [{}]: jobId={} vertexId={} subtaskIndex={} histogramFingerprint={} numBuckets={} totalFrequency={}",
+                    A4SMetricsFlowStep.HISTOGRAM_PARSED.name(),
+                    jobId,
+                    vertexID,
+                    subtaskIndex,
+                    histogram.getHistogramFingerprint(),
+                    histogram.getNumBuckets(),
+                    histogram.getTotalFrequency());
             subtaskHistograms.add(histogram);
         }
         log.info(
-                "{} stage=store_scan_end jobId={} vertexId={} scannedSources={} parsedHistograms={}",
-                TRACE_LOG_PREFIX,
+                "A4S [{}]: jobId={} vertexId={} scannedSources={} parsedHistograms={}",
+                A4SMetricsFlowStep.HISTOGRAM_SCAN_END.name(),
                 jobId,
                 vertexID,
-                stores.size(),
+                taskMetricStore.getAllSubtaskMetricStores().size(),
                 subtaskHistograms.size());
 
-        // === Stage 3: Build scaled MRC points ===
-        MissRateCurve scaledMrc =
-                buildScaledMrcPoints(jobId, vertexID, subtaskHistograms);
+        MissRateCurve scaledMrc = buildScaledMrcPoints(jobId, vertexID, subtaskHistograms);
         log.info(
-                "{} stage=response_ready jobId={} vertexId={} scaledMrcPointCount={} elapsedMs={}",
-                TRACE_LOG_PREFIX,
+                "A4S [{}]: jobId={} vertexId={} scaledMrcPointCount={} mrc={}",
+                A4SMetricsFlowStep.RESPONSE_READY.name(),
                 jobId,
                 vertexID,
                 scaledMrc.getPoints().size(),
-                (System.currentTimeMillis() - requestStartEpochMs));
+                scaledMrc);
         return new A4SAggregatedMetricsResponseBody(scaledMrc);
     }
 
@@ -247,40 +224,15 @@ public class A4SAggregatingVertexMetricsHandler
 
     private MissRateCurve buildScaledMrcPoints(
             JobID jobId, JobVertexID vertexID, List<StackDistanceHistogram> subtaskHistograms) {
-        log.info(
-                "{} stage=jm_scaled_mrc_begin jobId={} vertexId={} histogramCount={}",
-                TRACE_LOG_PREFIX,
-                jobId,
-                vertexID,
-                subtaskHistograms.size());
         if (subtaskHistograms.isEmpty()) {
-            log.info(
-                    "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints=0 pointsJson=[]",
-                    CURVE_LOG_PREFIX,
-                    jobId,
-                    vertexID);
-            return new MissRateCurve(Collections.emptyList());
+            MissRateCurve empty = new MissRateCurve(Collections.emptyList());
+            return empty;
         }
 
         StackDistanceHistogram mergedHistogram = StackDistanceHistogram.merge(subtaskHistograms);
-        log.info(
-                "{} stage=jm_histogram_merged jobId={} vertexId={} numBuckets={} totalFrequency={} mergedBucketCounts={}",
-                TRACE_LOG_PREFIX,
-                jobId,
-                vertexID,
-                mergedHistogram.getNumBuckets(),
-                mergedHistogram.getTotalFrequency(),
-                Arrays.toString(mergedHistogram.getBucketCounts()));
         MissRateCurve mrc =
                 MissRateCurve.fromStackDistanceHistogram(
                         mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
-        log.info(
-                "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints={} pointsJson={}",
-                CURVE_LOG_PREFIX,
-                jobId,
-                vertexID,
-                mrc.getPoints().size(),
-                mrc);
         return mrc;
     }
 }

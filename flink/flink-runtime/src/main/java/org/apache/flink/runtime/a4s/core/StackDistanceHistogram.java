@@ -1,4 +1,5 @@
 package org.apache.flink.runtime.a4s.core;
+
 import org.apache.flink.util.jackson.JacksonMapperFactory;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
@@ -60,8 +61,7 @@ public class StackDistanceHistogram implements Serializable {
         }
         for (long count : counts) {
             if (count < 0L) {
-                throw new IllegalArgumentException(
-                        "Bucket counts must be non-negative");
+                throw new IllegalArgumentException("Bucket counts must be non-negative");
             }
         }
     }
@@ -80,6 +80,22 @@ public class StackDistanceHistogram implements Serializable {
 
     public int getNumPartitions() {
         return numPartitions;
+    }
+
+    /**
+     * Deterministic fingerprint for correlating logs across TaskManager histogram export and
+     * JobManager aggregation (FNV-1a 64-bit over bucket counts and partition count).
+     */
+    public long getHistogramFingerprint() {
+        long h = 0xcbf29ce484222325L;
+        final long prime = 0x100000001b3L;
+        for (long count : bucketCounts) {
+            h ^= count;
+            h *= prime;
+        }
+        h ^= (long) numPartitions;
+        h *= prime;
+        return h;
     }
 
     public static StackDistanceHistogram merge(List<StackDistanceHistogram> histograms) {
