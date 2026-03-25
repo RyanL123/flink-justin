@@ -60,9 +60,9 @@ public class A4SAggregatedMetricsResponseBodyTest
     @Test
     public void testResponseJsonContainsMrcField() throws Exception {
         String json =
-                RestMapperUtils.getStrictObjectMapper().writeValueAsString(getTestResponseInstance());
+                RestMapperUtils.getStrictObjectMapper()
+                        .writeValueAsString(getTestResponseInstance());
         assertThat(json, containsString("\"scaledMrc\""));
         assertThat(json, containsString("\"cacheSizeBytes\""));
     }
 }
-

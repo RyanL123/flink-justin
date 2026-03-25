@@ -70,19 +70,23 @@ class MissRateCurveTest {
                     expectedScaled.get(i).getCacheSizeBytes(),
                     scaled.getPoints().get(i).getCacheSizeBytes());
             assertEquals(
-                    expectedScaled.get(i).getMissRate(), scaled.getPoints().get(i).getMissRate(), 0.0001);
+                    expectedScaled.get(i).getMissRate(),
+                    scaled.getPoints().get(i).getMissRate(),
+                    0.0001);
         }
     }
 
     @Test
     void testMRC_emptyHistogram() {
         StackDistanceHistogram empty = new StackDistanceHistogram(new long[0], 1);
-        assertTrue(MissRateCurve.fromStackDistanceHistogram(empty, 4096L, 1L).getPoints().isEmpty());
+        assertTrue(
+                MissRateCurve.fromStackDistanceHistogram(empty, 4096L, 1L).getPoints().isEmpty());
     }
 
     @Test
     void testFromSerializedValue_parsesRocksDBPayload() {
-        String payload = "{\"bucketCounts\":[5,7,11],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
+        String payload =
+                "{\"bucketCounts\":[5,7,11],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
 
         StackDistanceHistogram histogram = StackDistanceHistogram.fromMetricString(payload);
 
@@ -96,7 +100,8 @@ class MissRateCurveTest {
 
     @Test
     void testFromSerializedValue_keepsSparseMapForZeroCountBuckets() {
-        String payload = "{\"bucketCounts\":[0,10,0],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
+        String payload =
+                "{\"bucketCounts\":[0,10,0],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
 
         StackDistanceHistogram histogram = StackDistanceHistogram.fromMetricString(payload);
         long[] buckets = histogram.getBucketCounts();
@@ -110,7 +115,8 @@ class MissRateCurveTest {
 
     @Test
     void testFromSerializedValue_throwsWhenCountsLengthIsInvalid() {
-        String payload = "{\"bucketCounts\":[5,-1,11],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
+        String payload =
+                "{\"bucketCounts\":[5,-1,11],\"numPartitions\":1,\"scopeInfo\":null,\"name\":null}";
 
         assertThrows(
                 IllegalArgumentException.class,

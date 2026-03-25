@@ -238,15 +238,15 @@ public class RocksDBMemoryControllerUtils {
                 int quickMrcGhostCacheMultiplier,
                 double quickMrcSamplingRate,
                 int quickMrcHistogramBinSize) {
-                return createCache(
-                        cacheCapacity,
-                        highPriorityPoolRatio,
-                        -1,
-                        quickMrcEnabled,
-                        quickMrcMaxBucketSize,
-                        quickMrcGhostCacheMultiplier,
-                        quickMrcSamplingRate,
-                        quickMrcHistogramBinSize);
+            return createCache(
+                    cacheCapacity,
+                    highPriorityPoolRatio,
+                    -1,
+                    quickMrcEnabled,
+                    quickMrcMaxBucketSize,
+                    quickMrcGhostCacheMultiplier,
+                    quickMrcSamplingRate,
+                    quickMrcHistogramBinSize);
         }
 
         Cache createCache(

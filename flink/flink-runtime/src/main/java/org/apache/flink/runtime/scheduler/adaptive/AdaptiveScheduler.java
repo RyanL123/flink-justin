@@ -121,8 +121,6 @@ import org.apache.flink.runtime.scheduler.exceptionhistory.RootExceptionHistoryE
 import org.apache.flink.runtime.scheduler.justin.JustinVertexParallelismInfo;
 import org.apache.flink.runtime.scheduler.metrics.DeploymentStateTimeMetrics;
 import org.apache.flink.runtime.state.KeyGroupRange;
-import org.apache.flink.runtime.taskexecutor.TaskExecutorResourceSpec;
-import org.apache.flink.runtime.taskexecutor.TaskExecutorResourceUtils;
 import org.apache.flink.runtime.util.BoundedFIFOQueue;
 import org.apache.flink.runtime.util.ResourceCounter;
 import org.apache.flink.util.ExceptionUtils;
@@ -176,14 +174,14 @@ import java.util.stream.Collectors;
  */
 public class AdaptiveScheduler
         implements SchedulerNG,
-        Created.Context,
-        WaitingForResources.Context,
-        CreatingExecutionGraph.Context,
-        Executing.Context,
-        Restarting.Context,
-        Failing.Context,
-        Finished.Context,
-        StopWithSavepoint.Context {
+                Created.Context,
+                WaitingForResources.Context,
+                CreatingExecutionGraph.Context,
+                Executing.Context,
+                Restarting.Context,
+                Failing.Context,
+                Finished.Context,
+                StopWithSavepoint.Context {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdaptiveScheduler.class);
 
@@ -421,7 +419,7 @@ public class AdaptiveScheduler
                                     newMax >= maxParallelism
                                             ? Optional.empty()
                                             : Optional.of(
-                                            "Cannot lower max parallelism in Reactive mode."));
+                                                    "Cannot lower max parallelism in Reactive mode."));
             store.setParallelismInfo(vertex.getID(), parallelismInfo);
         }
 
@@ -833,8 +831,7 @@ public class AdaptiveScheduler
     @Override
     public void updateJobResourceRequirements(JobResourceRequirements jobResourceRequirements) {
         JustinResourceRequirements.Builder builder = JustinResourceRequirements.newBuilder();
-        for (JobVertexID jobVertexID :
-                jobResourceRequirements.getJobVertices()) {
+        for (JobVertexID jobVertexID : jobResourceRequirements.getJobVertices()) {
             builder.setParallelismForJobVertex(
                     jobVertexID,
                     jobResourceRequirements
@@ -914,18 +911,18 @@ public class AdaptiveScheduler
                         jobInformation.getVertexParallelismStore(), justinResourceRequirements);
 
         if (maybeUpdateVertexParallelismStore.isPresent()) {
-        //    LOG.info("Triggering manual checkpoint before redeploy");
-        //    CompletableFuture<CompletedCheckpoint> checkpointFuture = triggerCheckpoint(
-        //            CheckpointType.INCREMENTAL);
-        //    checkpointFuture.thenAccept((completedCheckpoint -> {
-        //        LOG.info("Checkpoint completed: " + completedCheckpoint.getExternalPointer());
-                updateJustinGraphJobInformation(maybeUpdateVertexParallelismStore.get());
-                declareJustinDesiredResources();
-                state.tryRun(
-                        ResourceListener.class,
-                        ResourceListener::onNewResourceRequirements,
-                        "Current state does not react to desired parallelism changes.");
-            //}));
+            //    LOG.info("Triggering manual checkpoint before redeploy");
+            //    CompletableFuture<CompletedCheckpoint> checkpointFuture = triggerCheckpoint(
+            //            CheckpointType.INCREMENTAL);
+            //    checkpointFuture.thenAccept((completedCheckpoint -> {
+            //        LOG.info("Checkpoint completed: " + completedCheckpoint.getExternalPointer());
+            updateJustinGraphJobInformation(maybeUpdateVertexParallelismStore.get());
+            declareJustinDesiredResources();
+            state.tryRun(
+                    ResourceListener.class,
+                    ResourceListener::onNewResourceRequirements,
+                    "Current state does not react to desired parallelism changes.");
+            // }));
         }
     }
 
@@ -1006,13 +1003,16 @@ public class AdaptiveScheduler
             map.put(vertexInformation.getJobVertexID(), vertexInformation.getParallelism());
         }
         vertexParallelism = new VertexParallelism(map);
-        JobSchedulingPlan jobSchedulingPlan = new JobSchedulingPlan(
-                vertexParallelism,
-                slotAssigner.assignSlots(
-                        jobInformation,
-                        declarativeSlotPool.getFreeSlotInfoTracker().getFreeSlotsInformation(),
+        JobSchedulingPlan jobSchedulingPlan =
+                new JobSchedulingPlan(
                         vertexParallelism,
-                        JobAllocationsInformation.fromGraph(previousExecutionGraph)));
+                        slotAssigner.assignSlots(
+                                jobInformation,
+                                declarativeSlotPool
+                                        .getFreeSlotInfoTracker()
+                                        .getFreeSlotsInformation(),
+                                vertexParallelism,
+                                JobAllocationsInformation.fromGraph(previousExecutionGraph)));
         return jobSchedulingPlan;
     }
 
@@ -1042,16 +1042,13 @@ public class AdaptiveScheduler
          */
         declareJustinDesiredResources();
         // To avoid getting ConcurrentModificationException
-        List<AllocationID> allocationIDS = declarativeSlotPool
-                .getAllSlotsInformation()
-                .stream()
-                .map(SlotInfo::getAllocationId)
-                .collect(Collectors.toList());
+        List<AllocationID> allocationIDS =
+                declarativeSlotPool.getAllSlotsInformation().stream()
+                        .map(SlotInfo::getAllocationId)
+                        .collect(Collectors.toList());
         for (AllocationID allocationID : allocationIDS) {
             declarativeSlotPool.releaseSlot(
-                    allocationID,
-                    new FlinkException(
-                            "Releasing all slots before restarting."));
+                    allocationID, new FlinkException("Releasing all slots before restarting."));
         }
 
         transitionToState(
@@ -1226,7 +1223,7 @@ public class AdaptiveScheduler
     public void goToCreatingExecutionGraph(@Nullable ExecutionGraph previousExecutionGraph) {
         final CompletableFuture<CreatingExecutionGraph.ExecutionGraphWithVertexParallelism>
                 executionGraphWithAvailableResourcesFuture =
-                createExecutionGraphWithAvailableResourcesAsync(previousExecutionGraph);
+                        createExecutionGraphWithAvailableResourcesAsync(previousExecutionGraph);
         transitionToState(
                 new CreatingExecutionGraph.Factory(
                         this,
@@ -1236,8 +1233,8 @@ public class AdaptiveScheduler
     }
 
     private CompletableFuture<CreatingExecutionGraph.ExecutionGraphWithVertexParallelism>
-    createExecutionGraphWithAvailableResourcesAsync(
-            @Nullable ExecutionGraph previousExecutionGraph) {
+            createExecutionGraphWithAvailableResourcesAsync(
+                    @Nullable ExecutionGraph previousExecutionGraph) {
         final JobSchedulingPlan schedulingPlan;
         final VertexParallelismStore adjustedParallelismStore;
 
@@ -1303,11 +1300,13 @@ public class AdaptiveScheduler
             boolean assigned = false;
             do {
                 try {
-                    final LogicalSlot assignedSlot = reservedSlots.getSlotFor(executionVertex.getID());
+                    final LogicalSlot assignedSlot =
+                            reservedSlots.getSlotFor(executionVertex.getID());
                     final CompletableFuture<Void> registrationFuture =
                             executionVertex
                                     .getCurrentExecutionAttempt()
-                                    .registerProducedPartitions(assignedSlot.getTaskManagerLocation());
+                                    .registerProducedPartitions(
+                                            assignedSlot.getTaskManagerLocation());
                     Preconditions.checkState(
                             registrationFuture.isDone(),
                             "Partition registration must be completed immediately for reactive mode");
@@ -1564,7 +1563,7 @@ public class AdaptiveScheduler
                     .setNetworkMemoryMB(84)
                     .build();
         } else {
-            return  ResourceProfile.newBuilder()
+            return ResourceProfile.newBuilder()
                     .setCpuCores(1.0)
                     .setTaskHeapMemoryMB(134)
                     .setTaskOffHeapMemoryMB(0)

@@ -28,8 +28,7 @@ import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetri
 import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
- * Headers for A4S aggregating vertex metrics including parallelism and ResourceProfile
- * information.
+ * Headers for A4S aggregating vertex metrics including parallelism and ResourceProfile information.
  */
 public class A4SAggregatedVertexMetricsHeaders
         implements RuntimeMessageHeaders<
@@ -86,4 +85,3 @@ public class A4SAggregatedVertexMetricsHeaders
                 + "parallelism and ResourceProfile information for Memory Parallelism Curves.";
     }
 }
-

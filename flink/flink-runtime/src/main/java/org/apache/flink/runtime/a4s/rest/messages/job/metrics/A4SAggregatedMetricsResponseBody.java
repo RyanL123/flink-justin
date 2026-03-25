@@ -44,4 +44,3 @@ public class A4SAggregatedMetricsResponseBody implements ResponseBody {
         return scaledMrc;
     }
 }
-

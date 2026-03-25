@@ -16,25 +16,29 @@
  * limitations under the License.
  */
 package org.apache.flink.runtime.rest.messages.job.justin;
+
 import org.apache.flink.annotation.docs.FlinkJsonSchema;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
-import org.apache.flink.runtime.jobgraph.JobVertexResourceRequirements;
 import org.apache.flink.runtime.jobgraph.justin.JustinResourceRequirements;
 import org.apache.flink.runtime.jobgraph.justin.JustinVertexResourceRequirements;
 import org.apache.flink.runtime.rest.messages.RequestBody;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 import org.apache.flink.runtime.rest.messages.json.JobVertexIDKeyDeserializer;
 import org.apache.flink.runtime.rest.messages.json.JobVertexIDKeySerializer;
+
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonAnyGetter;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonAnySetter;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
 /** Body for change job requests. */
 @FlinkJsonSchema.AdditionalFields(type = JustinVertexResourceRequirements.class)
 public class JustinResourceRequirementsBody implements RequestBody, ResponseBody {
@@ -43,9 +47,11 @@ public class JustinResourceRequirementsBody implements RequestBody, ResponseBody
     @JsonSerialize(keyUsing = JobVertexIDKeySerializer.class)
     @JsonDeserialize(keyUsing = JobVertexIDKeyDeserializer.class)
     private final Map<JobVertexID, JustinVertexResourceRequirements> jobVertexResourceRequirements;
+
     public JustinResourceRequirementsBody() {
         this(null);
     }
+
     public JustinResourceRequirementsBody(
             @Nullable JustinResourceRequirements jobResourceRequirements) {
         if (jobResourceRequirements != null) {
@@ -54,6 +60,7 @@ public class JustinResourceRequirementsBody implements RequestBody, ResponseBody
             this.jobVertexResourceRequirements = new HashMap<>();
         }
     }
+
     @JsonIgnore
     public Optional<JustinResourceRequirements> asJobResourceRequirements() {
         if (jobVertexResourceRequirements.isEmpty()) {
@@ -61,6 +68,7 @@ public class JustinResourceRequirementsBody implements RequestBody, ResponseBody
         }
         return Optional.of(new JustinResourceRequirements(jobVertexResourceRequirements));
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -72,6 +80,7 @@ public class JustinResourceRequirementsBody implements RequestBody, ResponseBody
         final JustinResourceRequirementsBody that = (JustinResourceRequirementsBody) o;
         return Objects.equals(jobVertexResourceRequirements, that.jobVertexResourceRequirements);
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(jobVertexResourceRequirements);

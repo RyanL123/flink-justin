@@ -468,8 +468,7 @@ public class RocksDBNativeMetricOptions implements Serializable {
     private final Set<String> properties;
     private final Set<TickerType> monitorTickerTypes;
     private boolean columnFamilyAsVariable = COLUMN_FAMILY_AS_VARIABLE.defaultValue();
-    private boolean monitorStackDistanceHistogram =
-            MONITOR_STACK_DISTANCE_HISTOGRAM.defaultValue();
+    private boolean monitorStackDistanceHistogram = MONITOR_STACK_DISTANCE_HISTOGRAM.defaultValue();
 
     public RocksDBNativeMetricOptions() {
         this.properties = new HashSet<>();

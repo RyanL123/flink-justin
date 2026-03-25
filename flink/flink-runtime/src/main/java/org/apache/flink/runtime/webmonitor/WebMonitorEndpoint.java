@@ -25,6 +25,8 @@ import org.apache.flink.configuration.AkkaOptions;
 import org.apache.flink.configuration.CheckpointingOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.RestOptions;
+import org.apache.flink.configuration.TaskManagerOptions;
+import org.apache.flink.runtime.a4s.rest.handler.job.metrics.A4SAggregatingVertexMetricsHandler;
 import org.apache.flink.runtime.blob.TransientBlobService;
 import org.apache.flink.runtime.checkpoint.CheckpointStatsSnapshot;
 import org.apache.flink.runtime.leaderelection.LeaderContender;
@@ -80,7 +82,6 @@ import org.apache.flink.runtime.rest.handler.job.checkpoints.TaskCheckpointStati
 import org.apache.flink.runtime.rest.handler.job.coordination.ClientCoordinationHandler;
 import org.apache.flink.runtime.rest.handler.job.justin.JustinResourceRequirementsHandler;
 import org.apache.flink.runtime.rest.handler.job.justin.JustinResourceRequirementsUpdateHandler;
-import org.apache.flink.runtime.a4s.rest.handler.job.metrics.A4SAggregatingVertexMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingJobsMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingSubtasksMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingTaskManagersMetricsHandler;
@@ -168,7 +169,6 @@ import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 import org.apache.flink.util.concurrent.FutureUtils;
 
-import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.shaded.guava31.com.google.common.cache.Cache;
 import org.apache.flink.shaded.guava31.com.google.common.cache.CacheBuilder;
 import org.apache.flink.shaded.netty4.io.netty.channel.ChannelInboundHandler;
@@ -530,8 +530,10 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
                 new AggregatingSubtasksMetricsHandler(
                         leaderRetriever, timeout, responseHeaders, executor, metricFetcher);
 
-        final long cacheItemSizeBytes = clusterConfiguration.getLong(TaskManagerOptions.A4S_CACHE_ITEM_SIZE_BYTES);
-        final long bucketSizeScaling = clusterConfiguration.getLong(TaskManagerOptions.A4S_BUCKET_SIZE_SCALING);
+        final long cacheItemSizeBytes =
+                clusterConfiguration.getLong(TaskManagerOptions.A4S_CACHE_ITEM_SIZE_BYTES);
+        final long bucketSizeScaling =
+                clusterConfiguration.getLong(TaskManagerOptions.A4S_BUCKET_SIZE_SCALING);
         final A4SAggregatingVertexMetricsHandler a4sAggregatingVertexMetricsHandler =
                 new A4SAggregatingVertexMetricsHandler(
                         leaderRetriever,
