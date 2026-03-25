@@ -16,19 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.rest.messages.job.metrics;
+package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
 
 import org.apache.flink.runtime.rest.HttpMethodWrapper;
 import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
 import org.apache.flink.runtime.rest.messages.RuntimeMessageHeaders;
+import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsParameters;
 
 import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
- * Headers for A4S aggregating vertex metrics including parallelism and
- * ResourceProfile information.
+ * Headers for A4S aggregating vertex metrics including parallelism and ResourceProfile
+ * information.
  */
 public class A4SAggregatedVertexMetricsHeaders
         implements RuntimeMessageHeaders<
@@ -36,10 +37,10 @@ public class A4SAggregatedVertexMetricsHeaders
                 A4SAggregatedMetricsResponseBody,
                 AggregatedSubtaskMetricsParameters> {
 
-    private static final A4SAggregatedVertexMetricsHeaders INSTANCE = new A4SAggregatedVertexMetricsHeaders();
+    private static final A4SAggregatedVertexMetricsHeaders INSTANCE =
+            new A4SAggregatedVertexMetricsHeaders();
 
-    private A4SAggregatedVertexMetricsHeaders() {
-    }
+    private A4SAggregatedVertexMetricsHeaders() {}
 
     @Override
     public Class<A4SAggregatedMetricsResponseBody> getResponseClass() {
@@ -81,7 +82,8 @@ public class A4SAggregatedVertexMetricsHeaders
 
     @Override
     public String getDescription() {
-        return "Provides access to A4S-specific aggregated vertex metrics including" +
-                "parallelism and ResourceProfile information for Memory Parallelism Curves.";
+        return "Provides access to A4S-specific aggregated vertex metrics including"
+                + "parallelism and ResourceProfile information for Memory Parallelism Curves.";
     }
 }
+

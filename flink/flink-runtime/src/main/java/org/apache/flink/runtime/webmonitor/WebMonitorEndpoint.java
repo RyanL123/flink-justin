@@ -80,7 +80,7 @@ import org.apache.flink.runtime.rest.handler.job.checkpoints.TaskCheckpointStati
 import org.apache.flink.runtime.rest.handler.job.coordination.ClientCoordinationHandler;
 import org.apache.flink.runtime.rest.handler.job.justin.JustinResourceRequirementsHandler;
 import org.apache.flink.runtime.rest.handler.job.justin.JustinResourceRequirementsUpdateHandler;
-import org.apache.flink.runtime.rest.handler.job.metrics.A4SAggregatingVertexMetricsHandler;
+import org.apache.flink.runtime.a4s.rest.handler.job.metrics.A4SAggregatingVertexMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingJobsMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingSubtasksMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingTaskManagersMetricsHandler;

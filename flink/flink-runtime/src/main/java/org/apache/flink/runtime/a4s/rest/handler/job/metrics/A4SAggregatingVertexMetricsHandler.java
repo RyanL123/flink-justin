@@ -16,10 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.rest.handler.job.metrics;
+package org.apache.flink.runtime.a4s.rest.handler.job.metrics;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.a4s.stackhistogram.GenerateMRC;
+import org.apache.flink.runtime.a4s.stackhistogram.StackHistogram;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
 import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
@@ -32,11 +36,7 @@ import org.apache.flink.runtime.rest.handler.legacy.metrics.MetricStore;
 import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsParameters;
-import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
-import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 
@@ -56,12 +56,10 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 /**
- * Request handler that returns A4S-specific metrics including parallelism and
- * ResourceProfile
+ * Request handler that returns A4S-specific metrics including parallelism and ResourceProfile
  * information, aggregated across subtasks of a job vertex.
  *
- * <p>
- * This handler extends the standard aggregating metrics handler to include:
+ * <p>This handler extends the standard aggregating metrics handler to include:
  * <ul>
  * <li>Current parallelism per vertex</li>
  * <li>Max parallelism per vertex</li>
@@ -70,13 +68,16 @@ import java.util.concurrent.Executor;
  * <li>Memory consumption metrics per subtask</li>
  * </ul>
  *
- * <p>
- * Usage:
+ * <p>Usage:
  * {@code /jobs/:jobid/vertices/:vertexid/a4s-metrics?get=parallelism,resourceProfile.totalMemory}
  */
 public class A4SAggregatingVertexMetricsHandler
         extends
-        AbstractRestHandler<RestfulGateway, EmptyRequestBody, A4SAggregatedMetricsResponseBody, AggregatedSubtaskMetricsParameters> {
+        AbstractRestHandler<
+                RestfulGateway,
+                EmptyRequestBody,
+                A4SAggregatedMetricsResponseBody,
+                AggregatedSubtaskMetricsParameters> {
 
     private static final String STACK_DISTANCE_HISTOGRAM_METRIC_NAME = "stack-distance-histogram";
     private static final String CURVE_LOG_PREFIX = "A4S_CURVE";
@@ -127,31 +128,37 @@ public class A4SAggregatingVertexMetricsHandler
                 requestStartEpochMs);
 
         return executionGraphCache.getExecutionGraphInfo(jobId, gateway)
-                .thenCompose(executionGraphInfo -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return processRequest(
-                                jobId,
-                                vertexID,
-                                executionGraphInfo);
-                    } catch (Exception e) {
-                        log.warn(
-                                "{} stage=handler_failed jobId={} vertexId={} elapsedMs={} message={}",
-                                TRACE_LOG_PREFIX,
-                                jobId,
-                                vertexID,
-                                (System.currentTimeMillis() - requestStartEpochMs),
-                                e.getMessage(),
-                                e);
-                        throw new CompletionException(new RestHandlerException(
-                                "Could not retrieve A4S metrics.", HttpResponseStatus.INTERNAL_SERVER_ERROR));
-                    }
-                }, this.executor));
+                .thenCompose(
+                        executionGraphInfo ->
+                                CompletableFuture.supplyAsync(
+                                        () -> {
+                                            try {
+                                                return processRequest(jobId, vertexID, executionGraphInfo);
+                                            } catch (Exception e) {
+                                                log.warn(
+                                                        "{} stage=handler_failed jobId={} vertexId={} elapsedMs={} message={}",
+                                                        TRACE_LOG_PREFIX,
+                                                        jobId,
+                                                        vertexID,
+                                                        (System.currentTimeMillis()
+                                                                - requestStartEpochMs),
+                                                        e.getMessage(),
+                                                        e);
+                                                throw new CompletionException(
+                                                        new RestHandlerException(
+                                                                "Could not retrieve A4S metrics.",
+                                                                HttpResponseStatus
+                                                                        .INTERNAL_SERVER_ERROR));
+                                            }
+                                        },
+                                        this.executor));
     }
 
     @Nonnull
     private Collection<MetricStore.SubtaskMetricStore> getStores(
             MetricStore store, JobID jobID, JobVertexID taskID) {
-        MetricStore.TaskMetricStore taskMetricStore = store.getTaskMetricStore(jobID.toString(), taskID.toString());
+        MetricStore.TaskMetricStore taskMetricStore =
+                store.getTaskMetricStore(jobID.toString(), taskID.toString());
         if (taskMetricStore == null) {
             log.info(
                     "{} stage=stores_missing jobId={} vertexId={} reason=task_metric_store_not_found",
@@ -170,9 +177,8 @@ public class A4SAggregatingVertexMetricsHandler
     }
 
     private A4SAggregatedMetricsResponseBody processRequest(
-            JobID jobId,
-            JobVertexID vertexID,
-            ExecutionGraphInfo executionGraphInfo) throws Exception {
+            JobID jobId, JobVertexID vertexID, ExecutionGraphInfo executionGraphInfo)
+            throws Exception {
         // === Stage 1: Query and update metrics from TMs ===
         long requestStartEpochMs = System.currentTimeMillis();
         log.info(
@@ -200,9 +206,10 @@ public class A4SAggregatingVertexMetricsHandler
                     TRACE_LOG_PREFIX,
                     jobId,
                     vertexID);
-            throw new CompletionException(new RestHandlerException(
-                    String.format("JobVertex %s not found", vertexID),
-                    HttpResponseStatus.NOT_FOUND));
+            throw new CompletionException(
+                    new RestHandlerException(
+                            String.format("JobVertex %s not found", vertexID),
+                            HttpResponseStatus.NOT_FOUND));
         }
 
         // === Stage 2: Fetch and deserialize histograms ===
@@ -238,11 +245,8 @@ public class A4SAggregatingVertexMetricsHandler
                 subtaskHistograms.size());
 
         // === Stage 3: Build scaled MRC points ===
-        List<QuickMRC.MRCPoint> scaledMrcPoints = buildScaledMrcPoints(
-                jobId,
-                vertexID,
-                subtaskHistograms
-        );
+        List<GenerateMRC.MRCPoint> scaledMrcPoints =
+                buildScaledMrcPoints(jobId, vertexID, subtaskHistograms);
         log.info(
                 "{} stage=response_ready jobId={} vertexId={} scaledMrcPointCount={} elapsedMs={}",
                 TRACE_LOG_PREFIX,
@@ -268,7 +272,7 @@ public class A4SAggregatingVertexMetricsHandler
         return null;
     }
 
-    private List<QuickMRC.MRCPoint> buildScaledMrcPoints(
+    private List<GenerateMRC.MRCPoint> buildScaledMrcPoints(
             JobID jobId, JobVertexID vertexID, List<StackHistogram> subtaskHistograms) {
         log.info(
                 "{} stage=jm_scaled_mrc_begin jobId={} vertexId={} histogramCount={}",
@@ -294,7 +298,9 @@ public class A4SAggregatingVertexMetricsHandler
                 mergedHistogram.getNumBuckets(),
                 mergedHistogram.getTotalFrequency(),
                 mergedHistogram.getBucketCounts());
-        List<QuickMRC.MRCPoint> mrc = QuickMRC.computeScaledMRC(mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
+        List<GenerateMRC.MRCPoint> mrc =
+                GenerateMRC.computeScaledMRC(
+                        mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
         log.info(
                 "{} stage=jm_scaled_mrc jobId={} vertexId={} curveType=scaled_mrc numPoints={} pointsJson={}",
                 CURVE_LOG_PREFIX,

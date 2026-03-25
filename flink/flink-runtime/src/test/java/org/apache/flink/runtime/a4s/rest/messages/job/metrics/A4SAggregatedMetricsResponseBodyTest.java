@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.rest.messages.job.metrics;
+package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
 
+import org.apache.flink.runtime.a4s.stackhistogram.GenerateMRC;
 import org.apache.flink.runtime.rest.messages.RestResponseMarshallingTestBase;
 import org.apache.flink.runtime.rest.util.RestMapperUtils;
-import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
 
 import org.junit.Test;
 
@@ -44,8 +44,8 @@ public class A4SAggregatedMetricsResponseBodyTest
     protected A4SAggregatedMetricsResponseBody getTestResponseInstance() {
         return new A4SAggregatedMetricsResponseBody(
                 List.of(
-                        new QuickMRC.MRCPoint(0L, 1.0),
-                        new QuickMRC.MRCPoint(1048576L, 0.2)));
+                        new GenerateMRC.MRCPoint(0L, 1.0),
+                        new GenerateMRC.MRCPoint(1048576L, 0.2)));
     }
 
     @Override
@@ -58,8 +58,10 @@ public class A4SAggregatedMetricsResponseBodyTest
 
     @Test
     public void testResponseJsonContainsMrcField() throws Exception {
-        String json = RestMapperUtils.getStrictObjectMapper().writeValueAsString(getTestResponseInstance());
+        String json =
+                RestMapperUtils.getStrictObjectMapper().writeValueAsString(getTestResponseInstance());
         assertThat(json, containsString("\"scaledMrc\""));
         assertThat(json, containsString("\"cacheSizeBytes\""));
     }
 }
+

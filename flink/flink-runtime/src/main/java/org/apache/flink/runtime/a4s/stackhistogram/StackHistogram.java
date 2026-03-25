@@ -1,4 +1,4 @@
-package org.apache.flink.runtime.standalone_stackhistogram;
+package org.apache.flink.runtime.a4s.stackhistogram;
 
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
 
@@ -144,7 +144,7 @@ public class StackHistogram implements Serializable {
             completeMisses += histogram.getFrequency(histogram.getNumBuckets() - 1);
         }
         mergedCounts.add(completeMisses);
-        
+
         return new StackHistogram(mergedCounts, totalPartitions);
     }
 

@@ -1,17 +1,15 @@
-package org.apache.flink.runtime.standalone_stackhistogram;
+package org.apache.flink.runtime.a4s.stackhistogram;
 
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class QuickMRCTest {
-    /**
-     * Test 1: Verify Merge Logic
-     * Ensures bucket counts and partition counts are summed correctly.
-     */
+class GenerateMRCTest {
     @Test
     void testMerge_preservesSumsAndPartitions() {
         StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
@@ -37,7 +35,6 @@ class QuickMRCTest {
         assertEquals(9L, merged.getTotalFrequency());
         assertEquals(5L, merged.getFrequency(0));
         assertEquals(1L, merged.getFrequency(1));
-        // Tracks complete misses
         assertEquals(3L, merged.getFrequency(2));
     }
 
@@ -45,47 +42,45 @@ class QuickMRCTest {
     void testMerge_twoHistograms_oneEmpty() {
         StackHistogram h1 = new StackHistogram(List.of(3L, 1L, 1L), 1);
         StackHistogram h2 = new StackHistogram(new ArrayList<>(), 1);
-        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));        
+        StackHistogram merged = StackHistogram.merge(List.of(h1, h2));
 
         assertEquals(2, merged.getNumPartitions());
         assertEquals(5L, merged.getTotalFrequency());
-        assertEquals(3L, merged.getFrequency(0)); // From h1
-        assertEquals(1L, merged.getFrequency(1)); // From h1
-        assertEquals(1L, merged.getFrequency(2)); // From h1
+        assertEquals(3L, merged.getFrequency(0));
+        assertEquals(1L, merged.getFrequency(1));
+        assertEquals(1L, merged.getFrequency(2));
     }
 
-    /**
-     * Test 3: Verify Horizontal Scaling Logic
-     * Explicitly checks that Cache Size is multiplied by the factor.
-     */
     @Test
     void testScaledMRC_horizontalScalingLogic() {
         List<Long> buckets = new ArrayList<>();
-        buckets.add(5L); // 5 hits in first bucket
-        buckets.add(3L); // 3 hits in second bucket
-        buckets.add(2L); // 2 hits in third bucket
-        buckets.add(0L); // 0 hits in complete misses
+        buckets.add(5L);
+        buckets.add(3L);
+        buckets.add(2L);
+        buckets.add(0L);
         int partitions = 2;
         StackHistogram histogram = new StackHistogram(buckets, partitions);
 
-        List<QuickMRC.MRCPoint> scaled = QuickMRC.computeScaledMRC(histogram, 4096L, 1L);
-        List<QuickMRC.MRCPoint> unscaled = QuickMRC.computeUnscaledMRC(histogram, 4096L, 1L);
+        List<GenerateMRC.MRCPoint> scaled = GenerateMRC.computeScaledMRC(histogram, 4096L, 1L);
+        List<GenerateMRC.MRCPoint> unscaled =
+                GenerateMRC.computeUnscaledMRC(histogram, 4096L, 1L);
 
         assertEquals(unscaled.size(), scaled.size());
 
-        List<QuickMRC.MRCPoint> expectedUnscaled = List.of(
-            new QuickMRC.MRCPoint(4096L, 0.5),
-            new QuickMRC.MRCPoint(8192L, 0.2),
-            new QuickMRC.MRCPoint(12288L, 0.0)
-        );
-        List<QuickMRC.MRCPoint> expectedScaled = List.of(
-            new QuickMRC.MRCPoint(8192L, 0.5),
-            new QuickMRC.MRCPoint(16384L, 0.2),
-            new QuickMRC.MRCPoint(24576L, 0.0)
-        );
+        List<GenerateMRC.MRCPoint> expectedUnscaled =
+                List.of(
+                        new GenerateMRC.MRCPoint(4096L, 0.5),
+                        new GenerateMRC.MRCPoint(8192L, 0.2),
+                        new GenerateMRC.MRCPoint(12288L, 0.0));
+        List<GenerateMRC.MRCPoint> expectedScaled =
+                List.of(
+                        new GenerateMRC.MRCPoint(8192L, 0.5),
+                        new GenerateMRC.MRCPoint(16384L, 0.2),
+                        new GenerateMRC.MRCPoint(24576L, 0.0));
 
         for (int i = 0; i < expectedUnscaled.size(); i++) {
-            assertEquals(expectedUnscaled.get(i).getCacheSizeBytes(), unscaled.get(i).getCacheSizeBytes());
+            assertEquals(
+                    expectedUnscaled.get(i).getCacheSizeBytes(), unscaled.get(i).getCacheSizeBytes());
             assertEquals(expectedUnscaled.get(i).getMissRate(), unscaled.get(i).getMissRate(), 0.0001);
         }
         for (int i = 0; i < expectedScaled.size(); i++) {
@@ -94,15 +89,11 @@ class QuickMRCTest {
         }
     }
 
-    /**
-     * Test 5: Edge Case
-     * Empty histogram should not crash.
-     */
     @Test
     void testMRC_emptyHistogram() {
         StackHistogram empty = new StackHistogram(new ArrayList<>(), 1);
-        assertTrue(QuickMRC.computeUnscaledMRC(empty, 4096L, 1L).isEmpty());
-        assertTrue(QuickMRC.computeScaledMRC(empty, 4096L, 1L).isEmpty());
+        assertTrue(GenerateMRC.computeUnscaledMRC(empty, 4096L, 1L).isEmpty());
+        assertTrue(GenerateMRC.computeScaledMRC(empty, 4096L, 1L).isEmpty());
     }
 
     @Test
@@ -137,6 +128,8 @@ class QuickMRCTest {
     void testFromSerializedValue_throwsWhenCountsLengthIsInvalid() {
         String payload = "[5,-1,11]";
 
-        assertThrows(IllegalArgumentException.class, () -> StackHistogram.fromSerializedValue(payload));
+        assertThrows(
+                IllegalArgumentException.class, () -> StackHistogram.fromSerializedValue(payload));
     }
 }
+

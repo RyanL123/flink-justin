@@ -21,7 +21,7 @@ package org.apache.flink.runtime.webmonitor.retriever;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.metrics.dump.MetricDumpSerialization;
 import org.apache.flink.runtime.metrics.dump.MetricQueryService;
-import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
+import org.apache.flink.runtime.a4s.stackhistogram.StackHistogram;
 import org.apache.flink.runtime.rpc.RpcGateway;
 
 import java.util.List;

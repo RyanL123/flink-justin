@@ -19,7 +19,7 @@
 package org.apache.flink.runtime.metrics.dump;
 
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.runtime.standalone_stackhistogram.StackHistogram;
+import org.apache.flink.runtime.a4s.stackhistogram.StackHistogram;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceGateway;
 
 import javax.annotation.Nonnull;

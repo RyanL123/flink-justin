@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.rest.messages.job.metrics;
+package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
 
+import org.apache.flink.runtime.a4s.stackhistogram.GenerateMRC;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.apache.flink.runtime.standalone_stackhistogram.QuickMRC;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,15 +33,16 @@ public class A4SAggregatedMetricsResponseBody implements ResponseBody {
     public static final String FIELD_NAME_SCALED_MRC = "scaledMrc";
 
     @JsonProperty(FIELD_NAME_SCALED_MRC)
-    private final List<QuickMRC.MRCPoint> scaledMrc;
+    private final List<GenerateMRC.MRCPoint> scaledMrc;
 
     @JsonCreator
     public A4SAggregatedMetricsResponseBody(
-            @JsonProperty(FIELD_NAME_SCALED_MRC) List<QuickMRC.MRCPoint> scaledMrc) {
+            @JsonProperty(FIELD_NAME_SCALED_MRC) List<GenerateMRC.MRCPoint> scaledMrc) {
         this.scaledMrc = scaledMrc == null ? Collections.emptyList() : scaledMrc;
     }
 
-    public List<QuickMRC.MRCPoint> getScaledMrc() {
+    public List<GenerateMRC.MRCPoint> getScaledMrc() {
         return scaledMrc;
     }
 }
+
