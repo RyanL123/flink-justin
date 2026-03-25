@@ -22,7 +22,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.View;
-import org.apache.flink.runtime.metrics.dump.StackDistanceHistogramProvider;
+import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 
 import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyHandle;
@@ -40,7 +40,6 @@ import javax.annotation.concurrent.GuardedBy;
 
 import java.io.Closeable;
 import java.math.BigInteger;
-import java.util.Arrays;
 
 /**
  * A monitor which pulls {{@link RocksDB}} native metrics and forwards them to Flink's metric group.
@@ -94,12 +93,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
         }
     }
 
-    /**
-     * Registers the stack distance histogram metric if enabled. The histogram is registered as a
-     * Gauge so it flows through the standard metric registration path, but the {@link
-     * MetricQueryService} routes it to a dedicated map because it also implements {@link
-     * StackDistanceHistogramProvider}.
-     */
+    /** Registers the stack distance histogram metric if enabled. */
     private void registerStackDistanceHistogram() {
         if (options.isStackDistanceHistogramEnabled()) {
             LOG.info("Registering stack distance histogram metric for RocksDB.");
@@ -255,33 +249,27 @@ public class RocksDBNativeMetricMonitor implements Closeable {
         }
     }
 
-    /**
-     * A stack distance histogram metric that fetches bucket counts from RocksDB on demand. It
-     * implements both {@link StackDistanceHistogramProvider} (for the on-demand pull via {@link
-     * MetricQueryService}) and {@link Gauge} (so it can be registered through the standard {@code
-     * metricGroup.gauge()} path).
-     *
-     * <p>The {@link MetricQueryService#addMetric} method checks for {@code
-     * StackDistanceHistogramProvider} before {@code Gauge}, so this metric is routed to the
-     * dedicated stack distance histogram map rather than the gauges map.
-     */
-    class RocksDBStackDistanceHistogramView
-            implements StackDistanceHistogramProvider, Gauge<String> {
+    /** A stack distance histogram gauge updated by the shared {@link View} update cycle. */
+    class RocksDBStackDistanceHistogramView extends RocksDBNativeView implements Gauge<String> {
 
         @Nullable private final LRUCache viewLruCache;
+        private StackDistanceHistogram latestHistogram = new StackDistanceHistogram(new long[0], 1);
 
         RocksDBStackDistanceHistogramView(@Nullable LRUCache lruCache) {
             this.viewLruCache = lruCache;
         }
 
         @Override
-        public long[] fetchBucketCounts() {
+        public void update() {
             synchronized (lock) {
-                LOG.info("Fetching stack distance histogram from RocksDB for metric group: {}", metricGroup.getScopeComponents().toString());
+                if (isClosed()) {
+                    return;
+                }
                 if (viewLruCache == null) {
                     LOG.debug(
                             "LRUCache reference is null, returning empty stack distance histogram.");
-                    return new long[0];
+                    latestHistogram = new StackDistanceHistogram(new long[0], 1);
+                    return;
                 }
                 try {
                     long[] histogramCounts = viewLruCache.getStackDistanceHistogram();
@@ -289,22 +277,27 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                     if (histogramCounts == null) {
                         LOG.warn(
                                 "RocksDB returned null stack distance histogram, returning empty counts.");
-                        return new long[0];
+                        latestHistogram = new StackDistanceHistogram(new long[0], 1);
+                        return;
                     }
 
-                    return histogramCounts;
+                    latestHistogram = new StackDistanceHistogram(histogramCounts, 1);
                 } catch (RuntimeException e) {
                     LOG.warn("Failed to fetch stack distance histogram from RocksDB.", e);
-                    return new long[0];
+                    latestHistogram = new StackDistanceHistogram(new long[0], 1);
                 }
             }
         }
-
-
-
         @Override
         public String getValue() {
-            return Arrays.toString(fetchBucketCounts());
+            StackDistanceHistogram histogram;
+            synchronized (lock) {
+                histogram = latestHistogram;
+            }
+            if (histogram == null) {
+                histogram = new StackDistanceHistogram(new long[0], 1);
+            }
+            return histogram.toMetricString();
         }
     }
 }

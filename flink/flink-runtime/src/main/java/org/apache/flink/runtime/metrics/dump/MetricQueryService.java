@@ -26,7 +26,6 @@ import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.Histogram;
 import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.Metric;
-import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.rpc.RpcEndpoint;
@@ -37,9 +36,7 @@ import org.apache.flink.util.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -74,9 +71,6 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
     private final Map<Counter, Tuple2<QueryScopeInfo, String>> counters = new HashMap<>();
     private final Map<Histogram, Tuple2<QueryScopeInfo, String>> histograms = new HashMap<>();
     private final Map<Meter, Tuple2<QueryScopeInfo, String>> meters = new HashMap<>();
-    private final Map<StackDistanceHistogramProvider, Tuple2<QueryScopeInfo, String>>
-            stackDistanceHistograms = new HashMap<>();
-
     private final long messageSizeLimit;
 
     public MetricQueryService(RpcService rpcService, String endpointId, long messageSizeLimit) {
@@ -95,15 +89,7 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
                 () -> {
                     QueryScopeInfo info = group.getQueryServiceMetricInfo(FILTER);
 
-                    // Check StackDistanceHistogramProvider first since it also implements Gauge
-                    if (metric instanceof StackDistanceHistogramProvider) {
-                        LOG.debug(
-                                "Registering stack distance histogram provider: {}.",
-                                FILTER.filterCharacters(metricName));
-                        stackDistanceHistograms.put(
-                                (StackDistanceHistogramProvider) metric,
-                                new Tuple2<>(info, FILTER.filterCharacters(metricName)));
-                    } else if (metric instanceof Counter) {
+                    if (metric instanceof Counter) {
                         counters.put(
                                 (Counter) metric,
                                 new Tuple2<>(info, FILTER.filterCharacters(metricName)));
@@ -126,10 +112,7 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
     public void removeMetric(Metric metric) {
         runAsync(
                 () -> {
-                    // Check StackDistanceHistogramProvider first since it also implements Gauge
-                    if (metric instanceof StackDistanceHistogramProvider) {
-                        this.stackDistanceHistograms.remove(metric);
-                    } else if (metric instanceof Counter) {
+                    if (metric instanceof Counter) {
                         this.counters.remove(metric);
                     } else if (metric instanceof Gauge) {
                         this.gauges.remove(metric);
@@ -146,43 +129,6 @@ public class MetricQueryService extends RpcEndpoint implements MetricQueryServic
             Time timeout) {
         return callAsync(
                 () -> enforceSizeLimit(serializer.serialize(counters, gauges, histograms, meters)),
-                TimeUtils.toDuration(timeout));
-    }
-
-    @Override
-    public CompletableFuture<List<StackDistanceHistogram>> queryStackDistanceHistograms(Time timeout) {
-        return callAsync(
-                () -> {
-                    LOG.debug(
-                            "Querying {} registered stack distance histogram providers.",
-                            stackDistanceHistograms.size());
-                    List<StackDistanceHistogram> results = new ArrayList<>();
-                    for (Map.Entry<StackDistanceHistogramProvider, Tuple2<QueryScopeInfo, String>>
-                            entry : stackDistanceHistograms.entrySet()) {
-                        try {
-                            StackDistanceHistogramProvider provider = entry.getKey();
-                            QueryScopeInfo info = entry.getValue().f0;
-                            String name = entry.getValue().f1;
-                            StackDistanceHistogram providerHistogram =
-                                    provider.fetchStackDistanceHistograms();
-                            results.add(
-                                    new StackDistanceHistogram(
-                                            providerHistogram.getBucketCounts(),
-                                            providerHistogram.getNumPartitions(),
-                                            info,
-                                            name));
-                        } catch (Exception e) {
-                            LOG.warn(
-                                    "Failed to fetch stack distance histogram for '{}'.",
-                                    entry.getValue().f1,
-                                    e);
-                        }
-                    }
-                    LOG.debug(
-                            "Returning {} stack distance histogram results.",
-                            results.size());
-                    return results;
-                },
                 TimeUtils.toDuration(timeout));
     }
 

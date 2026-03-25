@@ -19,25 +19,14 @@
 package org.apache.flink.runtime.webmonitor.retriever;
 
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.metrics.dump.MetricDumpSerialization;
 import org.apache.flink.runtime.metrics.dump.MetricQueryService;
 import org.apache.flink.runtime.rpc.RpcGateway;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /** {@link MetricQueryService} rpc gateway interface. */
 public interface MetricQueryServiceGateway extends RpcGateway {
 
     CompletableFuture<MetricDumpSerialization.MetricSerializationResult> queryMetrics(Time timeout);
-
-    /**
-     * Queries all registered stack distance histograms on demand. Each registered provider fetches
-     * its current bucket counts from the backing store (e.g. RocksDB) when this method is called.
-     *
-     * @param timeout the timeout for the RPC call
-     * @return a list of stack distance histogram results
-     */
-    CompletableFuture<List<StackDistanceHistogram>> queryStackDistanceHistograms(Time timeout);
 }

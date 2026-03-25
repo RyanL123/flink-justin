@@ -19,7 +19,6 @@
 package org.apache.flink.runtime.rest.handler.legacy.metrics;
 
 import org.apache.flink.annotation.VisibleForTesting;
-import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails.CurrentAttempts;
 import org.apache.flink.runtime.metrics.MetricNames;
@@ -48,7 +47,6 @@ import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_C
 import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_GAUGE;
 import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_HISTOGRAM;
 import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_METER;
-import static org.apache.flink.runtime.metrics.dump.MetricDump.METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM;
 import static org.apache.flink.runtime.metrics.dump.QueryScopeInfo.INFO_CATEGORY_JM;
 import static org.apache.flink.runtime.metrics.dump.QueryScopeInfo.INFO_CATEGORY_JM_OPERATOR;
 import static org.apache.flink.runtime.metrics.dump.QueryScopeInfo.INFO_CATEGORY_JOB;
@@ -455,11 +453,6 @@ public class MetricStore {
             case METRIC_CATEGORY_METER:
                 MetricDump.MeterDump meter = (MetricDump.MeterDump) metric;
                 target.put(name, String.valueOf(meter.rate));
-                break;
-            case METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM:
-                MetricDump.StackDistanceHistogramDump sdHistogram =
-                        (MetricDump.StackDistanceHistogramDump) metric;
-                target.put(name, new StackDistanceHistogram(sdHistogram.bucketCounts, 1).toMetricString());
                 break;
         }
     }

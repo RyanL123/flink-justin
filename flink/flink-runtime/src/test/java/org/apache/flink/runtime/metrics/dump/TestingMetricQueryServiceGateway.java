@@ -19,13 +19,10 @@
 package org.apache.flink.runtime.metrics.dump;
 
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceGateway;
 
 import javax.annotation.Nonnull;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -51,11 +48,6 @@ public class TestingMetricQueryServiceGateway implements MetricQueryServiceGatew
     public CompletableFuture<MetricDumpSerialization.MetricSerializationResult> queryMetrics(
             Time timeout) {
         return queryMetricsSupplier.get();
-    }
-
-    @Override
-    public CompletableFuture<List<StackDistanceHistogram>> queryStackDistanceHistograms(Time timeout) {
-        return CompletableFuture.completedFuture(Collections.emptyList());
     }
 
     @Override

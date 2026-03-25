@@ -28,7 +28,6 @@ public abstract class MetricDump {
     public static final byte METRIC_CATEGORY_GAUGE = 1;
     public static final byte METRIC_CATEGORY_HISTOGRAM = 2;
     public static final byte METRIC_CATEGORY_METER = 3;
-    public static final byte METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM = 4;
 
     /** The scope information for the stored metric. */
     public final QueryScopeInfo scopeInfo;
@@ -152,24 +151,6 @@ public abstract class MetricDump {
         @Override
         public byte getCategory() {
             return METRIC_CATEGORY_METER;
-        }
-    }
-
-    /** Container for the bucket counts of a stack distance histogram. */
-    public static class StackDistanceHistogramDump extends MetricDump {
-        public final long[] bucketCounts;
-
-        public StackDistanceHistogramDump(
-                QueryScopeInfo scopeInfo,
-                String name,
-                long[] bucketCounts) {
-            super(scopeInfo, name);
-            this.bucketCounts = Preconditions.checkNotNull(bucketCounts);
-        }
-
-        @Override
-        public byte getCategory() {
-            return METRIC_CATEGORY_STACK_DISTANCE_HISTOGRAM;
         }
     }
 }
