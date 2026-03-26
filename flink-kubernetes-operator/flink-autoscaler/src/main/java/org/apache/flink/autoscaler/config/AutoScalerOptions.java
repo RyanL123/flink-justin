@@ -432,7 +432,7 @@ public class AutoScalerOptions {
     public static final ConfigOption<Double> A4S_MISS_LATENCY_SEC =
             autoScalerConfig("a4s.miss-latency-sec")
                     .doubleType()
-                    .defaultValue(5e-6 * 100)
+                    .defaultValue(5e-6 * 1000)
                     .withDescription(
                             "Latency (in sec) for a cache miss operation.");
 
