@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -28,9 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class MemoryParallelismCurveTest {
     @Test
     void testFromMissRateCurve_invalidLatencies_throwsException() {
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.5)
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.5)
+        ));
 
         // missLatencyMs <= hitLatencyMs should throw
         assertThrows(IllegalArgumentException.class, () ->
@@ -43,13 +45,13 @@ public class MemoryParallelismCurveTest {
     @Test
     void testFromMissRateCurve_basicCurveGeneration() {
         // Create MRC with decreasing miss rates as memory increases
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(50.0, 0.9)
-                .addPoint(100.0, 0.7)
-                .addPoint(200.0, 0.5)
-                .addPoint(400.0, 0.3)
-                .addPoint(800.0, 0.1)
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(50L, 0.9),
+                new MissRateCurve.Point(100L, 0.7),
+                new MissRateCurve.Point(200L, 0.5),
+                new MissRateCurve.Point(400L, 0.3),
+                new MissRateCurve.Point(800L, 0.1)
+            ));
 
         // targetThroughput = 100 rec/s, missLatency = 20ms, hitLatency = 5ms
         // Formula: maxMissRate = ((parallelism / throughput) - hitLatency) / (missLatency - hitLatency)
@@ -67,12 +69,12 @@ public class MemoryParallelismCurveTest {
 
     @Test
     void testFromMissRateCurve_respectsParallelismBounds() {
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.1)  // Low miss rate, all parallelisms should find this
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L , 0.01)  // Low miss rate, all parallelisms should find this
+            ));
 
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                1000.0, 0.02, 0.005, 5, 10, mrc);
+                10000.0, 5e-3, 5e-6, 5, 10, mrc);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
 
@@ -83,41 +85,25 @@ public class MemoryParallelismCurveTest {
     }
 
     @Test
-    void testFromMissRateCurve_skipsNegativeMissRate() {
-        // When maxMissRate is negative, that parallelism should be skipped
-        // maxMissRate < 0 when (parallelism / throughput) < hitLatency
-        // i.e., parallelism < throughput * hitLatency
+    void testFromMissRateCurve_negativeMissRateThrowsException() {
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.5)
+            ));
 
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.5)
-                .build();
-
-        // With throughput=1000, hitLatency=10ms (0.01s)
-        // parallelism 1: (1/1000) = 0.001 < 0.01 => negative miss rate, skipped
-        // parallelism 10: (10/1000) = 0.01 == 0.01 => miss rate = 0, ok
-        // parallelism 20: (20/1000) = 0.02 > 0.01 => positive miss rate, ok
-        MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
+        assertThrows(IllegalStateException.class, () -> MemoryParallelismCurve.fromMissRateCurve(
                 1000.0,  // targetThroughput
-                0.02,    // missLatencySec
-                0.005,    // hitLatencySec
-                1, 24, mrc);
-
-        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
-
-        // Parallelisms with negative miss rate should be skipped
-        // parallelism 1-9 should be skipped (maxMissRate < 0)
-        for (MemoryParallelismCurve.CurvePoint point : points) {
-            assertThat(point.getParallelism()).isGreaterThanOrEqualTo(10);
-        }
+                5e-2,    // missLatencySec
+                5e-3,    // hitLatencySec
+                1, 24, mrc));
     }
 
     @Test
     void testFromMissRateCurve_clampsMissRateToOne() {
         // When maxMissRate > 1.0, it should be clamped to 1.0
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(50.0, 1.0)   // Accepts miss rate up to 1.0
-                .addPoint(100.0, 0.5)
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(50L, 1.0),
+                new MissRateCurve.Point(100L, 0.5)
+            ));
 
         // High parallelism relative to throughput will give maxMissRate > 1.0
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
@@ -131,43 +117,39 @@ public class MemoryParallelismCurveTest {
     }
 
     @Test
-    void testFromMissRateCurve_noPointsWhenMrcCannotSatisfy() {
+    void testFromMissRateCurve_plateauRegion() {
         // MRC with only high miss rates
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.9)
-                .addPoint(200.0, 0.8)
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100 * 1024 * 1024, 0.9),
+                new MissRateCurve.Point(200 * 1024 * 1024, 0.8)
+            ));
 
         // With very high throughput, required miss rate will be very low
-        // maxMissRate for parallelism 1: ((1/10000) - 0.001) / 0.009 = -0.0011 / 0.009 < 0 => skipped
-        // Even if not skipped, MRC can't satisfy miss rates below 0.8
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                10000.0,  // Very high throughput
-                0.01,     // missLatencySec
-                0.001,      // hitLatencySec
-                1, 5, mrc);
+                10000.0,  // targetThroughputPerSec
+                5e-3,     // missLatencySec
+                5e-6,      // hitLatencySec
+                1, 24, mrc);
 
-        // Most or all parallelisms should be skipped due to negative miss rate
-        // or unable to find memory in MRC
-        assertThat(mpc.getPoints().size()).isLessThanOrEqualTo(5);
+        assertThat(mpc.getPoints().size()).isEqualTo(24);
     }
 
     @Test
     void testFromMissRateCurve_memoryDecreaseWithParallelism() {
         // Higher parallelism allows higher miss rate, which requires less memory
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.9)
-                .addPoint(200.0, 0.7)
-                .addPoint(400.0, 0.5)
-                .addPoint(800.0, 0.3)
-                .addPoint(1600.0, 0.1)
-                .build();
+                MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100 * 1024 * 1024, 0.9),
+                new MissRateCurve.Point(200 * 1024 * 1024, 0.7),
+                new MissRateCurve.Point(400 * 1024 * 1024, 0.5),
+                new MissRateCurve.Point(800 * 1024 * 1024, 0.3),
+                new MissRateCurve.Point(1600 * 1024 * 1024, 0.1)
+            ));
 
         // With reasonable params, higher parallelism should map to lower memory
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
-                100.0,
-                100.0,
-                0.01,
+                10000.0,
+                5e-3,
+                5e-6,
                 1, 10, mrc);
 
         List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
@@ -186,9 +168,9 @@ public class MemoryParallelismCurveTest {
 
     @Test
     void testFromMissRateCurve_singleParallelism() {
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.5)
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.5)
+            ));
 
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 100.0, 0.02, 0.005, 5, 5, mrc);
@@ -208,10 +190,10 @@ public class MemoryParallelismCurveTest {
         // maxMissRate = ((parallelism / throughput) - hitLatencySec) / (missLatencySec - hitLatencySec)
 
         // Set up MRC with known miss rates
-        MissRateCurve mrc = new MissRateCurve.Builder()
-                .addPoint(100.0, 0.5)   // 100MB gives 0.5 miss rate
-                .addPoint(200.0, 0.25)  // 200MB gives 0.25 miss rate
-                .build();
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100 * 1024 * 1024, 0.5),   // 100MB gives 0.5 miss rate
+                new MissRateCurve.Point(200 * 1024 * 1024, 0.25)  // 200MB gives 0.25 miss rate
+            ));
 
         // throughput = 100, missLatency = 0.02s (20ms), hitLatency = 0.01s (10ms)
         // For parallelism 2:

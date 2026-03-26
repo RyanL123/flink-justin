@@ -30,7 +30,7 @@ import org.apache.flink.autoscaler.utils.AutoScalerUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 
-import org.apache.flink.autoscaler.a4s.MissRateCurve;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.autoscaler.a4s.MemoryParallelismCurve;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

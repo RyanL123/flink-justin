@@ -19,8 +19,7 @@ package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
 
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.autoscaler.config.AutoScalerOptions;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,9 +187,8 @@ public class MemoryParallelismCurve {
             double maximumMissRate = ((parallelism / targetThroughputPerSec) - hitLatencySec) / latencyDiff;
 
             // It's impossible to achieve the desired throughput with the given parallelism and hit latency
-            if (maximumMissRate < 0) {
-                LOG.debug("Parallelism {} requires negative miss rate {}, skipping", parallelism, maximumMissRate);
-                continue;
+            if (maximumMissRate <= 0) {
+                throw new IllegalStateException(String.format("Maximum miss-rate <= 0. parallelism=%d targetThroughput=%f hitLatencySec=%f missLatencySec=%f", parallelism, targetThroughputPerSec, hitLatencySec, missLatencySec));
             }
 
             // Perhaps any level miss rate is acceptable, so we clamp to 1.0
@@ -199,17 +197,9 @@ public class MemoryParallelismCurve {
                 maximumMissRate = 1.0;
             }
 
-            // This is the minimum memory required to achieve the miss rate we want (or less)
-            Optional<Double> memoryMB = mrc.leastMemoryMbForMissRate(maximumMissRate);
-
-            if (memoryMB.isEmpty()) {
-                LOG.warn("Not possible to achieve miss rate {} for parallelism {}, skipping", maximumMissRate, parallelism);
-            }
-            else {
-                builder.addPoint(parallelism, memoryMB.get());
-            }
+            double memoryMB = mrc.leastMemoryBytesForMissRate(maximumMissRate) / (1024.0 * 1024.0);
+            builder.addPoint(parallelism, memoryMB);
         }
-
         return builder.build();
     }
 }

@@ -18,7 +18,7 @@
 package org.apache.flink.autoscaler;
 
 import org.apache.flink.api.common.JobID;
-import org.apache.flink.autoscaler.a4s.MissRateCurve;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.autoscaler.metrics.FlinkMetric;
 import org.apache.flink.client.program.rest.RestClusterClient;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
@@ -26,8 +26,8 @@ import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregateTaskManagerMetricsParameters;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsHeaders;
@@ -143,18 +143,7 @@ public class RestApiMetricsCollector<KEY, Context extends JobAutoScalerContext<K
                                     parameters,
                                     EmptyRequestBody.getInstance())
                             .get();
-
-            if (responseBody.getScaledMrc().isEmpty()) {
-                return null;
-            }
-
-            MissRateCurve.Builder builder = new MissRateCurve.Builder();
-            for (A4SAggregatedMetricsResponseBody.MRCPoint point : responseBody.getScaledMrc()) {
-                double cacheSizeMb = point.getCacheSizeBytes() / (1024.0 * 1024.0);
-                builder.addPoint(cacheSizeMb, point.getMissRate());
-            }
-            MissRateCurve missRateCurve = builder.build();
-            return missRateCurve;
+            return responseBody.getScaledMrc();
         } catch (Exception e) {
             LOG.debug(
                     "Unable to fetch A4S miss-rate curve for job {}, vertex {}, continuing without MRC",

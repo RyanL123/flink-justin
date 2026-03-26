@@ -28,7 +28,7 @@ import org.apache.flink.autoscaler.metrics.FlinkMetric;
 import org.apache.flink.autoscaler.metrics.MetricNotFoundException;
 import org.apache.flink.autoscaler.metrics.ScalingMetric;
 import org.apache.flink.autoscaler.metrics.ScalingMetrics;
-import org.apache.flink.autoscaler.a4s.MissRateCurve;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.autoscaler.state.AutoScalerStateStore;
 import org.apache.flink.autoscaler.topology.IOMetrics;
 import org.apache.flink.autoscaler.topology.JobTopology;

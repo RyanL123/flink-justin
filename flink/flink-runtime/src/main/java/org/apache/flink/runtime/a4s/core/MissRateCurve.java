@@ -1,10 +1,4 @@
 package org.apache.flink.runtime.a4s.core;
-/*
- * MissRateCurve - Miss Rate Curve computation from Stack Histograms
- *
- * Based on Quickmrc design (Section 3.4.2) from the A4S paper.
- * Computes unscaled and scaled miss rate curves from merged stack distance histograms.
- */
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,27 +7,9 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonVal
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Comparator;
 
-/**
- * Computes Miss Rate Curves (MRC) from merged StackDistanceHistogram objects.
- *
- * <p>The MRC shows the miss rate as a function of cache size. Given a merged stack distance
- * histogram, we can compute:
- *
- * <ul>
- *   <li><b>Unscaled MRC</b>: Raw miss rate curve (cache size vs miss rate)
- *   <li><b>Scaled MRC</b>: Horizontally scaled curve: cache size is scaled by number of tasks (per
- *       the paper); miss rate is unchanged.
- * </ul>
- *
- * <p>For a given cache size S:
- *
- * <ul>
- *   <li>Miss rate = (sum of frequencies for stack distances > S) / total accesses
- *   <li>Or equivalently: miss rate = 1 - (cumulative frequency for stack distances <= S) / total
- *       accesses
- * </ul>
- */
 public class MissRateCurve {
     private static final long CACHE_ITEM_SIZE_BYTES = 4096L;
     private final List<Point> points;
@@ -115,6 +91,40 @@ public class MissRateCurve {
         }
 
         return new MissRateCurve(scaledMrc);
+    }
+
+    public double leastMemoryBytesForMissRate(double maxMissRate) {
+        if (points.isEmpty()) {
+            throw new IllegalStateException("MissRateCurve has no points");
+        }
+
+        Optional<Point> bestPoint = points.stream().
+            filter(point -> point.getMissRate() <= maxMissRate).
+            min(Comparator.comparingDouble(Point::getCacheSizeBytes));
+
+        if (bestPoint.isPresent()) {
+            return bestPoint.get().getCacheSizeBytes();
+        }
+
+        // At this point, no point on the MRC can achieve the miss rate we want
+        // We can just return the last point, but our MRC may be entering a
+        // plateau region so returning the last point may be wasteful.
+        // In this case, we attempt to detect the start of the plateau
+        // and return the cache size at that point.
+        if (points.size() == 1) {
+            return points.get(0).getCacheSizeBytes();
+        }
+
+        // We say we're entering a plateau region if the rate of decrease 
+        // in missrate between consecutive points is less than some threshold
+        for (int i = 1; i < points.size(); i++) {
+            double currentDifference = points.get(i - 1).getMissRate() - points.get(i).getMissRate();
+            if (currentDifference < 0.01) {
+                return points.get(i - 1).getCacheSizeBytes();
+            }
+        }
+
+        return points.get(points.size() - 1).getCacheSizeBytes();
     }
 
     @Override

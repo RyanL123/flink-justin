@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MissRateCurveTest {
     @Test
@@ -32,5 +30,50 @@ class MissRateCurveTest {
                     scaled.getPoints().get(i).getMissRate(),
                     0.0001);
         }
+    }
+
+    @Test
+    void testLeastMemoryBytesForMissRate_simpleCase() {
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.5),
+                new MissRateCurve.Point(200L, 0.2),
+                new MissRateCurve.Point(300L, 0.1)
+        ));
+
+        assertEquals(100L, mrc.leastMemoryBytesForMissRate(0.5));
+        assertEquals(200L, mrc.leastMemoryBytesForMissRate(0.2));
+        assertEquals(300L, mrc.leastMemoryBytesForMissRate(0.1));
+    }
+
+    @Test
+    void testLeastMemoryBytesForMissRate_plateauCase() {
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.6),
+                new MissRateCurve.Point(200L, 0.5),
+                new MissRateCurve.Point(300L, 0.4),
+                new MissRateCurve.Point(400L, 0.38),
+                new MissRateCurve.Point(500L, 0.37)
+            ));
+
+        assertEquals(500L, mrc.leastMemoryBytesForMissRate(0.3));
+    }
+
+    @Test
+    void testLeastMemoryBytesForMissRate_noPointFoundOnePoint() {
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.5)
+            ));
+
+        assertEquals(100L, mrc.leastMemoryBytesForMissRate(0.3));
+    }
+
+    @Test
+    void testLeastMemoryBytesForMissRate_noPointFoundTwoPoints() {
+        MissRateCurve mrc = new MissRateCurve(List.of(
+                new MissRateCurve.Point(100L, 0.5),
+                new MissRateCurve.Point(200L, 0.49)
+            ));
+
+        assertEquals(200L, mrc.leastMemoryBytesForMissRate(0.3));
     }
 }
