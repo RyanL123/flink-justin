@@ -28,16 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Memory-Parallelism Curve (MPC) as described in the A4S paper.
- *
- * <p>The curve shows the minimum operator memory size needed for a given level of parallelism
- * to achieve a target throughput. This allows trading memory for parallelism and vice versa.
- *
- * <p>Key insight: For stateful operators, memory and parallelism are correlated when
- * achieving a certain throughput. More memory can reduce IO operations (cache hits),
- * potentially allowing lower parallelism to achieve the same throughput.
- */
 public class MemoryParallelismCurve {
 
     private static final Logger LOG = LoggerFactory.getLogger(MemoryParallelismCurve.class);
@@ -50,11 +40,9 @@ public class MemoryParallelismCurve {
     @Getter
     private final List<CurvePoint> points;
 
-    /** Minimum parallelism on this curve. */
     @Getter
     private final int minParallelism;
 
-    /** Maximum parallelism on this curve. */
     @Getter
     private final int maxParallelism;
 
@@ -103,18 +91,13 @@ public class MemoryParallelismCurve {
     }
 
     /**
-     * Get the minimum memory required for a given parallelism level.
-     *
-     * @param parallelism the parallelism level
-     * @return the minimum memory in MB, or empty if no point exists for the given parallelism
+     * @return The memory in MB for the associated parallelism level, or empty if no point exists for the given parallelism
      */
     public Optional<Double> getMemoryMbForParallelism(int parallelism) {
-        for (CurvePoint point : points) {
-            if (point.getParallelism() == parallelism) {
-                return Optional.of(point.getMemoryMB());
-            }
-        }
-        return Optional.empty();
+        return points.stream()
+            .filter(point -> point.getParallelism() == parallelism)
+            .map(CurvePoint::getMemoryMB)
+            .findFirst();
     }
 
     @Override
@@ -164,6 +147,8 @@ public class MemoryParallelismCurve {
      * @param targetThroughputPerSec the target throughput in records/sec
      * @param missLatencySec the latency (in sec) for a cache miss operation
      * @param hitLatencySec the latency (in sec) for a cache hit operation
+     * @param minParallelism the minimum parallelism level
+     * @param maxParallelism the maximum parallelism level
      * @param mrc the MissRateCurve to derive memory requirements from
      * @return a MemoryParallelismCurve
      */
