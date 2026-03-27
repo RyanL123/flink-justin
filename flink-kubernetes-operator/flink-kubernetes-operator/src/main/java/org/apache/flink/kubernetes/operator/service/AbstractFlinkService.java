@@ -77,7 +77,7 @@ import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointStatusMessag
 import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointTriggerHeaders;
 import org.apache.flink.runtime.rest.messages.checkpoints.CheckpointTriggerRequestBody;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsParameters;
 import org.apache.flink.runtime.rest.messages.job.metrics.JobMetricsHeaders;
 import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalRequest;

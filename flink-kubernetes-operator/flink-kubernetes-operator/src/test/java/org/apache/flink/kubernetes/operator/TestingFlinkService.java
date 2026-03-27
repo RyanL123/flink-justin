@@ -51,6 +51,7 @@ import org.apache.flink.kubernetes.operator.service.AbstractFlinkService;
 import org.apache.flink.kubernetes.operator.service.CheckpointHistoryWrapper;
 import org.apache.flink.kubernetes.operator.service.SuspendMode;
 import org.apache.flink.kubernetes.operator.standalone.StandaloneKubernetesConfigOptionsInternal;
+import org.apache.flink.runtime.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.execution.ExecutionState;
 import org.apache.flink.runtime.instance.SlotSharingGroupId;
@@ -68,8 +69,8 @@ import org.apache.flink.runtime.rest.messages.EmptyResponseBody;
 import org.apache.flink.runtime.rest.messages.JobsOverviewHeaders;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsHeaders;
 import org.apache.flink.runtime.rest.messages.job.JobDetailsInfo;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
-import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
+import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetric;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedMetricsResponseBody;
 import org.apache.flink.runtime.rest.messages.job.metrics.AggregatedSubtaskMetricsHeaders;
@@ -524,7 +525,7 @@ public class TestingFlinkService extends AbstractFlinkService {
     }
 
     private A4SAggregatedMetricsResponseBody getA4SMetrics() {
-        return new A4SAggregatedMetricsResponseBody(Collections.emptyList());
+        return new A4SAggregatedMetricsResponseBody(new MissRateCurve(Collections.emptyList()));
     }
 
     private static JobDetails toJobDetails(JobStatusMessage jobStatus) {
