@@ -38,7 +38,7 @@ public class MemoryParallelismCurve {
 
     /** List of (parallelism, memory) points on the curve, sorted by parallelism ascending. */
     @Getter
-    private final List<CurvePoint> points;
+    private final List<Point> points;
 
     @Getter
     private final int minParallelism;
@@ -52,7 +52,7 @@ public class MemoryParallelismCurve {
      * x-axis: parallelism
      * y-axis: memory in MB
      */
-    public static class CurvePoint implements Comparable<CurvePoint> {
+    public static class Point implements Comparable<Point> {
         @Getter
         private final int parallelism;
         
@@ -60,13 +60,13 @@ public class MemoryParallelismCurve {
         @Getter
         private final double memoryMB;
 
-        public CurvePoint(int parallelism, double memoryMB) {
+        public Point(int parallelism, double memoryMB) {
             this.parallelism = parallelism;
             this.memoryMB = memoryMB;
         }
 
         @Override
-        public int compareTo(CurvePoint other) {
+        public int compareTo(Point other) {
             return Integer.compare(this.parallelism, other.parallelism);
         }
 
@@ -76,7 +76,7 @@ public class MemoryParallelismCurve {
         }
     }
 
-    public MemoryParallelismCurve(double targetThroughput, List<CurvePoint> points) {
+    public MemoryParallelismCurve(double targetThroughput, List<Point> points) {
         this.targetThroughput = targetThroughput;
         this.points = new ArrayList<>(points);
         Collections.sort(this.points);
@@ -96,7 +96,7 @@ public class MemoryParallelismCurve {
     public Optional<Double> getMemoryMbForParallelism(int parallelism) {
         return points.stream()
             .filter(point -> point.getParallelism() == parallelism)
-            .map(CurvePoint::getMemoryMB)
+            .map(Point::getMemoryMB)
             .findFirst();
     }
 
@@ -110,7 +110,7 @@ public class MemoryParallelismCurve {
      */
     public static class Builder {
         private double targetThroughput;
-        private final List<CurvePoint> points = new ArrayList<>();
+        private final List<Point> points = new ArrayList<>();
 
         public Builder targetThroughput(double throughput) {
             this.targetThroughput = throughput;
@@ -118,7 +118,7 @@ public class MemoryParallelismCurve {
         }
 
         public Builder addPoint(int parallelism, double memoryMB) {
-            points.add(new CurvePoint(parallelism, memoryMB));
+            points.add(new Point(parallelism, memoryMB));
             return this;
         }
 

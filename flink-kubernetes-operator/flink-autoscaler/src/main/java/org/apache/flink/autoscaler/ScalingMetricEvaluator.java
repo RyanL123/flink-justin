@@ -644,7 +644,7 @@ public class ScalingMetricEvaluator {
         int minParallelism = conf.get(AutoScalerOptions.VERTEX_MIN_PARALLELISM);
         int maxParallelism = conf.get(AutoScalerOptions.VERTEX_MAX_PARALLELISM);
 
-        List<MemoryParallelismCurve.CurvePoint> points = new ArrayList<>();
+        List<MemoryParallelismCurve.Point> points = new ArrayList<>();
 
         for (int p = minParallelism; p <= maxParallelism; p++) {
             // Calculate memory for parallelism p based on the current point
@@ -652,7 +652,7 @@ public class ScalingMetricEvaluator {
             int parallelismDiff = p - currentParallelism;
             double memoryMB = currentMemoryMB * Math.pow(SCALING_RATIO, parallelismDiff);
 
-            points.add(new MemoryParallelismCurve.CurvePoint(p, memoryMB));
+            points.add(new MemoryParallelismCurve.Point(p, memoryMB));
         }
 
         return new MemoryParallelismCurve(targetThroughput, points);

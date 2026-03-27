@@ -76,10 +76,10 @@ public class MemoryParallelismCurveTest {
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 10000.0, 5e-3, 5e-6, 5, 10, mrc);
 
-        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
+        List<MemoryParallelismCurve.Point> points = mpc.getPoints();
 
         // All points should be within [5, 10]
-        for (MemoryParallelismCurve.CurvePoint point : points) {
+        for (MemoryParallelismCurve.Point point : points) {
             assertThat(point.getParallelism()).isBetween(5, 10);
         }
     }
@@ -152,14 +152,14 @@ public class MemoryParallelismCurveTest {
                 5e-6,
                 1, 10, mrc);
 
-        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
+        List<MemoryParallelismCurve.Point> points = mpc.getPoints();
 
         // Verify the curve has the expected inverse relationship
         // (higher parallelism generally means lower or equal memory)
         if (points.size() >= 2) {
             for (int i = 1; i < points.size(); i++) {
-                MemoryParallelismCurve.CurvePoint prev = points.get(i - 1);
-                MemoryParallelismCurve.CurvePoint curr = points.get(i);
+                MemoryParallelismCurve.Point prev = points.get(i - 1);
+                MemoryParallelismCurve.Point curr = points.get(i);
                 // Higher parallelism should have same or lower memory requirement
                 assertThat(curr.getMemoryMB()).isLessThanOrEqualTo(prev.getMemoryMB());
             }
@@ -175,7 +175,7 @@ public class MemoryParallelismCurveTest {
         MemoryParallelismCurve mpc = MemoryParallelismCurve.fromMissRateCurve(
                 100.0, 0.02, 0.005, 5, 5, mrc);
 
-        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
+        List<MemoryParallelismCurve.Point> points = mpc.getPoints();
 
         // Should have at most 1 point
         assertThat(points.size()).isLessThanOrEqualTo(1);
@@ -208,7 +208,7 @@ public class MemoryParallelismCurveTest {
 
         // With maxMissRate = 0 for parallelism 1, no MRC point satisfies (both have > 0 miss rate)
         // With maxMissRate = 1.0 for parallelism 2, MRC returns 100.0 (smallest that satisfies <= 1.0)
-        List<MemoryParallelismCurve.CurvePoint> points = mpc.getPoints();
+        List<MemoryParallelismCurve.Point> points = mpc.getPoints();
 
         // Parallelism 2 should have memory 100.0 (first point that satisfies maxMissRate = 1.0)
         boolean hasParallelism2 = points.stream()

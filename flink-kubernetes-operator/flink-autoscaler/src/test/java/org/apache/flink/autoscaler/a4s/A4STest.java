@@ -49,9 +49,9 @@ public class A4STest {
         JobTopology topology = new JobTopology(new VertexInfo(operator, Map.of(), 1, 100));
 
         MemoryParallelismCurve mpc = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 800.0),
-                new MemoryParallelismCurve.CurvePoint(2, 500.0),
-                new MemoryParallelismCurve.CurvePoint(3, 350.0)));
+                new MemoryParallelismCurve.Point(1, 800.0),
+                new MemoryParallelismCurve.Point(2, 500.0),
+                new MemoryParallelismCurve.Point(3, 350.0)));
 
         Map<ScalingMetric, EvaluatedScalingMetric> operatorMetrics = new HashMap<>();
         EvaluatedMetrics evaluatedMetrics =
@@ -88,10 +88,10 @@ public class A4STest {
 
         // MPC with multiple parallelism levels
         MemoryParallelismCurve mpc = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 800.0),
-                new MemoryParallelismCurve.CurvePoint(2, 500.0),
-                new MemoryParallelismCurve.CurvePoint(4, 300.0),
-                new MemoryParallelismCurve.CurvePoint(8, 200.0)));
+                new MemoryParallelismCurve.Point(1, 800.0),
+                new MemoryParallelismCurve.Point(2, 500.0),
+                new MemoryParallelismCurve.Point(4, 300.0),
+                new MemoryParallelismCurve.Point(8, 200.0)));
 
         Map<JobVertexID, Integer> parallelismForVertex = Map.of(operator1, parallelism);
         Map<JobVertexID, MemoryParallelismCurve> mpcs = Map.of(operator1, mpc);
@@ -114,11 +114,11 @@ public class A4STest {
         A4S a4s = new A4S(topology, new EvaluatedMetrics(Map.of(), Map.of()), Map.of());
 
         MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(2, 500.0),
-                new MemoryParallelismCurve.CurvePoint(4, 300.0)));
+                new MemoryParallelismCurve.Point(2, 500.0),
+                new MemoryParallelismCurve.Point(4, 300.0)));
         MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(3, 600.0),
-                new MemoryParallelismCurve.CurvePoint(6, 400.0)));
+                new MemoryParallelismCurve.Point(3, 600.0),
+                new MemoryParallelismCurve.Point(6, 400.0)));
 
         Map<JobVertexID, Integer> parallelismForVertex = Map.of(
                 operator1, 2,
@@ -149,7 +149,7 @@ public class A4STest {
 
         // Only operator2 has an MPC, operator1 is not in the map
         MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(3, 600.0)));
+                new MemoryParallelismCurve.Point(3, 600.0)));
 
         Map<JobVertexID, Integer> parallelismForVertex = Map.of(
                 operator1, 2,
@@ -193,8 +193,8 @@ public class A4STest {
 
         // MPC: parallelism 1 -> 800 MB, parallelism 2 -> 500 MB (decrease of 300)
         MemoryParallelismCurve mpc = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 800.0),
-                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+                new MemoryParallelismCurve.Point(1, 800.0),
+                new MemoryParallelismCurve.Point(2, 500.0)));
 
         Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
         parallelismForVertex.put(operator1, 1);
@@ -218,13 +218,13 @@ public class A4STest {
 
         // operator1: parallelism 1 -> 800, parallelism 2 -> 700 (decrease of 100)
         MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 800.0),
-                new MemoryParallelismCurve.CurvePoint(2, 700.0)));
+                new MemoryParallelismCurve.Point(1, 800.0),
+                new MemoryParallelismCurve.Point(2, 700.0)));
 
         // operator2: parallelism 1 -> 600, parallelism 2 -> 300 (decrease of 300 - larger)
         MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 600.0),
-                new MemoryParallelismCurve.CurvePoint(2, 300.0)));
+                new MemoryParallelismCurve.Point(1, 600.0),
+                new MemoryParallelismCurve.Point(2, 300.0)));
 
         Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
         parallelismForVertex.put(operator1, 1);
@@ -252,11 +252,11 @@ public class A4STest {
 
         // Both MPCs have max parallelism of 2
         MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 800.0),
-                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+                new MemoryParallelismCurve.Point(1, 800.0),
+                new MemoryParallelismCurve.Point(2, 500.0)));
         MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 600.0),
-                new MemoryParallelismCurve.CurvePoint(2, 300.0)));
+                new MemoryParallelismCurve.Point(1, 600.0),
+                new MemoryParallelismCurve.Point(2, 300.0)));
 
         // Both operators at max parallelism
         Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
@@ -283,15 +283,15 @@ public class A4STest {
 
         // operator1 has max parallelism of 2
         MemoryParallelismCurve mpc1 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 800.0),
-                new MemoryParallelismCurve.CurvePoint(2, 500.0)));
+                new MemoryParallelismCurve.Point(1, 800.0),
+                new MemoryParallelismCurve.Point(2, 500.0)));
 
         // operator2 has max parallelism of 4
         MemoryParallelismCurve mpc2 = new MemoryParallelismCurve(1000.0, List.of(
-                new MemoryParallelismCurve.CurvePoint(1, 600.0),
-                new MemoryParallelismCurve.CurvePoint(2, 400.0),
-                new MemoryParallelismCurve.CurvePoint(3, 350.0),
-                new MemoryParallelismCurve.CurvePoint(4, 300.0)));
+                new MemoryParallelismCurve.Point(1, 600.0),
+                new MemoryParallelismCurve.Point(2, 400.0),
+                new MemoryParallelismCurve.Point(3, 350.0),
+                new MemoryParallelismCurve.Point(4, 300.0)));
 
         // operator1 at max, operator2 can still increase
         Map<JobVertexID, Integer> parallelismForVertex = new HashMap<>();
