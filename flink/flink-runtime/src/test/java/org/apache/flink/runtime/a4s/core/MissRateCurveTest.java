@@ -11,9 +11,9 @@ class MissRateCurveTest {
     void testScaledMRC_horizontalScalingLogic() {
         long[] buckets = new long[] {5L, 3L, 2L, 0L};
         int partitions = 2;
-        StackDistanceHistogram histogram = new StackDistanceHistogram(buckets, partitions);
+        StackDistanceHistogram histogram = new StackDistanceHistogram(buckets, partitions, 1L);
 
-        MissRateCurve scaled = MissRateCurve.fromStackDistanceHistogram(histogram, 4096L, 1L);
+        MissRateCurve scaled = MissRateCurve.fromStackDistanceHistogram(histogram, 4096L);
 
         List<MissRateCurve.Point> expectedScaled =
                 List.of(

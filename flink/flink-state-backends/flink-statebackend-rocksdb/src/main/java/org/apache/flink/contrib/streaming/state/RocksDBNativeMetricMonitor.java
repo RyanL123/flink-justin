@@ -255,10 +255,13 @@ public class RocksDBNativeMetricMonitor implements Closeable {
     class RocksDBStackDistanceHistogramView extends RocksDBNativeView implements Gauge<String> {
 
         @Nullable private final LRUCache viewLruCache;
-        private StackDistanceHistogram latestHistogram = new StackDistanceHistogram(new long[0], 1);
+        private final long bucketSizeScaling;
+        private StackDistanceHistogram latestHistogram;
 
         RocksDBStackDistanceHistogramView(@Nullable LRUCache lruCache) {
             this.viewLruCache = lruCache;
+            this.bucketSizeScaling = options.getStackDistanceHistogramBucketSizeScaling();
+            this.latestHistogram = new StackDistanceHistogram(new long[0], 1, bucketSizeScaling);
         }
 
         @Override
@@ -268,31 +271,35 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                     return;
                 }
                 if (viewLruCache == null) {
+                    StackDistanceHistogram emptyHistogram =
+                            new StackDistanceHistogram(new long[0], 1, bucketSizeScaling);
                     LOG.debug(
                             "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=lru_cache_null",
                             A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
-                            new StackDistanceHistogram(new long[0], 1).getHistogramFingerprint(),
+                            emptyHistogram.getHistogramFingerprint(),
                             0,
                             1);
-                    latestHistogram = new StackDistanceHistogram(new long[0], 1);
+                    latestHistogram = emptyHistogram;
                     return;
                 }
                 try {
                     long[] histogramCounts = viewLruCache.getStackDistanceHistogram();
                     viewLruCache.resetQuickMRCStats();
                     if (histogramCounts == null) {
+                        StackDistanceHistogram emptyHistogram =
+                                new StackDistanceHistogram(new long[0], 1, bucketSizeScaling);
                         LOG.warn(
                                 "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=histogram_null",
                                 A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
-                                new StackDistanceHistogram(new long[0], 1)
-                                        .getHistogramFingerprint(),
+                                emptyHistogram.getHistogramFingerprint(),
                                 0,
                                 1);
-                        latestHistogram = new StackDistanceHistogram(new long[0], 1);
+                        latestHistogram = emptyHistogram;
                         return;
                     }
 
-                    latestHistogram = new StackDistanceHistogram(histogramCounts, 1);
+                    latestHistogram =
+                            new StackDistanceHistogram(histogramCounts, 1, bucketSizeScaling);
                     LOG.debug(
                             "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} totalFrequency={}",
                             A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATED.name(),
@@ -301,7 +308,8 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                             latestHistogram.getNumPartitions(),
                             latestHistogram.getTotalFrequency());
                 } catch (RuntimeException e) {
-                    StackDistanceHistogram empty = new StackDistanceHistogram(new long[0], 1);
+                    StackDistanceHistogram empty =
+                            new StackDistanceHistogram(new long[0], 1, bucketSizeScaling);
                     LOG.warn(
                             "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=exception message={}",
                             A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
@@ -322,7 +330,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 histogram = latestHistogram;
             }
             if (histogram == null) {
-                histogram = new StackDistanceHistogram(new long[0], 1);
+                histogram = new StackDistanceHistogram(new long[0], 1, bucketSizeScaling);
             }
             return histogram.toMetricString();
         }

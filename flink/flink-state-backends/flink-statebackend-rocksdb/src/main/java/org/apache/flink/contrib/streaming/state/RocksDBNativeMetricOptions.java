@@ -446,6 +446,8 @@ public class RocksDBNativeMetricOptions implements Serializable {
             RocksDBNativeMetricOptions options, ReadableConfig config) {
         if (config.get(MONITOR_STACK_DISTANCE_HISTOGRAM)) {
             options.enableStackDistanceHistogram();
+            options.setStackDistanceHistogramBucketSizeScaling(
+                    config.get(RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE));
         }
     }
 
@@ -469,6 +471,8 @@ public class RocksDBNativeMetricOptions implements Serializable {
     private final Set<TickerType> monitorTickerTypes;
     private boolean columnFamilyAsVariable = COLUMN_FAMILY_AS_VARIABLE.defaultValue();
     private boolean monitorStackDistanceHistogram = MONITOR_STACK_DISTANCE_HISTOGRAM.defaultValue();
+    private int stackDistanceHistogramBucketSizeScaling =
+            RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE.defaultValue();
 
     public RocksDBNativeMetricOptions() {
         this.properties = new HashSet<>();
@@ -672,6 +676,18 @@ public class RocksDBNativeMetricOptions implements Serializable {
     /** @return true if stack distance histogram metrics are enabled, false otherwise. */
     public boolean isStackDistanceHistogramEnabled() {
         return monitorStackDistanceHistogram;
+    }
+
+    public void setStackDistanceHistogramBucketSizeScaling(int bucketSizeScaling) {
+        if (bucketSizeScaling <= 0) {
+            throw new IllegalArgumentException(
+                    "Stack distance histogram bucket size scaling must be > 0");
+        }
+        this.stackDistanceHistogramBucketSizeScaling = bucketSizeScaling;
+    }
+
+    public int getStackDistanceHistogramBucketSizeScaling() {
+        return stackDistanceHistogramBucketSizeScaling;
     }
 
     /**

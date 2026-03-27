@@ -44,7 +44,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +81,6 @@ public class A4SAggregatingVertexMetricsHandler
     private final MetricFetcher fetcher;
 
     private final long cacheItemSizeBytes;
-    private final long bucketSizeScaling;
 
     public A4SAggregatingVertexMetricsHandler(
             GatewayRetriever<? extends RestfulGateway> leaderRetriever,
@@ -90,8 +88,7 @@ public class A4SAggregatingVertexMetricsHandler
             Map<String, String> responseHeaders,
             Executor executor,
             MetricFetcher fetcher,
-            long cacheItemSizeBytes,
-            long bucketSizeScaling) {
+            long cacheItemSizeBytes) {
         super(
                 leaderRetriever,
                 timeout,
@@ -100,7 +97,6 @@ public class A4SAggregatingVertexMetricsHandler
         this.executor = executor;
         this.fetcher = fetcher;
         this.cacheItemSizeBytes = cacheItemSizeBytes;
-        this.bucketSizeScaling = bucketSizeScaling;
     }
 
     @Override
@@ -231,8 +227,7 @@ public class A4SAggregatingVertexMetricsHandler
 
         StackDistanceHistogram mergedHistogram = StackDistanceHistogram.merge(subtaskHistograms);
         MissRateCurve mrc =
-                MissRateCurve.fromStackDistanceHistogram(
-                        mergedHistogram, cacheItemSizeBytes, bucketSizeScaling);
+                MissRateCurve.fromStackDistanceHistogram(mergedHistogram, cacheItemSizeBytes);
         return mrc;
     }
 }

@@ -532,8 +532,6 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 
         final long cacheItemSizeBytes =
                 clusterConfiguration.getLong(TaskManagerOptions.A4S_CACHE_ITEM_SIZE_BYTES);
-        final long bucketSizeScaling =
-                clusterConfiguration.getLong(TaskManagerOptions.A4S_BUCKET_SIZE_SCALING);
         final A4SAggregatingVertexMetricsHandler a4sAggregatingVertexMetricsHandler =
                 new A4SAggregatingVertexMetricsHandler(
                         leaderRetriever,
@@ -541,8 +539,7 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
                         responseHeaders,
                         executor,
                         metricFetcher,
-                        cacheItemSizeBytes,
-                        bucketSizeScaling);
+                        cacheItemSizeBytes);
 
         final JobVertexTaskManagersHandler jobVertexTaskManagersHandler =
                 new JobVertexTaskManagersHandler(

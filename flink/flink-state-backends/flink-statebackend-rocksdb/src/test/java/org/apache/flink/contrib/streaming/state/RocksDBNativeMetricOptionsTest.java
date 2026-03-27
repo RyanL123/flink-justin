@@ -46,4 +46,16 @@ public class RocksDBNativeMetricOptionsTest {
                     options.getProperties().contains(property.getRocksDBProperty()));
         }
     }
+
+    @Test
+    public void testStackDistanceHistogramScalingConfiguredFromQuickMrcBinSize() {
+        Configuration config = new Configuration();
+        config.setBoolean(RocksDBNativeMetricOptions.MONITOR_STACK_DISTANCE_HISTOGRAM.key(), true);
+        config.setInteger(RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE.key(), 7);
+
+        RocksDBNativeMetricOptions options = RocksDBNativeMetricOptions.fromConfig(config);
+
+        Assert.assertTrue(options.isStackDistanceHistogramEnabled());
+        Assert.assertEquals(7, options.getStackDistanceHistogramBucketSizeScaling());
+    }
 }

@@ -59,9 +59,7 @@ public class MissRateCurve {
     }
 
     public static MissRateCurve fromStackDistanceHistogram(
-            StackDistanceHistogram histogram,
-            long itemSizeBytes,
-            long bucketSizeScaling) {
+            StackDistanceHistogram histogram, long itemSizeBytes) {
         if (histogram == null) {
             throw new IllegalArgumentException("Merged histogram cannot be null");
         }
@@ -80,6 +78,7 @@ public class MissRateCurve {
 
         List<Point> scaledMrc = new ArrayList<>();
         long cumulativeFreqAtSize = 0L;
+        long bucketSizeScaling = histogram.getBucketSizeScaling();
         for (int i = 0; i < numBuckets; i++) {
             cumulativeFreqAtSize += histogram.getFrequency(i);
             long currentCacheSize = (i + 1L) * bucketSizeScaling;

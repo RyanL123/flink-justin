@@ -68,7 +68,6 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
     private static final Time TIMEOUT = Time.milliseconds(50L);
 
     private static final long CACHE_ITEM_SIZE_BYTES = 4096L;
-    private static final long BUCKET_SIZE_SCALING = 1L;
 
     @Mock private RestfulGateway restfulGateway;
 
@@ -109,8 +108,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         Collections.emptyMap(),
                         Executors.directExecutor(),
                         metricFetcher,
-                        CACHE_ITEM_SIZE_BYTES,
-                        BUCKET_SIZE_SCALING);
+                        CACHE_ITEM_SIZE_BYTES);
     }
 
     @After
@@ -141,14 +139,14 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId.toString(), 0, 0, ""),
                         "stack-distance-histogram",
-                        new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1, 1L)
                                 .toMetricString()));
         metricStore.add(
                 new MetricDump.GaugeDump(
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId.toString(), 1, 0, ""),
                         "foo.stack-distance-histogram",
-                        new StackDistanceHistogram(new long[] {1L, 1L, 1L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {1L, 1L, 1L, 0L}, 1, 1L)
                                 .toMetricString()));
 
         A4SAggregatedMetricsResponseBody response =
@@ -174,7 +172,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId.toString(), 0, 0, ""),
                         "stack-distance-histogram",
-                        new StackDistanceHistogram(new long[] {4L, 2L, 2L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {4L, 2L, 2L, 0L}, 1, 1L)
                                 .toMetricString()));
 
         JobVertexID jobVertexId2 = new JobVertexID();
@@ -183,7 +181,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId2.toString(), 0, 0, ""),
                         "stack-distance-histogram",
-                        new StackDistanceHistogram(new long[] {1L, 1L, 1L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {1L, 1L, 1L, 0L}, 1, 1L)
                                 .toMetricString()));
 
         A4SAggregatedMetricsResponseBody response1 =
@@ -223,7 +221,7 @@ public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
                         new QueryScopeInfo.TaskQueryScopeInfo(
                                 jobId.toString(), jobVertexId.toString(), 0, 0, ""),
                         "foo",
-                        new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1)
+                        new StackDistanceHistogram(new long[] {4L, 2L, 1L, 0L}, 1, 1L)
                                 .toMetricString()));
         A4SAggregatedMetricsResponseBody response =
                 handler.handleRequest(
