@@ -22,6 +22,7 @@ import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.configuration.TaskManagerOptions;
 
 import org.rocksdb.TickerType;
 
@@ -448,6 +449,8 @@ public class RocksDBNativeMetricOptions implements Serializable {
             options.enableStackDistanceHistogram();
             options.setStackDistanceHistogramBucketSizeScaling(
                     config.get(RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE));
+            options.setStackDistanceHistogramCacheItemSizeBytes(
+                    config.get(TaskManagerOptions.A4S_CACHE_ITEM_SIZE_BYTES));
         }
     }
 
@@ -473,6 +476,8 @@ public class RocksDBNativeMetricOptions implements Serializable {
     private boolean monitorStackDistanceHistogram = MONITOR_STACK_DISTANCE_HISTOGRAM.defaultValue();
     private int stackDistanceHistogramBucketSizeScaling =
             RocksDBOptions.A4S_QUICK_MRC_HISTOGRAM_BIN_SIZE.defaultValue();
+    private long stackDistanceHistogramCacheItemSizeBytes =
+            TaskManagerOptions.A4S_CACHE_ITEM_SIZE_BYTES.defaultValue();
 
     public RocksDBNativeMetricOptions() {
         this.properties = new HashSet<>();
@@ -688,6 +693,18 @@ public class RocksDBNativeMetricOptions implements Serializable {
 
     public int getStackDistanceHistogramBucketSizeScaling() {
         return stackDistanceHistogramBucketSizeScaling;
+    }
+
+    public void setStackDistanceHistogramCacheItemSizeBytes(long cacheItemSizeBytes) {
+        if (cacheItemSizeBytes <= 0L) {
+            throw new IllegalArgumentException(
+                    "Stack distance histogram cache item size bytes must be > 0");
+        }
+        this.stackDistanceHistogramCacheItemSizeBytes = cacheItemSizeBytes;
+    }
+
+    public long getStackDistanceHistogramCacheItemSizeBytes() {
+        return stackDistanceHistogramCacheItemSizeBytes;
     }
 
     /**

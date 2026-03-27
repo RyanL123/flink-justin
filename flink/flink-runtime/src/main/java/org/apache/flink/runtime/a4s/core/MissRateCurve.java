@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Comparator;
 
 public class MissRateCurve {
-    private static final long CACHE_ITEM_SIZE_BYTES = 4096L;
     private final List<Point> points;
 
     @JsonCreator
@@ -58,14 +57,9 @@ public class MissRateCurve {
         }
     }
 
-    public static MissRateCurve fromStackDistanceHistogram(
-            StackDistanceHistogram histogram, long itemSizeBytes) {
+    public static MissRateCurve fromStackDistanceHistogram(StackDistanceHistogram histogram) {
         if (histogram == null) {
             throw new IllegalArgumentException("Merged histogram cannot be null");
-        }
-
-        if (itemSizeBytes <= 0) {
-            itemSizeBytes = CACHE_ITEM_SIZE_BYTES;
         }
 
         long totalFrequency = histogram.getTotalFrequency();
@@ -79,12 +73,13 @@ public class MissRateCurve {
         List<Point> scaledMrc = new ArrayList<>();
         long cumulativeFreqAtSize = 0L;
         long bucketSizeScaling = histogram.getBucketSizeScaling();
+        long cacheItemSizeBytes = histogram.getCacheItemSizeBytes();
         for (int i = 0; i < numBuckets; i++) {
             cumulativeFreqAtSize += histogram.getFrequency(i);
             long currentCacheSize = (i + 1L) * bucketSizeScaling;
             double missRate = 1.0 - ((double) cumulativeFreqAtSize / totalFrequency);
             missRate = Math.max(0.0, Math.min(1.0, missRate));
-            long cacheSizeItems = currentCacheSize * itemSizeBytes;
+            long cacheSizeItems = currentCacheSize * cacheItemSizeBytes;
             long scaledCacheSizeBytes = cacheSizeItems * histogram.getNumPartitions();
             scaledMrc.add(new Point(scaledCacheSizeBytes, missRate));
         }

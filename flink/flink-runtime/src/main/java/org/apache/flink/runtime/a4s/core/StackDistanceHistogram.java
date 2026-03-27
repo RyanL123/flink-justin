@@ -20,17 +20,21 @@ public class StackDistanceHistogram implements Serializable {
     private final long[] bucketCounts;
     private final int numPartitions;
     private final long bucketSizeScaling;
+    private final long cacheItemSizeBytes;
 
     @JsonCreator
     public StackDistanceHistogram(
             @JsonProperty("bucketCounts") long[] bucketCounts,
             @JsonProperty("numPartitions") int numPartitions,
-            @JsonProperty("bucketSizeScaling") long bucketSizeScaling) {
+            @JsonProperty("bucketSizeScaling") long bucketSizeScaling,
+            @JsonProperty("cacheItemSizeBytes") long cacheItemSizeBytes) {
         validateCounts(bucketCounts);
         validateBucketSizeScaling(bucketSizeScaling);
+        validateCacheItemSizeBytes(cacheItemSizeBytes);
         this.bucketCounts = Arrays.copyOf(bucketCounts, bucketCounts.length);
         this.numPartitions = numPartitions;
         this.bucketSizeScaling = bucketSizeScaling;
+        this.cacheItemSizeBytes = cacheItemSizeBytes;
     }
 
     public String toMetricString() {
@@ -76,6 +80,12 @@ public class StackDistanceHistogram implements Serializable {
         }
     }
 
+    private static void validateCacheItemSizeBytes(long cacheItemSizeBytes) {
+        if (cacheItemSizeBytes <= 0L) {
+            throw new IllegalArgumentException("cacheItemSizeBytes must be > 0");
+        }
+    }
+
     public long[] getBucketCounts() {
         return Arrays.copyOf(bucketCounts, bucketCounts.length);
     }
@@ -96,6 +106,10 @@ public class StackDistanceHistogram implements Serializable {
         return bucketSizeScaling;
     }
 
+    public long getCacheItemSizeBytes() {
+        return cacheItemSizeBytes;
+    }
+
     /**
      * Deterministic fingerprint for correlating logs across TaskManager histogram export and
      * JobManager aggregation (FNV-1a 64-bit over bucket counts and partition count).
@@ -110,6 +124,8 @@ public class StackDistanceHistogram implements Serializable {
         h ^= (long) numPartitions;
         h *= prime;
         h ^= bucketSizeScaling;
+        h *= prime;
+        h ^= cacheItemSizeBytes;
         h *= prime;
         return h;
     }
@@ -130,12 +146,17 @@ public class StackDistanceHistogram implements Serializable {
 
         long[] mergedCounts = new long[numBuckets];
         long mergedBucketSizeScaling = histograms.get(0).getBucketSizeScaling();
+        long mergedCacheItemSizeBytes = histograms.get(0).getCacheItemSizeBytes();
 
         int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
         for (StackDistanceHistogram histogram : histograms) {
             if (histogram.getBucketSizeScaling() != mergedBucketSizeScaling) {
                 throw new IllegalArgumentException(
                         "Cannot merge histograms with different bucketSizeScaling values");
+            }
+            if (histogram.getCacheItemSizeBytes() != mergedCacheItemSizeBytes) {
+                throw new IllegalArgumentException(
+                        "Cannot merge histograms with different cacheItemSizeBytes values");
             }
             for (int i = 0; i < histogram.getNumBuckets() - 1; i++) {
                 mergedCounts[i] += histogram.getFrequency(i);
@@ -144,7 +165,8 @@ public class StackDistanceHistogram implements Serializable {
             mergedCounts[numBuckets - 1] += histogram.getFrequency(histogram.getNumBuckets() - 1);
         }
 
-        return new StackDistanceHistogram(mergedCounts, totalPartitions, mergedBucketSizeScaling);
+        return new StackDistanceHistogram(
+                mergedCounts, totalPartitions, mergedBucketSizeScaling, mergedCacheItemSizeBytes);
     }
 
     public long getTotalFrequency() {
@@ -165,7 +187,11 @@ public class StackDistanceHistogram implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "StackDistanceHistogram{numBuckets=%d, numPartitions=%d, bucketSizeScaling=%d, totalFrequency=%d}",
-                getNumBuckets(), numPartitions, bucketSizeScaling, getTotalFrequency());
+                "StackDistanceHistogram{numBuckets=%d, numPartitions=%d, bucketSizeScaling=%d, cacheItemSizeBytes=%d, totalFrequency=%d}",
+                getNumBuckets(),
+                numPartitions,
+                bucketSizeScaling,
+                cacheItemSizeBytes,
+                getTotalFrequency());
     }
 }

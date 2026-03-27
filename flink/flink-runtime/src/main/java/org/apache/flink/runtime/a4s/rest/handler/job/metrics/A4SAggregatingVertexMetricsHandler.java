@@ -80,15 +80,12 @@ public class A4SAggregatingVertexMetricsHandler
     private final Executor executor;
     private final MetricFetcher fetcher;
 
-    private final long cacheItemSizeBytes;
-
     public A4SAggregatingVertexMetricsHandler(
             GatewayRetriever<? extends RestfulGateway> leaderRetriever,
             Time timeout,
             Map<String, String> responseHeaders,
             Executor executor,
-            MetricFetcher fetcher,
-            long cacheItemSizeBytes) {
+            MetricFetcher fetcher) {
         super(
                 leaderRetriever,
                 timeout,
@@ -96,7 +93,6 @@ public class A4SAggregatingVertexMetricsHandler
                 A4SAggregatedVertexMetricsHeaders.getInstance());
         this.executor = executor;
         this.fetcher = fetcher;
-        this.cacheItemSizeBytes = cacheItemSizeBytes;
     }
 
     @Override
@@ -226,8 +222,7 @@ public class A4SAggregatingVertexMetricsHandler
         }
 
         StackDistanceHistogram mergedHistogram = StackDistanceHistogram.merge(subtaskHistograms);
-        MissRateCurve mrc =
-                MissRateCurve.fromStackDistanceHistogram(mergedHistogram, cacheItemSizeBytes);
+        MissRateCurve mrc = MissRateCurve.fromStackDistanceHistogram(mergedHistogram);
         return mrc;
     }
 }
