@@ -59,34 +59,34 @@ public class MissRateCurve {
     }
 
     public static MissRateCurve fromStackDistanceHistogram(
-            StackDistanceHistogram mergedHistogram,
-            long cacheItemSizeBytes,
+            StackDistanceHistogram histogram,
+            long itemSizeBytes,
             long bucketSizeScaling) {
-        if (mergedHistogram == null) {
+        if (histogram == null) {
             throw new IllegalArgumentException("Merged histogram cannot be null");
         }
 
-        if (cacheItemSizeBytes <= 0) {
-            cacheItemSizeBytes = CACHE_ITEM_SIZE_BYTES;
+        if (itemSizeBytes <= 0) {
+            itemSizeBytes = CACHE_ITEM_SIZE_BYTES;
         }
 
-        long totalFrequency = mergedHistogram.getTotalFrequency();
+        long totalFrequency = histogram.getTotalFrequency();
         if (totalFrequency == 0) {
             return new MissRateCurve(Collections.emptyList());
         }
 
         // last bucket is used for tracking complete misses
-        int numBuckets = mergedHistogram.getNumBuckets() - 1;
+        int numBuckets = histogram.getNumBuckets() - 1;
 
         List<Point> scaledMrc = new ArrayList<>();
         long cumulativeFreqAtSize = 0L;
         for (int i = 0; i < numBuckets; i++) {
-            cumulativeFreqAtSize += mergedHistogram.getFrequency(i);
+            cumulativeFreqAtSize += histogram.getFrequency(i);
             long currentCacheSize = (i + 1L) * bucketSizeScaling;
             double missRate = 1.0 - ((double) cumulativeFreqAtSize / totalFrequency);
             missRate = Math.max(0.0, Math.min(1.0, missRate));
-            long cacheSizeItems = currentCacheSize * cacheItemSizeBytes;
-            long scaledCacheSizeBytes = cacheSizeItems * mergedHistogram.getNumPartitions();
+            long cacheSizeItems = currentCacheSize * itemSizeBytes;
+            long scaledCacheSizeBytes = cacheSizeItems * histogram.getNumPartitions();
             scaledMrc.add(new Point(scaledCacheSizeBytes, missRate));
         }
 
