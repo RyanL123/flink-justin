@@ -265,7 +265,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
             this.cacheItemSizeBytes = options.getStackDistanceHistogramCacheItemSizeBytes();
             this.latestHistogram =
                     new StackDistanceHistogram(
-                            new long[0], 1, bucketSizeScaling, cacheItemSizeBytes);
+                            new long[0], 0L, 1, bucketSizeScaling, cacheItemSizeBytes);
         }
 
         @Override
@@ -277,7 +277,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 if (viewLruCache == null) {
                     StackDistanceHistogram emptyHistogram =
                             new StackDistanceHistogram(
-                                    new long[0], 1, bucketSizeScaling, cacheItemSizeBytes);
+                                    new long[0], 0L, 1, bucketSizeScaling, cacheItemSizeBytes);
                     LOG.debug(
                             "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=lru_cache_null",
                             A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
@@ -293,7 +293,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                     if (histogramCounts == null) {
                         StackDistanceHistogram emptyHistogram =
                                 new StackDistanceHistogram(
-                                        new long[0], 1, bucketSizeScaling, cacheItemSizeBytes);
+                                        new long[0], 0L, 1, bucketSizeScaling, cacheItemSizeBytes);
                         LOG.warn(
                                 "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=histogram_null",
                                 A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
@@ -304,9 +304,19 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                         return;
                     }
 
+                    long completeMisses =
+                            histogramCounts.length == 0 ? 0L : histogramCounts[histogramCounts.length - 1];
+                    long[] finiteBucketCounts =
+                            histogramCounts.length == 0
+                                    ? new long[0]
+                                    : java.util.Arrays.copyOf(histogramCounts, histogramCounts.length - 1);
                     latestHistogram =
                             new StackDistanceHistogram(
-                                    histogramCounts, 1, bucketSizeScaling, cacheItemSizeBytes);
+                                    finiteBucketCounts,
+                                    completeMisses,
+                                    1,
+                                    bucketSizeScaling,
+                                    cacheItemSizeBytes);
                     LOG.debug(
                             "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} totalFrequency={}",
                             A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATED.name(),
@@ -317,7 +327,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
                 } catch (RuntimeException e) {
                     StackDistanceHistogram empty =
                             new StackDistanceHistogram(
-                                    new long[0], 1, bucketSizeScaling, cacheItemSizeBytes);
+                                    new long[0], 0L, 1, bucketSizeScaling, cacheItemSizeBytes);
                     LOG.warn(
                             "A4S [{}]: histogramFingerprint={} numBuckets={} numPartitions={} reason=exception message={}",
                             A4SMetricsFlowStep.ROCKSDB_HISTOGRAM_UPDATE_FAILED.name(),
@@ -340,7 +350,7 @@ public class RocksDBNativeMetricMonitor implements Closeable {
             if (histogram == null) {
                 histogram =
                         new StackDistanceHistogram(
-                                new long[0], 1, bucketSizeScaling, cacheItemSizeBytes);
+                                new long[0], 0L, 1, bucketSizeScaling, cacheItemSizeBytes);
             }
             return histogram.toMetricString();
         }

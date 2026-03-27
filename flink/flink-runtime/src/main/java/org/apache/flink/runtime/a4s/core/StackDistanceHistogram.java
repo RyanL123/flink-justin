@@ -17,21 +17,51 @@ public class StackDistanceHistogram implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final ObjectMapper OBJECT_MAPPER = JacksonMapperFactory.createObjectMapper();
 
+    /**
+     * The frequency distribution of stack distance accesses.
+     * Each bucket has width equal to {@link #bucketSizeScaling}
+     */
     private final long[] bucketCounts;
+
+    /**
+     * The number of complete misses. These accesses could not be captured 
+     * and therefore represent compulsory misses.
+     */
+    private final long completeMisses;
+
+    /**
+     * The number of partitions is the number of merged histograms this represents.
+     * Each histogram is 1 partition. The number of partitions is the sum of the
+     * partitions of the merged histograms.
+     * 
+     * @see #merge(List)
+     */
     private final int numPartitions;
+
+    /**
+     * The size of the bucket in the histogram. i.e. if scaling is 64, the first
+     * bucket represents stack distance between 0 and 63 inclusive.
+     */
     private final long bucketSizeScaling;
+
+    /**
+     * Represents the average size of each cache item in bytes.
+     */
     private final long cacheItemSizeBytes;
 
     @JsonCreator
     public StackDistanceHistogram(
             @JsonProperty("bucketCounts") long[] bucketCounts,
+            @JsonProperty("completeMisses") long completeMisses,
             @JsonProperty("numPartitions") int numPartitions,
             @JsonProperty("bucketSizeScaling") long bucketSizeScaling,
             @JsonProperty("cacheItemSizeBytes") long cacheItemSizeBytes) {
         validateCounts(bucketCounts);
+        validateCompleteMisses(completeMisses);
         validateBucketSizeScaling(bucketSizeScaling);
         validateCacheItemSizeBytes(cacheItemSizeBytes);
         this.bucketCounts = Arrays.copyOf(bucketCounts, bucketCounts.length);
+        this.completeMisses = completeMisses;
         this.numPartitions = numPartitions;
         this.bucketSizeScaling = bucketSizeScaling;
         this.cacheItemSizeBytes = cacheItemSizeBytes;
@@ -80,6 +110,12 @@ public class StackDistanceHistogram implements Serializable {
         }
     }
 
+    private static void validateCompleteMisses(long completeMisses) {
+        if (completeMisses < 0L) {
+            throw new IllegalArgumentException("completeMisses must be >= 0");
+        }
+    }
+
     private static void validateCacheItemSizeBytes(long cacheItemSizeBytes) {
         if (cacheItemSizeBytes <= 0L) {
             throw new IllegalArgumentException("cacheItemSizeBytes must be > 0");
@@ -110,6 +146,10 @@ public class StackDistanceHistogram implements Serializable {
         return cacheItemSizeBytes;
     }
 
+    public long getCompleteMisses() {
+        return completeMisses;
+    }
+
     /**
      * Deterministic fingerprint for correlating logs across TaskManager histogram export and
      * JobManager aggregation (FNV-1a 64-bit over bucket counts and partition count).
@@ -121,6 +161,8 @@ public class StackDistanceHistogram implements Serializable {
             h ^= count;
             h *= prime;
         }
+        h ^= completeMisses;
+        h *= prime;
         h ^= (long) numPartitions;
         h *= prime;
         h ^= bucketSizeScaling;
@@ -139,12 +181,13 @@ public class StackDistanceHistogram implements Serializable {
             return histograms.get(0);
         }
 
-        int numBuckets = 0;
+        int maxFiniteBuckets = 0;
         for (StackDistanceHistogram histogram : histograms) {
-            numBuckets = Math.max(numBuckets, histogram.getNumBuckets());
+            maxFiniteBuckets = Math.max(maxFiniteBuckets, histogram.getNumBuckets());
         }
 
-        long[] mergedCounts = new long[numBuckets];
+        long[] mergedFiniteCounts = new long[maxFiniteBuckets];
+        long mergedCompleteMisses = 0L;
         long mergedBucketSizeScaling = histograms.get(0).getBucketSizeScaling();
         long mergedCacheItemSizeBytes = histograms.get(0).getCacheItemSizeBytes();
 
@@ -158,15 +201,18 @@ public class StackDistanceHistogram implements Serializable {
                 throw new IllegalArgumentException(
                         "Cannot merge histograms with different cacheItemSizeBytes values");
             }
-            for (int i = 0; i < histogram.getNumBuckets() - 1; i++) {
-                mergedCounts[i] += histogram.getFrequency(i);
+            for (int i = 0; i < histogram.getNumBuckets(); i++) {
+                mergedFiniteCounts[i] += histogram.getFrequency(i);
             }
-            // last bucket always stores complete misses (infinite stack distance)
-            mergedCounts[numBuckets - 1] += histogram.getFrequency(histogram.getNumBuckets() - 1);
+            mergedCompleteMisses += histogram.getCompleteMisses();
         }
 
         return new StackDistanceHistogram(
-                mergedCounts, totalPartitions, mergedBucketSizeScaling, mergedCacheItemSizeBytes);
+                mergedFiniteCounts,
+                mergedCompleteMisses,
+                totalPartitions,
+                mergedBucketSizeScaling,
+                mergedCacheItemSizeBytes);
     }
 
     public long getTotalFrequency() {
@@ -174,11 +220,12 @@ public class StackDistanceHistogram implements Serializable {
         for (long count : this.bucketCounts) {
             total += count;
         }
+        total += completeMisses;
         return total;
     }
 
     public long getFrequency(int bucketIndex) {
-        if (bucketIndex < 0 || bucketIndex >= bucketCounts.length) {
+        if (bucketIndex < 0 || bucketIndex >= getNumBuckets()) {
             return 0L;
         }
         return bucketCounts[bucketIndex];
@@ -187,8 +234,9 @@ public class StackDistanceHistogram implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "StackDistanceHistogram{numBuckets=%d, numPartitions=%d, bucketSizeScaling=%d, cacheItemSizeBytes=%d, totalFrequency=%d}",
+                "StackDistanceHistogram{numBuckets=%d, completeMisses=%d, numPartitions=%d, bucketSizeScaling=%d, cacheItemSizeBytes=%d, totalFrequency=%d}",
                 getNumBuckets(),
+                completeMisses,
                 numPartitions,
                 bucketSizeScaling,
                 cacheItemSizeBytes,

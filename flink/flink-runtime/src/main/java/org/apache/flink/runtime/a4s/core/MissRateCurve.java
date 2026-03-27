@@ -67,13 +67,12 @@ public class MissRateCurve {
             return new MissRateCurve(Collections.emptyList());
         }
 
-        // last bucket is used for tracking complete misses
-        int numBuckets = histogram.getNumBuckets() - 1;
-
-        List<Point> scaledMrc = new ArrayList<>();
+        List<Point> mrc = new ArrayList<>();
         long cumulativeFreqAtSize = 0L;
         long bucketSizeScaling = histogram.getBucketSizeScaling();
         long cacheItemSizeBytes = histogram.getCacheItemSizeBytes();
+        int numBuckets = histogram.getNumBuckets();
+
         for (int i = 0; i < numBuckets; i++) {
             cumulativeFreqAtSize += histogram.getFrequency(i);
             long currentCacheSize = (i + 1L) * bucketSizeScaling;
@@ -81,10 +80,10 @@ public class MissRateCurve {
             missRate = Math.max(0.0, Math.min(1.0, missRate));
             long cacheSizeItems = currentCacheSize * cacheItemSizeBytes;
             long scaledCacheSizeBytes = cacheSizeItems * histogram.getNumPartitions();
-            scaledMrc.add(new Point(scaledCacheSizeBytes, missRate));
+            mrc.add(new Point(scaledCacheSizeBytes, missRate));
         }
 
-        return new MissRateCurve(scaledMrc);
+        return new MissRateCurve(mrc);
     }
 
     public double leastMemoryBytesForMissRate(double maxMissRate) {
