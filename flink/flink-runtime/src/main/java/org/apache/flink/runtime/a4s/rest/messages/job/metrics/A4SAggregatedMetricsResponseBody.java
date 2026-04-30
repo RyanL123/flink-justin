@@ -18,7 +18,7 @@
 
 package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
 
-import org.apache.flink.runtime.a4s.core.MissRateCurve;
+import org.apache.flink.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;

@@ -19,7 +19,7 @@ package org.apache.flink.autoscaler.a4s;
 
 import lombok.Getter;
 
-import org.apache.flink.runtime.a4s.core.MissRateCurve;
+import org.apache.flink.a4s.core.MissRateCurve;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

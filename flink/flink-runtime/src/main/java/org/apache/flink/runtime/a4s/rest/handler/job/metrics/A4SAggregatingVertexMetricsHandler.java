@@ -20,12 +20,12 @@ package org.apache.flink.runtime.a4s.rest.handler.job.metrics;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.runtime.a4s.core.MissRateCurve;
-import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
-import org.apache.flink.runtime.a4s.logging.A4SMetricsFlowStep;
+import org.apache.flink.a4s.core.MissRateCurve;
+import org.apache.flink.a4s.core.StackDistanceHistogram;
+import org.apache.flink.a4s.logging.A4SMetricsFlowStep;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedVertexMetricsHeaders;
-import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.rest.handler.AbstractRestHandler;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;

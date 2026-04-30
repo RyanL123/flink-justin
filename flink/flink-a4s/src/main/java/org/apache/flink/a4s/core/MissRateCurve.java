@@ -1,4 +1,4 @@
-package org.apache.flink.runtime.a4s.core;
+package org.apache.flink.a4s.core;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,9 +6,9 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonVal
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Comparator;
 
 public class MissRateCurve {
     private final List<Point> points;
@@ -91,9 +91,10 @@ public class MissRateCurve {
             throw new IllegalStateException("MissRateCurve has no points");
         }
 
-        Optional<Point> bestPoint = points.stream().
-            filter(point -> point.getMissRate() <= maxMissRate).
-            min(Comparator.comparingDouble(Point::getCacheSizeBytes));
+        Optional<Point> bestPoint =
+                points.stream()
+                        .filter(point -> point.getMissRate() <= maxMissRate)
+                        .min(Comparator.comparingDouble(Point::getCacheSizeBytes));
 
         if (bestPoint.isPresent()) {
             return bestPoint.get().getCacheSizeBytes();
@@ -108,7 +109,7 @@ public class MissRateCurve {
             return points.get(0).getCacheSizeBytes();
         }
 
-        // We say we're entering a plateau region if the rate of decrease 
+        // We say we're entering a plateau region if the rate of decrease
         // in missrate between consecutive points is less than some threshold
         for (int i = 1; i < points.size(); i++) {
             double currentDifference = points.get(i - 1).getMissRate() - points.get(i).getMissRate();

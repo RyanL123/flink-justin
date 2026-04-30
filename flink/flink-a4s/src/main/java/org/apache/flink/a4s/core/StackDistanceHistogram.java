@@ -1,4 +1,4 @@
-package org.apache.flink.runtime.a4s.core;
+package org.apache.flink.a4s.core;
 
 import org.apache.flink.util.jackson.JacksonMapperFactory;
 
@@ -17,36 +17,10 @@ public class StackDistanceHistogram implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final ObjectMapper OBJECT_MAPPER = JacksonMapperFactory.createObjectMapper();
 
-    /**
-     * The frequency distribution of stack distance accesses.
-     * Each bucket has width equal to {@link #bucketSizeScaling}
-     */
     private final long[] bucketCounts;
-
-    /**
-     * The number of complete misses. These accesses could not be captured 
-     * and therefore represent compulsory misses.
-     */
     private final long completeMisses;
-
-    /**
-     * The number of partitions is the number of merged histograms this represents.
-     * Each histogram is 1 partition. The number of partitions is the sum of the
-     * partitions of the merged histograms.
-     * 
-     * @see #merge(List)
-     */
     private final int numPartitions;
-
-    /**
-     * The size of the bucket in the histogram. i.e. if scaling is 64, the first
-     * bucket represents stack distance between 0 and 63 inclusive.
-     */
     private final long bucketSizeScaling;
-
-    /**
-     * Represents the average size of each cache item in bytes.
-     */
     private final long cacheItemSizeBytes;
 
     @JsonCreator
@@ -126,10 +100,6 @@ public class StackDistanceHistogram implements Serializable {
         return Arrays.copyOf(bucketCounts, bucketCounts.length);
     }
 
-    public long[] toBucketCountsArray() {
-        return getBucketCounts();
-    }
-
     public int getNumBuckets() {
         return bucketCounts.length;
     }
@@ -150,10 +120,6 @@ public class StackDistanceHistogram implements Serializable {
         return completeMisses;
     }
 
-    /**
-     * Deterministic fingerprint for correlating logs across TaskManager histogram export and
-     * JobManager aggregation (FNV-1a 64-bit over bucket counts and partition count).
-     */
     public long getHistogramFingerprint() {
         long h = 0xcbf29ce484222325L;
         final long prime = 0x100000001b3L;
@@ -191,7 +157,7 @@ public class StackDistanceHistogram implements Serializable {
         long mergedBucketSizeScaling = histograms.get(0).getBucketSizeScaling();
         long mergedCacheItemSizeBytes = histograms.get(0).getCacheItemSizeBytes();
 
-        int totalPartitions = histograms.stream().mapToInt(h -> h.getNumPartitions()).sum();
+        int totalPartitions = histograms.stream().mapToInt(StackDistanceHistogram::getNumPartitions).sum();
         for (StackDistanceHistogram histogram : histograms) {
             if (histogram.getBucketSizeScaling() != mergedBucketSizeScaling) {
                 throw new IllegalArgumentException(

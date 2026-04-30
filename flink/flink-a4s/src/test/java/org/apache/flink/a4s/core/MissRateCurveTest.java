@@ -1,4 +1,4 @@
-package org.apache.flink.runtime.a4s.core;
+package org.apache.flink.a4s.core;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +34,12 @@ class MissRateCurveTest {
 
     @Test
     void testLeastMemoryBytesForMissRate_simpleCase() {
-        MissRateCurve mrc = new MissRateCurve(List.of(
-                new MissRateCurve.Point(100L, 0.5),
-                new MissRateCurve.Point(200L, 0.2),
-                new MissRateCurve.Point(300L, 0.1)
-        ));
+        MissRateCurve mrc =
+                new MissRateCurve(
+                        List.of(
+                                new MissRateCurve.Point(100L, 0.5),
+                                new MissRateCurve.Point(200L, 0.2),
+                                new MissRateCurve.Point(300L, 0.1)));
 
         assertEquals(100L, mrc.leastMemoryBytesForMissRate(0.5));
         assertEquals(200L, mrc.leastMemoryBytesForMissRate(0.2));
@@ -47,32 +48,30 @@ class MissRateCurveTest {
 
     @Test
     void testLeastMemoryBytesForMissRate_plateauCase() {
-        MissRateCurve mrc = new MissRateCurve(List.of(
-                new MissRateCurve.Point(100L, 0.6),
-                new MissRateCurve.Point(200L, 0.5),
-                new MissRateCurve.Point(300L, 0.4),
-                new MissRateCurve.Point(400L, 0.38),
-                new MissRateCurve.Point(500L, 0.37)
-            ));
+        MissRateCurve mrc =
+                new MissRateCurve(
+                        List.of(
+                                new MissRateCurve.Point(100L, 0.6),
+                                new MissRateCurve.Point(200L, 0.5),
+                                new MissRateCurve.Point(300L, 0.4),
+                                new MissRateCurve.Point(400L, 0.38),
+                                new MissRateCurve.Point(500L, 0.37)));
 
         assertEquals(500L, mrc.leastMemoryBytesForMissRate(0.3));
     }
 
     @Test
     void testLeastMemoryBytesForMissRate_noPointFoundOnePoint() {
-        MissRateCurve mrc = new MissRateCurve(List.of(
-                new MissRateCurve.Point(100L, 0.5)
-            ));
+        MissRateCurve mrc = new MissRateCurve(List.of(new MissRateCurve.Point(100L, 0.5)));
 
         assertEquals(100L, mrc.leastMemoryBytesForMissRate(0.3));
     }
 
     @Test
     void testLeastMemoryBytesForMissRate_noPointFoundTwoPoints() {
-        MissRateCurve mrc = new MissRateCurve(List.of(
-                new MissRateCurve.Point(100L, 0.5),
-                new MissRateCurve.Point(200L, 0.49)
-            ));
+        MissRateCurve mrc =
+                new MissRateCurve(
+                        List.of(new MissRateCurve.Point(100L, 0.5), new MissRateCurve.Point(200L, 0.49)));
 
         assertEquals(200L, mrc.leastMemoryBytesForMissRate(0.3));
     }

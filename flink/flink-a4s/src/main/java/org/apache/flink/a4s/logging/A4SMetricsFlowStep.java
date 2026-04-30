@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.a4s.logging;
+package org.apache.flink.a4s.logging;
 
 /**
  * Stages in the A4S stack-distance histogram and MRC pipeline for consolidated logging ({@code A4S

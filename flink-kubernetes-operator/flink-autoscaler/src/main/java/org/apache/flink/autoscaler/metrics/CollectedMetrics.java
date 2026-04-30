@@ -17,7 +17,7 @@
 
 package org.apache.flink.autoscaler.metrics;
 
-import org.apache.flink.runtime.a4s.core.MissRateCurve;
+import org.apache.flink.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 
 import lombok.AllArgsConstructor;

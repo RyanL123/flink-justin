@@ -22,8 +22,8 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.View;
-import org.apache.flink.runtime.a4s.core.StackDistanceHistogram;
-import org.apache.flink.runtime.a4s.logging.A4SMetricsFlowStep;
+import org.apache.flink.a4s.core.StackDistanceHistogram;
+import org.apache.flink.a4s.logging.A4SMetricsFlowStep;
 
 import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyHandle;
