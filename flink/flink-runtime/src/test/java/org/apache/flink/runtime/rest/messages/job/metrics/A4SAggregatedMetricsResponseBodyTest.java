@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
+package org.apache.flink.runtime.rest.messages.job.metrics;
 
 import org.apache.flink.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.rest.messages.RestResponseMarshallingTestBase;

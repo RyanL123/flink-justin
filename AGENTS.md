@@ -24,6 +24,7 @@
 - If a verification build fails at `maven-clean-plugin` due inability to delete a module `target` directory in a dirty workspace, rerun the same verification without `clean`.
 - When running reactor builds with `-am` and a targeted `-Dtest=...`, add `-DfailIfNoTests=false` to avoid parent/pom modules failing before the target module tests run.
 - When extracting code from `flink-runtime` into a new module, avoid introducing `flink-a4s <-> flink-runtime` dependency cycles; keep runtime REST header/response classes in `flink-runtime` if they require runtime REST types.
+- After moving runtime REST classes to a new package, update all downstream operator imports (including tests) in the same change to prevent stale-package compile failures.
 
 # Flink Justin Agent Guide
 

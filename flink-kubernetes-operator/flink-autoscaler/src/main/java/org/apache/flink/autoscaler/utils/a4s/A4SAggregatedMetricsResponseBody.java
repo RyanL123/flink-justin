@@ -1,11 +1,10 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.a4s.rest.messages.job.metrics;
+package org.apache.flink.autoscaler.utils.a4s;
 
 import org.apache.flink.a4s.core.MissRateCurve;
 import org.apache.flink.runtime.rest.messages.ResponseBody;
@@ -26,7 +25,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonPro
 
 import java.util.Collections;
 
-/** A4S response body containing aggregated scalar metrics and scaled MRC points. */
+/** Autoscaler-local copy of the A4S metrics response body. */
 public class A4SAggregatedMetricsResponseBody implements ResponseBody {
 
     public static final String FIELD_NAME_SCALED_MRC = "scaledMrc";

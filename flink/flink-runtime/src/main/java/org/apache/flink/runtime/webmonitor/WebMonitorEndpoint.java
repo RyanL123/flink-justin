@@ -25,7 +25,6 @@ import org.apache.flink.configuration.AkkaOptions;
 import org.apache.flink.configuration.CheckpointingOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.RestOptions;
-import org.apache.flink.runtime.a4s.rest.handler.job.metrics.A4SAggregatingVertexMetricsHandler;
 import org.apache.flink.runtime.blob.TransientBlobService;
 import org.apache.flink.runtime.checkpoint.CheckpointStatsSnapshot;
 import org.apache.flink.runtime.leaderelection.LeaderContender;
@@ -82,6 +81,7 @@ import org.apache.flink.runtime.rest.handler.job.coordination.ClientCoordination
 import org.apache.flink.runtime.rest.handler.job.justin.JustinResourceRequirementsHandler;
 import org.apache.flink.runtime.rest.handler.job.justin.JustinResourceRequirementsUpdateHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingJobsMetricsHandler;
+import org.apache.flink.runtime.rest.handler.job.metrics.A4SAggregatingVertexMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingSubtasksMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.AggregatingTaskManagersMetricsHandler;
 import org.apache.flink.runtime.rest.handler.job.metrics.JobManagerMetricsHandler;

@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.a4s.rest.handler.job.metrics;
+package org.apache.flink.runtime.rest.handler.job.metrics;
 
+import org.apache.flink.a4s.core.MissRateCurve;
+import org.apache.flink.a4s.core.StackDistanceHistogram;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.MetricOptions;
-import org.apache.flink.a4s.core.MissRateCurve;
-import org.apache.flink.a4s.core.StackDistanceHistogram;
-import org.apache.flink.runtime.a4s.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.metrics.dump.MetricDump;
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
@@ -35,6 +34,7 @@ import org.apache.flink.runtime.rest.handler.legacy.metrics.MetricStore;
 import org.apache.flink.runtime.rest.messages.EmptyRequestBody;
 import org.apache.flink.runtime.rest.messages.JobIDPathParameter;
 import org.apache.flink.runtime.rest.messages.JobVertexIdPathParameter;
+import org.apache.flink.runtime.rest.messages.job.metrics.A4SAggregatedMetricsResponseBody;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 import org.apache.flink.testutils.TestingUtils;
@@ -66,7 +66,6 @@ import static org.junit.Assert.fail;
 public class A4SAggregatingVertexMetricsHandlerTest extends TestLogger {
 
     private static final Time TIMEOUT = Time.milliseconds(50L);
-
 
     @Mock private RestfulGateway restfulGateway;
 
